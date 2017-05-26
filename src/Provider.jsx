@@ -1,6 +1,7 @@
 import React from 'react';
 import createStore from './createStore';
 import SubStore from './SubStore';
+
 const { object, func, } = React.PropTypes;
 export default class Provider extends React.Component {
 
