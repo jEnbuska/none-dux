@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 const distPath = path.join(__dirname, 'dist');
-const context = path.join(__dirname, '/');
+const context = path.join(__dirname, 'src');
 
 const base = () => ({
   resolve: {
