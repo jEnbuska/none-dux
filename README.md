@@ -8,12 +8,22 @@ action creators:
 export function removeUser(id) {
    return function (store) {
     const user = store.users[id];
-    user.setState({ validated: false, });
-    setTimeout(() => { // delete request to backend
-      user.remove();
-      // or users.remove(id)
-    }, 1300);
+    user.setState({ pending: true, });
+    deleteUser(id)
+      .then(()=> user.remove()); 
+      //or store.users.remove(id)
   };
+}
+
+export function toggleTodo(id){
+  return function({todos: {[id]: todo}){
+    const { state: {done}, } = todo;
+    const { state, prevState, } = todo.setState({pending: true, done: !done});
+    updateTodo(id, state)
+      .then(({data: nextState}) => todo.clearState(nextState))
+      .catch(() => todo.clearState(prevState))
+      //or store.todos.setState({[id]: prevState});
+  }
 }
 ```
 init Provider:
