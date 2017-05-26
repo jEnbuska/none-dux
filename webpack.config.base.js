@@ -24,7 +24,7 @@ const base = () => ({
   plugins: [
     new webpack.NamedModulesPlugin(),
     new webpack.optimize.CommonsChunkPlugin({
-      names: [ 'vendor', 'none-dux', ],
+      names: [ 'vendor', ],
     }),
   ],
 });
