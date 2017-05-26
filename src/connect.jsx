@@ -2,7 +2,7 @@ import React from 'react';
 import { object, func, } from 'prop-types';
 
 const { entries, keys, } = Object;
-const connector = (Component, mapStateToProps, mapDispatchToProps) =>
+const connector = (Component, mapStateToProps, mapDispatchToProps = {}) =>
   class Connect extends React.Component {
 
     static contextTypes = {
