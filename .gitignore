@@ -1,0 +1,10 @@
+.babel-cache/
+node_modules/
+.idea/
+dist/
+npm-debug.log
+.firebaserc
+database.rules.json
+firebase-debug.log
+firebase.json
+functions

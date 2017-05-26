@@ -1,0 +1,62 @@
+{
+  "name": "none-dux",
+  "description": "easy react state handling with react-redux & redux-thunk like syntax",
+  "main": "dist/none-dux.js",
+  "version": "0.0.1",
+  "author": "jEnbuska <joonaenb@gmail.com>",
+  "license": "ISC",
+  "keywords": [
+      "react", "redux", "state"
+  ],
+  "scripts": {
+    "lint-fix": "eslint --ext .jsx --ext .js . --fix",
+    "build": "webpack --config webpack.config.production.js",
+    "prepublish": "npm run build",
+    "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
+    "test:watch": "npm run test -- --watch"
+  },
+  "dependencies": {
+    "prop-types": "^15.5.10",
+    "react": "^15.5.4"
+  },
+  "devDependencies": {
+    "redux": "^3.6.0",
+    "autoprefixer": "^6.7.7",
+    "babel-core": "^6.24.0",
+    "babel-eslint": "^7.2.1",
+    "babel-loader": "^6.2.10",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-syntax-decorators": "^6.13.0",
+    "babel-plugin-transform-async-to-generator": "^6.22.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-latest": "^6.16.0",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.22.0",
+    "chai": "^3.5.0",
+    "clean-webpack-plugin": "^0.1.16",
+    "css-loader": "^0.26.1",
+    "eslint": "^3.13.0",
+    "eslint-config-airbnb": "^13.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.8.0",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.10.1",
+    "html-webpack-plugin": "^2.26.0",
+    "html-webpack-template": "^6.0.0",
+    "json-loader": "^0.5.4",
+    "mocha": "^3.2.0",
+    "node-sass": "^4.1.1",
+    "postcss-loader": "^1.3.3",
+    "sass-loader": "^4.1.1",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.4.1",
+    "webpack-merge": "^4.0.0"
+  }
+}
