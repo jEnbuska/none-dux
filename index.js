@@ -1,3 +1,3 @@
-import noneDux from './src';
+import noneDux from './dist/none-dux';
 
 export default noneDux;
