@@ -1,8 +1,8 @@
 {
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
-  "main": "index.js",
-  "version": "0.0.9",
+  "main": "lib/bundle.js",
+  "version": "0.0.12",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -13,9 +13,9 @@
       "react", "redux", "state"
   ],
   "scripts": {
+    "compile": "babel -d lib/ src/",
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
-    "build": "webpack --config webpack.config.production.js",
-    "prepublish": "npm run build",
+    "prepublish": "npm run compile",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch"
   },

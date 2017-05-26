@@ -1,7 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
 
-const distPath = path.join(__dirname, 'dist');
+const distPath = path.join(__dirname, 'lib');
 const context = path.join(__dirname, 'src');
 
 const base = () => ({
@@ -23,17 +23,12 @@ const base = () => ({
   },
   plugins: [
     new webpack.NamedModulesPlugin(),
-    new webpack.optimize.CommonsChunkPlugin({
-      names: [ 'vendor', ],
-    }),
   ],
 });
 
-const vendor = [ 'react', 'prop-types', ];
 module.exports = {
   distPath,
   context,
   publicPath: '/',
   base,
-  vendor,
 };
