@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
   "main": "dist/none-dux.js",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
