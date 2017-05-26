@@ -2,4 +2,4 @@ import Provider from './Provider';
 import createStore from './createStore';
 import connect from './connect';
 
-module.exports = { Provider, createStore, connect, };
+export default { Provider, createStore, connect, };
