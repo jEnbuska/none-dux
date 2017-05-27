@@ -38,7 +38,7 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       if (propsChanges.length) {
         this.mapDispatchToProps = entries(mapDispatchToProps)
           .reduce(function (acc, [ key, value, ]) {
-            acc[key] = acc[key] = (...params) => value(...params)(store, nextProps);
+            acc[key] = (...params) => value(...params)(store, nextProps);
             return acc;
           }, {});
         const nextState = mapStateToProps(store.state, nextProps);
