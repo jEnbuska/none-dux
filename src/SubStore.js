@@ -61,12 +61,19 @@ export default class SimpleSubStore {
     if (this._parent) {
       if (ids.length) {
         this.prevState = this.state;
+        if (!(this.state instanceof Object)) {
+          throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${this.state}`);
+        }
         const nextState = { ...this.state, };
         for (const id of ids) {
-          delete nextState[id];
-          const targetChild = this[id];
-          targetChild._onDetach();
-          delete this[id];
+          if (nextState[id]) {
+            delete nextState[id];
+            const targetChild = this[id];
+            targetChild._onDetach();
+            delete this[id];
+          } else {
+            throw new Error('Remove error:', JSON.stringify(this._identity), `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
+          }
         }
         this.state = nextState;
         SimpleSubStore.lastInteraction = { target: this._identity, func: REMOVE, param: ids, };
