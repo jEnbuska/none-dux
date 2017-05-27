@@ -10,7 +10,7 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       subscribe: func,
     };
 
-    state = {};
+    state = { __storeChange__: 0, };
 
     componentWillMount() {
       const { props, context: { store, subscribe, }, } = this;
@@ -22,13 +22,13 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       const initialState = mapStateToProps(store.state, this.props);
       this.setState(initialState);
       this.subscription = subscribe(() => {
-        const nextState = mapStateToProps(store.state, this.props);
-        this.setState(nextState);
+        this.setState({ __storeChange__: this.state.__storeChange__ + 1, });
       });
     }
 
     render() {
-      return <Component {...this.props} {...this.state} {...this.mapDispatchToProps} />;
+      const { __storeChange__, ...rest } = this.state;
+      return <Component {...this.props} {...rest} {...this.mapDispatchToProps} />;
     }
 
     shouldComponentUpdate(nextProps, nextState) {
