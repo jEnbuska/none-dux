@@ -7,6 +7,7 @@ export default class Provider extends React.Component {
 
   static propTypes = {
     initialState: object,
+    onChange: func,
   };
 
   static defaultProps = {
@@ -31,6 +32,8 @@ export default class Provider extends React.Component {
               Object.values(this.subscribers).forEach(sub => sub());
             }
           });
+      const { onChange, } = this.props;
+      onChange && onChange(state);
     });
     createDebugger(this.store);
   }
@@ -47,9 +50,7 @@ export default class Provider extends React.Component {
     const { subscriptionCount, subscribers, } = this;
     subscribers[subscriptionCount] = callback;
     this.subscriptionCount++;
-    return () => {
-      delete this.subscribers[subscriptionCount];
-    };
+    return () => delete this.subscribers[subscriptionCount];
   };
 
   render() {
