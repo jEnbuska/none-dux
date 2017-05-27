@@ -10,7 +10,8 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       subscribe: func,
     };
 
-    state = { __storeChange__: 0, };
+    state = {};
+    shouldUpdate = false;
 
     componentWillMount() {
       const { props, context: { store, subscribe, }, } = this;
@@ -22,31 +23,33 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       const initialState = mapStateToProps(store.state, this.props);
       this.setState(initialState);
       this.subscription = subscribe(() => {
-        this.setState({ __storeChange__: this.state.__storeChange__ + 1, });
+        const nextState = mapStateToProps(store.state, this.props);
+        this.shouldUpdate = true;
+        this.setState(nextState);
       });
     }
 
     render() {
-      const { __storeChange__, ...rest } = this.state;
-      return <Component {...this.props} {...rest} {...this.mapDispatchToProps} />;
+      return <Component {...this.props} {...this.state} {...this.mapDispatchToProps} />;
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-      const { props, state, } = this;
-      const { store, } = this.context;
-      const propsChanges = keys({ ...props, ...nextProps, }).filter(k => props[k] !== nextProps[k]);
-      if (propsChanges.length) {
+    componentWillReceiveProps(nextProps) {
+      const { props, context: { store, }, } = this;
+      if (keys({ ...props, ...nextProps, }).filter(k => props[k] !== nextProps[k]).length) {
         this.mapDispatchToProps = entries(mapDispatchToProps)
           .reduce(function (acc, [ key, value, ]) {
             acc[key] = (...params) => value(...params)(store, nextProps);
             return acc;
           }, {});
         const nextState = mapStateToProps(store.state, nextProps);
+        this.shouldUpdate = true;
         this.setState(nextState);
-        return true;
-      } else if (nextState.__storeChange__ !== state.__storeChange__) {
-        const nextState = mapStateToProps(store.state, nextProps);
-        this.setState(nextState);
+      }
+    }
+
+    shouldComponentUpdate() {
+      if (this.shouldUpdate) {
+        this.shouldUpdate = false;
         return true;
       }
       return false;
