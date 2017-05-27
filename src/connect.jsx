@@ -32,24 +32,24 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-      const { props, } = this;
-      const dispatchChanges= keys({ ...props, ...nextProps, }).filter(k => props[k] !== nextProps[k]);
+      const { props, state, } = this;
       const { store, } = this.context;
-      const nextMappedState = mapStateToProps(store.state, this.props);
-      let shouldUpdate;
-      if (dispatchChanges.length) {
+      const propsChanges = keys({ ...props, ...nextProps, }).filter(k => props[k] !== nextProps[k]);
+      if (propsChanges.length) {
         this.mapDispatchToProps = entries(mapDispatchToProps)
           .reduce(function (acc, [ key, value, ]) {
-            acc[key] = acc[key] = (...params) => value(...params)(store, props);
+            acc[key] = acc[key] = (...params) => value(...params)(store, nextProps);
             return acc;
           }, {});
-        shouldUpdate= true;
+        const nextState = mapStateToProps(store.state, nextProps);
+        this.setState(nextState);
+        return true;
+      } else if (nextState.__storeChange__ !== state.__storeChange__) {
+        const nextState = mapStateToProps(store.state, nextProps);
+        this.setState(nextState);
+        return true;
       }
-      if (keys({ ...nextState, ...nextMappedState, }).some(k => nextState[k]!==nextMappedState[k])) {
-        this.setState(nextMappedState);
-        shouldUpdate= true;
-      }
-      return shouldUpdate;
+      return false;
     }
 
     componentWillUnmount() {
