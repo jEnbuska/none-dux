@@ -10,7 +10,7 @@ export class StoreCreator {
   static killSwitch = () => {
     console.trace();
     this.subject.remove();
-    throw new Error('Infinite recursion on SimpleSubStore');
+    throw new Error('Infinite recursion on SubStore');
   };
   constructor(state = {}) {
     this.state = state;
