@@ -21,10 +21,10 @@ describe('remove', () => {
     () => {
       store = createStore({});
       store.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      let children = store._getChildrenRecursively();
+      let children = store.getChildrenRecursively();
       expect(children.length).to.deep.equal(12);
       store.b.e.h.remove();
-      children = store._getChildrenRecursively();
+      children = store.getChildrenRecursively();
       expect(children.length).to.deep.equal(7);
     });
 

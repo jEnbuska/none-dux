@@ -140,11 +140,11 @@ export default class SimpleSubStore {
   }
 
   /* for testing and debug*/
-  _getChildrenRecursively() {
+  getChildrenRecursively() {
     return this.children()
       .reduce((acc, child) => {
         acc.push(child);
-        return [ ...acc, ...child._getChildrenRecursively(), ];
+        return [ ...acc, ...child.getChildrenRecursively(), ];
       }, []);
   }
 
