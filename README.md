@@ -3,6 +3,10 @@ Syntax much like react-redux, with thunk
 
 No reducers no action types
 
+import
+```
+import {Provider, connect} from 'none-dux';
+```
 action creators:
 ```
 export function removeUser(id) {
