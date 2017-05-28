@@ -24,8 +24,11 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       this.setState(initialState);
       this.subscription = subscribe(() => {
         const nextState = mapStateToProps(store.state, this.props);
-        this.shouldUpdate = true;
-        this.setState(nextState);
+        const { state, } = this;
+        if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
+          this.shouldUpdate = true;
+          this.setState(nextState);
+        }
       });
     }
 
@@ -35,7 +38,7 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
 
     componentWillReceiveProps(nextProps) {
       const { props, context: { store, }, } = this;
-      if (keys({ ...props, ...nextProps, }).filter(k => props[k] !== nextProps[k]).length) {
+      if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
         this.mapDispatchToProps = entries(mapDispatchToProps)
           .reduce(function (acc, [ key, value, ]) {
             acc[key] = (...params) => value(...params)(store, nextProps);
