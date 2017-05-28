@@ -66,7 +66,7 @@ export default class SimpleSubStore {
         }
         const nextState = { ...this.state, };
         for (const id of ids) {
-          if (nextState[id]) {
+          if (this[id]) {
             delete nextState[id];
             const targetChild = this[id];
             targetChild._onDetach();
