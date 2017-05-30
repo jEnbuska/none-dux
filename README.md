@@ -55,8 +55,7 @@ connect:
 export default class Users extends React.Component {
   ...
 ```
-[[https://github.com/jEnbuska/none-dux/master/blob/screenShot.png|alt=idea]]
-
+<img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
 Having Function in store is not supported
 Having Arrays in store is not prefered, because all Arrays are transformed into Objects
