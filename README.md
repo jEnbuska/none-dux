@@ -104,7 +104,7 @@ const {child} = parent.setState({
      }
    });
 const {firstSubChild, secondSubChild} = child;
-firstSubChild.remove(); // changing the state of firstSubChild will cause an error fron now on
+firstSubChild.remove(); // changing the state of firstSubChild will throw an error from now on
 const {state, prevState} = secondSubChild.clearState({onlyChild: true});
 console.log(state); //{onlyChild: true}
 console.log(prevState); //'{role: 'second'};
