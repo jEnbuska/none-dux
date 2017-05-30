@@ -3,11 +3,18 @@ Syntax much like react-redux, with thunk.
 Uses redux devtools.
 
 No reducers no action types.
+
 Easy to work with deep structured state.
+
 All changes are immutable.
+
 Shape of the state can be extended and modified at anytime.  
+
 All part of the state is it's own sub-store
-Direction of the flow is reversed compared to React.Component: When ever a child generates a new state, it's parent and grand parents... will generated to new state as well and the Provider gets notified.
+
+Direction of the flow is reversed compared to React.Component: 
+
+When ever a child generates a new state, it's parent and grand parents... will generated to new state as well and the Provider gets notified.
 
 
 import
