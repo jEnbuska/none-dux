@@ -86,12 +86,21 @@ store.subscribe(() => {
   console.log(SubStore.lastInteraction);
 })
 const {parent} = store;
-const {child} = parent.setState({child: {firstSubChild: 'first', secondSubChild: 'second'}});
+const {child} = parent.setState({
+      child: {
+        firstSubChild: {
+          role: 'first', children: false
+        },
+        secondSubChild: {
+          role: 'second'
+        }
+     }
+   });
 const {firstSubChild, secondSubChild} = child;
-firstSubChild.remove();
-const {state, prevState} = secondSubChild.setState({onlyChild: true});
+firstSubChild.remove(); // changing the state of firstSubChild will cause an error fron now on
+const {state, prevState} = secondSubChild.clearState({onlyChild: true});
 console.log(state); //{onlyChild: true}
-console.log(prevState); //'second';
+console.log(prevState); //'{role: 'second'};
 ```
 
 
