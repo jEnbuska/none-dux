@@ -78,7 +78,7 @@ export default class Users extends React.Component {
 
 Other methods:
 ```
-target.remove(...ids);
+target.remove(...ids); //removes with matching ids and all the sub children
 target.remove(); //self
 ```
 
