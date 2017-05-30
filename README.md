@@ -128,11 +128,14 @@ const {
     }
  }
 
-const user = store.users[userId].state;
+const user = store.users[userId];
+const {id} = user.state;
+
 store.appointmentsByWeek.getChildrenRecursively()
   .filter(child => child.userId)
-  .filter(({state})=> state.userId === user.id)  
+  .filter(({state})=> state.userId === id)  
   .forEach(appointment => appointment.remove())
+
 user.remove();
 ```
 
