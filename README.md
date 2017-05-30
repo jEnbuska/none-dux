@@ -40,7 +40,7 @@ const root = (
 
 action creators:
 ```
-/* setState works like with react component, 
+/* setState works like with react components state, 
 what ever you specify get updated and a new application state is generated */
 export function removeUser(id) {
    return function (store) {
