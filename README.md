@@ -55,7 +55,7 @@ connect:
 export default class Users extends React.Component {
   ...
 ```
-[[https://github.com/jEnbuska/none-dux/master/blob/Screen Shot 2017-05-30 at 18.31.37.png|alt=idea]]
+[[https://github.com/jEnbuska/none-dux/master/blob/screenShot.png|alt=idea]]
 
 
 Having Function in store is not supported
