@@ -29,6 +29,14 @@ export default class SubStore {
     this._identity = SubStore.identityOf(this).reverse();
   }
 
+  getParent() {
+    return this._parent;
+  }
+
+  getId() {
+    return this._id;
+  }
+
   setState(value) {
     if (value instanceof SubStore) {
       throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this._identity));
