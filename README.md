@@ -69,7 +69,7 @@ export function toggleTodo(id){
 connect:
 ```
 @connect(
-  ({ users, request, }, props) => ({ users, request: request.users, }),
+  ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
   ({ changeUserName, fetchUsers, addUser, removeUser, })
 )
 export default class Users extends React.Component {
