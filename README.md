@@ -110,6 +110,32 @@ console.log(state); //{onlyChild: true}
 console.log(prevState); //'{role: 'second'};
 ```
 
+Working with deep structured store state:
+
+```
+// lets say you have a model like this an you would like to remove all users appointments when user is removed
+const {
+    users: {
+      [userId]: {id: [userId], name: ..., address: ..., ...}
+    }
+    appointmentsByWeek: {
+       [weekNumber]: appointmentsByDay: {
+          [weekDayNumber]: {
+             [appointmentId]: {userId: [userId], appointmentId: [appointmentId], type: ..., something:...}
+             }
+          }
+       }
+    }
+ }
+
+const user = store.users[userId].state;
+store.appointmentsByWeek.getChildrenRecursively()
+  .filter(child => child.userId)
+  .filter(({state})=> state.userId === user.id)  
+  .forEach(appointment => appointment.remove())
+user.remove();
+```
+
 
 <img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
