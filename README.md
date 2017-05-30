@@ -55,6 +55,8 @@ connect:
 export default class Users extends React.Component {
   ...
 ```
+[[https://github.com/jEnbuska/none-dux/master/Screen Shot 2017-05-30 at 18.31.37.png|alt=idea]]
+
 
 Having Function in store is not supported
 Having Arrays in store is not prefered, because all Arrays are transformed into Objects
