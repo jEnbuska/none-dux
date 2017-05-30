@@ -1,6 +1,6 @@
 React application state handling
 Syntax much like react-redux, with thunk.
-Uses redux devtools.
+Uses redux devtools when NODE_ENV === 'devepolment'.
 
 No reducers no action types.
 
