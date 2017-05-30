@@ -79,7 +79,7 @@ export default class Users extends React.Component {
 Other methods:
 ```
 target.remove(...ids); //removes with matching ids and all their sub children
-target.remove(); //self
+target.remove(); //remove self
 ```
 
 Dynamically changing state;
@@ -134,6 +134,13 @@ store.appointmentsByWeek.getChildrenRecursively()
   .filter(child => child.userId)
   .filter(({state})=> state.userId === id)  
   .forEach(appointment => appointment.remove())
+
+/*or
+ const appointments = store.appointmentsByWeek.getChildrenRecursively()
+  .filter(child => child.userId)
+  .filter(({state})=> state.userId === id)
+ appointments.length && appointments[0].getParent().remove(...appointments.map(ap => ap.getId()))  
+*/
 
 user.remove();
 ```
