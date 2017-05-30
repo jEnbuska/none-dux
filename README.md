@@ -114,17 +114,16 @@ Working with deep structured store state:
 
 ```
 // lets say you have a model like this an you would like to remove all users appointments when user is removed
-const {
+const exampleShapeOfState = {
     users: {
-      [userId]: {id: [userId], name: ..., address: ..., ...}
+      [userId]: {id: [userId], name: ..., address: ..., ...}, ...
     }
     appointmentsByWeek: {
        [weekNumber]: appointmentsByDay: {
           [weekDayNumber]: {
              [appointmentId]: {userId: [userId], appointmentId: [appointmentId], type: ..., something:...}
-             }
-          }
-       }
+          }, ...
+       }, ...
     }
  }
 
