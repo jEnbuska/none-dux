@@ -14,7 +14,7 @@ All part of the state is it's own sub-store
 
 Direction of the flow is reversed compared to React.Component: 
 
-When ever a child generates a new state, it's parent and grand parents... will generated to new state as well and the Provider gets notified.
+When ever a child generates a new state, it's parent and grand parents... will generated to new state, upto until Provider gets notified.
 
 
 import
@@ -72,7 +72,7 @@ connect:
   ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
   ({ changeUserName, fetchUsers, addUser, removeUser, })
 )
-export default class Users extends React.Component {
+export default class User extends React.Component {
   ...
 ```
 
@@ -113,7 +113,8 @@ console.log(prevState); //'{role: 'second'};
 Working with deep structured store state:
 
 ```
-// lets say you have a model like this an you would like to remove all users appointments when user is removed
+/* lets say you have a model like this an you would like 
+to remove all users appointments when user is removed*/
 const exampleShapeOfState = {
     users: {
       [userId]: {id: [userId], name: ..., address: ..., ...}, ...
