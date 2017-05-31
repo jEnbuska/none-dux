@@ -1,10 +1,8 @@
 
-
+<img width="200" alt="logo" src="(https://cloud.githubusercontent.com/assets/11061511/26650010/b16da99e-4650-11e7-946c-124367706643.jpg">
 Easy to get into application state handling for React.^
-```
+``` ```
 
-```
-<img width="1025" alt="logo" src="(https://cloud.githubusercontent.com/assets/11061511/26650010/b16da99e-4650-11e7-946c-124367706643.jpg">
 Syntax much like react-redux, with thunk.
 
 Uses redux devtools when NODE_ENV === 'devepolment'.
