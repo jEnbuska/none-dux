@@ -1,3 +1,5 @@
+
+<img width="200" alt="screenshot" src="(https://cloud.githubusercontent.com/assets/11061511/26650010/b16da99e-4650-11e7-946c-124367706643.jpg">
 React application state handling
 Syntax much like react-redux, with thunk.
 Uses redux devtools when NODE_ENV === 'devepolment'.
