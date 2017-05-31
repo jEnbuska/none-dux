@@ -1,5 +1,12 @@
-React application state handling
+
+![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
+
+``` 
+Easy to use application state handling for React.
+```
+
 Syntax much like react-redux, with thunk.
+
 Uses redux devtools when NODE_ENV === 'devepolment'.
 
 No reducers no action types.
