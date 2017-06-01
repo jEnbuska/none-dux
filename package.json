@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -27,7 +27,6 @@
     "redux": "^3.6.0"
   },
   "devDependencies": {
-    "autoprefixer": "^6.7.7",
     "babel-core": "^6.24.0",
     "babel-eslint": "^7.2.1",
     "babel-loader": "^6.2.10",
