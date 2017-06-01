@@ -24,7 +24,8 @@ Direction of the flow is reversed compared to React.Component:
 When ever a child generates a new state, it's parent and grand parents... will generated to new state, upto until Provider gets notified.
 
 Currenly requires ```babel-plugin-transform-decorators-legacy``` as dev dependency
-Other libraries requires by babel ```babel-core ```&``` babel-loader```
+
+Other dependencies requires by babel ```babel-core ```&``` babel-loader```
 
 import
 ```
