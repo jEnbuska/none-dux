@@ -25,7 +25,7 @@ When ever a child generates a new state, it's parent and grand parents... will g
 
 Currenly requires ```babel-plugin-transform-decorators-legacy``` as dev dependency
 
-Other dependencies requires by babel ```babel-core ```&``` babel-loader```
+Other dependencies requires by babel ```babel-core``` & ```babel-loader```
 
 import
 ```
