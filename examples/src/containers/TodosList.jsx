@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../src';
 import TodoListItem from './TodoListItem';
 
 const { keys, } = Object;
