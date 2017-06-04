@@ -1,6 +1,6 @@
 const { keys, } = Object;
 export const SET_STATE = 'SET_STATE';
-export const RESET_STATE = 'RESET_STATE';
+export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
 export default class SubStore {
@@ -74,7 +74,7 @@ export default class SubStore {
     const prevState = this.state;
     this._reset(value, prevState);
     this.prevState = prevState;
-    SubStore.lastInteraction = { func: RESET_STATE, target: this._identity, param: value, };
+    SubStore.lastInteraction = { func: CLEAR_STATE, target: this._identity, param: value, };
     this._parent._notifyUp(this);
     return this;
   }
