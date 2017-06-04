@@ -16,6 +16,7 @@ export default class SubStore {
     this._depth = depth;
     this._id = key;
     this._parent = parent;
+    this._identity = [ ...parent._identity, key, ];
     this._setInitialState(initialValue);
   }
 
@@ -26,7 +27,6 @@ export default class SubStore {
       }
     }
     this.state = initialValue;
-    this._identity = SubStore.identityOf(this).reverse();
   }
 
   singleUpdate(callBack) {
@@ -185,14 +185,6 @@ export default class SubStore {
       ? keys(this.state)
       .map(k => this[k])
       : [];
-  }
-
-  static identityOf(subject, acc = []) {
-    acc.push(subject._id);
-    if (subject._parent._id !== '__ground__') {
-      SubStore.identityOf(subject._parent, acc);
-    }
-    return acc;
   }
 
   static __kill() { /* redefined by StoreCreator*/ }

@@ -6,12 +6,15 @@ export default function createStore(initialState) {
 
 export class StoreCreator {
 
-  _id = '__ground__';
   static killSwitch = () => {
     console.trace();
     this.subject.remove();
     throw new Error('Infinite recursion on SubStore');
   };
+
+  _id = '__ground__';
+  _identity = [];
+
   constructor(state = {}) {
     this.state = state;
     SubStore.__kill = () => StoreCreator.killSwitch();
@@ -27,6 +30,7 @@ export class StoreCreator {
     SubStore.lastInteraction = { target: [ 'root', ], action: RESET_STATE, param: state, };
     this.subject = subject;
   }
+
   _notifyUp() {
     Object.values(this.subject.subscribers).forEach(function (sub) { sub(); });
   }
