@@ -1,7 +1,7 @@
 const { keys, } = Object;
-export const SET_STATE = Symbol.for('SET_STATE');
-export const RESET_STATE = Symbol.for('RESET_STATE');
-export const REMOVE = Symbol.for('REMOVE');
+export const SET_STATE = 'SET_STATE';
+export const RESET_STATE = 'RESET_STATE';
+export const REMOVE = 'REMOVE';
 
 export default class SubStore {
 
