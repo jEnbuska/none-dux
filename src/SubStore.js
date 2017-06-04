@@ -29,6 +29,14 @@ export default class SubStore {
     this._identity = SubStore.identityOf(this).reverse();
   }
 
+  singleUpdate(callBack) {
+    const { _parent, } = this;
+    this._parent = { _notifyUp() {}, };
+    const result = callBack(this);
+    this._parent = _parent;
+    return result;
+  }
+
   getParent() {
     return this._parent;
   }
