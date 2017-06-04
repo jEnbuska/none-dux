@@ -10,8 +10,7 @@
     "build": "webpack --config webpack.config.production.js",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch",
-    "start": "webpack-dev-server --config webpack.config.development.js --colors --progress --inline",
-    "deploy": "npm run build && firebase deploy"
+    "start": "webpack-dev-server --config webpack.config.development.js --colors --progress --inline"
   },
   "author": "Joona Enbuska",
   "license": "UNLICENCED",
@@ -31,6 +30,7 @@
     "babel-plugin-syntax-async-functions": "^6.13.0",
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.4.0",
     "babel-preset-latest": "^6.16.0",
     "babel-preset-react": "^6.16.0",

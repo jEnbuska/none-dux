@@ -11,7 +11,7 @@ const getPostCssPlugins = () => [
     '>1%',
     'last 4 versions',
     'Firefox ESR',
-    'not ie < 9', // React doesn't support IE8 anyway
+    'not ie < 9',
   ], }),
 ];
 
@@ -44,11 +44,6 @@ const base = (env) => ({
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [
-            // Using source maps breaks urls in the CSS loader
-            // https://github.com/webpack/css-loader/issues/232
-            // This comment solves it, but breaks testing from a local network
-            // https://github.com/webpack/css-loader/issues/232#issuecomment-240449998
-            // 'css-loader?sourceMap',
             { loader: 'css-loader', options: { sourceMap: env!=='production', }, },
             {
               loader: 'postcss-loader',
@@ -82,7 +77,7 @@ const base = (env) => ({
 });
 
 const vendor = [
-  'react', 'react-dom', 'none-dux',
+  'react', 'react-dom', 'none-dux', 'react-router', 'uuid',
 ];
 module.exports = {
   API_URL: process.env.API_URL || JSON.stringify('http://138.197.65.89:9000'),
