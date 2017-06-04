@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'styles';
-import { IndexRedirect, Router, Route, browserHistory, } from 'react-router';
+import { BrowserRouter, Route, Switch, } from 'react-router-dom';
 import { Provider, } from '../../src';
 import App from './components/App';
-import Todos from './components/Todos';
+
 
 function getInitialState() {
   const state = JSON.parse(localStorage.getItem('state'));
@@ -17,12 +17,9 @@ const Root = () => (
   <Provider
     initialState={getInitialState()}
     onChange={({ state, }) => localStorage.setItem('state', JSON.stringify(state))}>
-    <Router history={browserHistory}>
-      <Route path='/' component={App}>
-        <IndexRedirect to='todos' />
-        <Route path='todos' component={Todos} />
-      </Route>
-    </Router>
+    <BrowserRouter>
+      <Route path='/' component={App} />
+    </BrowserRouter>
   </Provider>
   );
 

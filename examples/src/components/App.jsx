@@ -1,14 +1,16 @@
 import React from 'react';
+import { Switch, Route, } from 'react-router-dom';
+import Todos from './Todos';
 import Div from './Div';
 import Sidebar from './Sidebar';
 
-const App = ({ children, }) => (
+const App = () => (
   <div>
     <Sidebar />
     <Div className='app-content-wrapper'>
-      {children}
+      <Route path='/todos' component={Todos} />
     </Div>
   </div>
-    );
+  );
 
 export default App;

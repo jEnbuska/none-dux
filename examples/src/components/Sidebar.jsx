@@ -16,11 +16,9 @@ export default class Sidebar extends React.Component {
 
   componentWillMount() {
     const { router, } = this.context;
-    const { pathname, } = router.getCurrentLocation();
-    this.subscription =router.listen(() => {
-      const { pathname, } = router.getCurrentLocation();
-      this.setState({ pathname, });
-    });
+    const pathname = String(router.history.location.pathname);
+    this.subscription =router.history
+      .listen(({ pathnamename, }) => this.setState({ pathnamename, }));
     this.setState({ pathname, });
   }
 
@@ -33,7 +31,7 @@ export default class Sidebar extends React.Component {
           <Div
             key={k}
             className={pathname===v ? 'sidebar-item-active': 'sidebar-item'}
-            onClick={() => router.push(v)}>
+            onClick={() => router.history.push(v)}>
             <h3 className='sidebar-item-text'>{k}</h3>
           </Div>
           ))}
