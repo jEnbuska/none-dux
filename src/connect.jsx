@@ -2,6 +2,7 @@ import React from 'react';
 import { object, func, } from 'prop-types';
 
 const { entries, keys, } = Object;
+
 const connector = (Component, mapStateToProps = store => store.state, mapDispatchToProps = {}) =>
   class Connect extends React.Component {
 
@@ -22,7 +23,8 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
         }, {});
       const initialState = mapStateToProps(store.state, this.props);
       this.setState(initialState);
-      this.subscription = subscribe(() => {
+
+      this.subscription = subscribe((store) => {
         const nextState = mapStateToProps(store.state, this.props);
         const { state, } = this;
         if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
@@ -33,7 +35,10 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
     }
 
     render() {
-      return <Component {...this.props} {...this.state} {...this.mapDispatchToProps} />;
+      return (<Component
+        {...this.props}
+        {...this.state}
+        {...this.mapDispatchToProps} />);
     }
 
     componentWillReceiveProps(nextProps) {
