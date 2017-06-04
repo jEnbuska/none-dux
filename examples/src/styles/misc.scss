@@ -1,7 +1,7 @@
 .app-content-wrapper{
   position: fixed;
-  left: 14%;
-  width: 86%;
+  left: 20%;
+  width: 80%;
   height: 100%;
   overflow-y: scroll
 }
@@ -12,31 +12,7 @@
   box-shadow: 5px 5px 5px  #a1a1a1;
   padding: .5em;
 };
-.sidebar-wrapper{
-  padding: 0;
-  position: fixed;
-  width: 12%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 
-.sidebar-item{
-  height: 50px;
-  text-align: center;
-  margin: .5em;
-  cursor: pointer;
-  border: 1px solid black;
-}
-
-.sidebar-item-active{
-  @extend .sidebar-item;
-  border:2px solid blue;
-}
-.sidebar-item-text{
-  margin-top: .7em;
-  overflow: hidden;
-}
 .create-todo-form{
   @extend .div-default;
   display: flex;
