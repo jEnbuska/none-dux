@@ -1,5 +1,6 @@
 .babel-cache/
 node_modules/
+lib/
 .idea/
 dist/
 npm-debug.log
