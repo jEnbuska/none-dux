@@ -96,8 +96,7 @@ export default class SubStore {
       for (const id of ids) {
         if (this[id] && this[id] instanceof SubStore) {
           delete nextState[id];
-          const targetChild = this[id];
-          targetChild._onDetach();
+          delete this[id]._parent;
           delete this[id];
         } else {
           throw new Error('Remove error:', JSON.stringify(this._identity), `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
@@ -136,7 +135,7 @@ export default class SubStore {
             if (nextState.hasOwnProperty(k)) {
               this[k]._reset(nextState[k], prevState[k]);
             } else {
-              this[k]._onDetach();
+              delete this[k]._parent;
               delete this[k];
             }
           } else {
@@ -150,7 +149,7 @@ export default class SubStore {
       }
     } else if (prevState instanceof Object) {
       for (const k in prevState) {
-        this[k]._onDetach();
+        delete this[k]._parent;
         delete this[k];
       }
     }
@@ -162,7 +161,11 @@ export default class SubStore {
     const prevState = this.state;
     this.state = { ...prevState, [_id]: state, };
     this.prevState = prevState;
-    this._parent._notifyUp(this);
+    if (this._parent) {
+      this._parent._notifyUp(this);
+    } else {
+      throw new Error('Child of detached SubStore cannot be modified:', JSON.stringify(this._identity));
+    }
   }
 
   getChildrenRecursively() {
@@ -171,16 +174,6 @@ export default class SubStore {
         acc.push(child);
         return [ ...acc, ...child.getChildrenRecursively(), ];
       }, []);
-  }
-
-  _onDetach() {
-    const ownChildren = this.children();
-    delete this._parent;
-    this.prevState = this.state;
-    delete this.state;
-    for (const child of ownChildren) {
-      child._onDetach();
-    }
   }
 
   children() {
