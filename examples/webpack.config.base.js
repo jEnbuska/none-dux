@@ -49,14 +49,15 @@ const base = (env) => ({
             // This comment solves it, but breaks testing from a local network
             // https://github.com/webpack/css-loader/issues/232#issuecomment-240449998
             // 'css-loader?sourceMap',
-            'css-loader',
+            { loader: 'css-loader', options: { sourceMap: env!=='production', }, },
             {
               loader: 'postcss-loader',
               options: {
+                sourceMap: env!=='production',
                 plugins: getPostCssPlugins(),
               },
             },
-            'sass-loader?sourceMap', //TODO sourceMap should be removed at some point from production build
+            { loader: 'sass-loader', options: { sourceMap: env!=='production', }, },
           ], }),
       },
       {
