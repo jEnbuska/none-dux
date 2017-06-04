@@ -30,11 +30,15 @@ export default class SubStore {
   }
 
   singleUpdate(callBack) {
-    const { _parent, } = this;
+    const { _parent, state, _identity, } = this;
     this._parent = { _notifyUp() {}, };
-    const result = callBack(this);
+    callBack(this);
     this._parent = _parent;
-    return result;
+    if (this.state!==state) {
+      SubStore.lastInteraction = { func: CLEAR_STATE, target: _identity, param: this.state, };
+      this._parent._notifyUp(this);
+    }
+    return this;
   }
 
   getParent() {
