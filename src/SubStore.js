@@ -165,7 +165,6 @@ export default class SubStore {
     this._parent._notifyUp(this);
   }
 
-  /* for testing and debug*/
   getChildrenRecursively() {
     return this.children()
       .reduce((acc, child) => {
