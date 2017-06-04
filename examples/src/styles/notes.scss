@@ -1,0 +1,42 @@
+@import "common";
+
+.notes-base{
+  box-shadow: 5px 5px 7px rgba(33,33,33,.7);
+  padding: 1em;
+  align-self: flex-start;
+  flex-grow: 1;
+}
+
+.notes-example-base{
+  @extend .notes-base;
+  background: $yellowNote;
+}
+.note-example-s{
+  @extend .notes-example-base;
+  transform: rotate(1.5deg);
+}
+.note-example-m{
+  @extend .notes-example-base;
+  transform: rotate(1deg);
+}
+.note-example-l{
+  @extend .notes-example-base;
+  transform: rotate(-.3deg);
+}
+
+.notes-exercise-base{
+  @extend .notes-base;
+  background: $greenNote;
+}
+.note-exercise-s{
+  @extend .notes-exercise-base;
+  transform: rotate(1.5deg);
+}
+.note-exercise-m{
+  @extend .notes-exercise-base;
+  transform: rotate(1deg);
+}
+.note-exercise-l{
+  @extend .notes-exercise-base;
+  transform: rotate(.3deg);
+}

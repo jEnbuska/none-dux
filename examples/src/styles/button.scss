@@ -1,0 +1,71 @@
+@import './common';
+
+.button-default {
+  padding: 0.25em;
+  margin: 0.25em;
+  box-shadow: 5px 5px 5px black;
+  font-family: inherit;
+  font-size: inherit;
+  min-height: 30px;
+  border: 0.1em solid black;
+  border-radius: 5px;
+  outline: none;
+  transition: all $defaultTransitionTime;
+  &:disabled {
+    box-shadow: 0 0 0 0;
+    background: #C0C0C0;
+    color: #a8a8a8;
+  }
+  &:hover:enabled {
+    border: 0.1em solid black;
+  }
+  &:hover:enabled:active {
+    transition: scale .1s, box-shadow .0s;
+    box-shadow: 2px 2px 2px $neutralGrey;
+    transform: scale(.97);
+  }
+}
+
+
+@for $i from 5 to 21{
+  .button-default-#{$i} {
+    @extend .button-default;
+    transition: all .1s;
+    box-shadow: #{$i/20*5}px #{$i/20*5}px #{$i/20*5}px black;
+    font-family: inherit;
+    font-size: #{$i*1em/20};
+    min-height: #{$i/20*30}px;
+    border: #{$i/15*.1}em solid black;
+    border-radius: #{$i*5/20}px;
+    padding: #{$i*0.25/20}em;
+    margin: #{$i*0.25/20}em;
+    outline: none;
+  }
+}
+
+.hover-image-button{
+  @extend .button-default;
+  border: 4px solid rgb(17, 17, 17);
+  width: 200px;
+  height: 80px;
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+  font-size: 20px;
+  transition: all 0.3s;
+  vertical-align: text-top;
+  position:relative;
+}
+
+
+.button-primary {
+  @extend .button-default;
+  background: $backgroundPrimary;
+  color: #ffffff;
+}
+
+.button-warning {
+  @extend .button-default;
+  background: $backgroundWarning;
+  color: #ffffff;
+}

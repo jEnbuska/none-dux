@@ -1,0 +1,30 @@
+@import "common";
+.image-default{
+  border-radius: 0.25em;
+  box-shadow: 5px 5px 5px $neutralGrey;
+}
+
+.image-default-m{
+  @extend .image-default;
+  height: 100px;
+  display: flex;
+}
+
+@keyframes pop-up-animation{
+  0% {height:0}
+  100% {height:100px}
+}
+
+.image-shrink-out{
+  @extend .image-default-m;
+  height: 0;
+  margin: 0;
+  transition: all .4s;
+}
+
+.image-pop-up{
+  @extend .image-default-m;
+  margin: 1em;
+  animation: pop-up-animation .4s ease-in;
+  transition: all .4s;
+}

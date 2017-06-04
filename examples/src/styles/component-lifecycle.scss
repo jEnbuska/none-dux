@@ -1,0 +1,20 @@
+@import './common';
+@import './image';
+.component-identity{
+  font-size: 0.7em;
+  font-family: "Times New Roman";
+}
+.component-profile{
+  box-shadow: 2px 2px 2px 2px $neutralGrey;
+  display:flex;
+  flex-shrink: 0;
+  align-content: center;
+  flex-direction: column;
+  margin:.2em;
+  padding: .2em;
+  border: 1px solid black;
+}
+.component-profile-root{
+  @extend .component-profile;
+  overflow: auto;
+}

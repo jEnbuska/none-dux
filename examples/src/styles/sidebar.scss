@@ -1,0 +1,96 @@
+@import './common';
+
+.sidebar {;
+  padding: 1em 1.2em 1em 1.2em;
+  display: flex;
+  width: 17em;
+  height: 100vh;
+  flex-direction: column;
+  overflow-y: scroll;
+  justify-content: flex-start;
+  border: 1px solid white;
+}
+
+.sidebar-home{
+  @extend .sidebar-link;
+  flex-grow: 0;
+  font-size: 1.5em;
+  padding: .42em;
+  &:active{
+    transform: scale(.85);
+  }
+}
+
+.sidebar-item {
+  width: 17em;
+  margin: .3em 0 .3em 0;
+  flex-shrink: 0;
+  border: $itemBorder;
+  border-radius: 2em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: $itemDefaultTextColor;
+  height: 4.0em;
+  overflow: hidden;
+  &:last-child{
+    margin-bottom: 1.5em;
+  }
+}
+
+.sidebar-item-small{
+  @extend .sidebar-item;
+  width: 4em;
+  justify-content: center;
+  align-items: center;
+}
+.sidebar-small-item-row{
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 5em
+}
+.sidebar-link {
+  flex-shrink: 0;
+  flex-grow: 1;
+  display: flex;
+  justify-content:flex-start;
+  cursor: pointer;
+  margin-left: .25em;
+  margin-right: .25em;
+  padding: 1em;
+  border: $itemContentBorder;
+  border-radius: 2em;
+  transition: all $defaultTransitionTime ease-in-out;
+  background: #f0f4ff;
+  &:hover{
+    background: $itemHoverBackground;
+    color: $contentBackground;
+    transition: background $defaultTransitionTime ease-in-out, border-color $defaultTransitionTime ease-in-out;
+  }
+}
+
+.selected-link {
+  border: $selectedItemBorder;
+  color: $selectedItemTextColor;
+  background: $selectedItemBackground;
+  &:hover {
+    background: $selectedItemBackground;
+  }
+}
+
+.sidebar-pencil {
+  @extend .sidebar-link;
+  flex-grow: 0;
+  margin-right: .52em;
+  height: .8em;
+  width: .8em;
+  &:hover {
+    transition: all .5s;
+    transform: rotate(360deg);
+    color: #9eff91;
+  }
+  &:active{
+    transition: all .0s;
+    transform: scale(.9);
+  }
+}

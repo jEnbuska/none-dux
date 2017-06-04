@@ -1,0 +1,68 @@
+@import "common";
+
+.chat-base{
+  border: $itemContentBorder;
+  border-radius: 1em;
+  padding: 1.5em;
+  margin:.5em;
+  word-wrap:break-word;
+}
+
+.chat-app{
+  @extend .chat-base;
+  align-content: stretch;
+  align-items: stretch;
+  border-radius: 2em;
+  width: 100%;
+  background:$brownishYellow;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-feed{
+  @extend .chat-base;
+  background: white;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: 65%;
+}
+.chat-users{
+  @extend .chat-base;
+  background: white;
+  overflow-y: scroll;
+  flex-grow: 1;
+}
+.chat-upper-container{
+  display:flex;
+  justify-content: center;
+  align-items: stretch;
+  height: 100%;
+}
+
+.chat-lower-container{
+  display: flex;
+}
+.chat-input{
+  @extend .chat-base;
+  min-height: 20px;
+  display: block;
+  width: 65%;
+  padding: .5em;
+}
+.chat-submit{
+  @extend .chat-base;
+  display: block;
+  padding: .5em;
+  min-height: 37px;
+  flex-grow: 1;
+}
+.chat-logout-button{
+  max-width:150px;
+}
+
+.chat-message{
+  vertical-align: middle;
+}
+.chat-message-author{
+  font-size: 0.5em;
+}

@@ -1,0 +1,152 @@
+@import "common";
+
+.todos-app-container {
+  flex-grow: 1;
+  display: flex;
+}
+
+.todo-app-box {
+  display: flex;
+  transition: all .3s;
+  border: 1px solid black;
+  box-shadow: .3em .3em .3em $neutralGrey;
+  background: $facebookLightBlue;
+  border-radius: 2em;
+}
+
+.user-list-container {
+  @extend .todo-app-box;
+  min-width: 300px;
+  flex-direction: column;
+  padding: 1em;
+}
+
+.user-item-container {
+  @extend .todo-app-box;
+  max-height: 160px;
+  margin: .6em;
+}
+
+.user-item-container-selected {
+  @extend .user-item-container;
+  box-shadow: .6em .6em .6em $neutralGrey;
+}
+
+.todos-list-container {
+  @extend .todo-app-box;
+  flex-direction: column;
+  padding: 1em;
+  min-width: 300px;
+  margin: .6em 2em 0 2em;
+}
+
+.todo-item {
+  @extend .todo-app-box;
+  justify-content: space-between;
+  padding: .5em;
+  margin: .5em;
+}
+
+.user-image-thumbnail {
+  height: 100px;
+  border-radius: 2em;
+  box-shadow: 0 0 0 0;
+}
+
+.user-right-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+}
+
+.user-item-name {
+  text-align: center;
+  border-radius: 2em;
+  margin: 1em;
+  box-shadow: .2em .2em .2em .2em $facebookLightBlue;
+}
+
+.user-button {
+  box-shadow: 3px 3px 3px $neutralGrey;
+  width: 100px;
+  margin: .5em;
+  border: 0.1em solid black;
+  border-radius: 2em;
+  outline: none;
+  transition: all $defaultTransitionTime;
+  &:hover:enabled {
+    border-color: white;
+  }
+  &:hover:enabled:active {
+    transition: scale .1s, box-shadow .0s;
+    box-shadow: 2px 2px 2px $neutralGrey;
+    transform: scale(.97);
+  }
+}
+
+.add-user {
+  margin-bottom: 3em;
+}
+
+.todos-notifications {
+  opacity: 0.6;
+  width: 250px;
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 1000;
+}
+.notification-item{
+  @extend .todo-app-box;
+  transition: background 1s;
+  height: 50px;
+  margin: .2em;
+  width: 200px;
+  justify-content:center;
+  align-items: center;
+}
+.notification-item-pending{
+  @extend .notification-item;
+  background: $neutralGrey;
+}
+.notification-item-success{
+  @extend .notification-item;
+  background: #d7ffa5;
+}
+.notification-item-error{
+  @extend .notification-item;
+  background: red;
+}
+.appear{
+  margin: 0;
+  padding:0;
+  position: absolute;
+  opacity: 1;
+  animation: appear-animation .4s;
+  transition: opacity .4s;
+}
+
+.disappear{
+  margin: 0;
+  padding:0;
+  position: absolute;
+  opacity:0;
+  transition: opacity .4s;
+}
+
+.remove-icon{
+  padding: 0 .3em 0 .3em;
+  margin: 0 .3em 0 .3em;
+  cursor:pointer;
+  &:hover{
+    border-color: red;
+  }
+}
+.pending-item{
+  opacity: .3;
+}
+@keyframes appear-animation{
+  0% {opacity: 0;}
+  100% {opacity: 1}
+}

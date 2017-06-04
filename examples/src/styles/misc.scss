@@ -1,0 +1,94 @@
+@import "./common.scss";
+@import './button.scss';
+
+body {
+  font-family: Comic Sans MS;
+  font-size: medium;
+}
+
+.flex{
+  display: flex;
+}
+
+.centered-row{
+  display: flex;
+  flex-shrink: 1;
+  flex-grow: 1;
+  align-items: center;
+}
+
+.flex-row{
+  display: flex;
+  flex-direction: row;
+}
+.centering-flex{
+  display: flex;
+  justify-content: center;
+}
+
+.thump-nail-container{
+  display: flex;
+  flex-direction: row;
+}
+
+.vertical-thump-nail-container{
+  display: flex;
+  flex-direction: column;
+}
+
+.centered-foreground-item{
+  align-self: center;
+  z-index: 100;
+}
+.thump-nail-item{
+  margin: 0 1em 0 1em;
+  display: flex;
+  flex-direction: column;;
+}
+
+.thump-nail-list-item{
+  @extend .flex-row;
+  padding: 1em;
+  align-content: space-between;
+}
+
+.reset-content-button{
+  align-self:flex-start;
+}
+
+.flex-list{
+  display:flex;
+  flex-direction: column;
+}
+
+.image-action-container{
+  @extend .flex-list;
+  justify-content: center;
+  padding-right: 1em;
+}
+
+.url-thump-nail{
+  height: 100px;
+  border-radius: 4em;
+  cursor: pointer;
+  transition: all .4s
+}
+
+.url-thump-nail-selected{
+  @extend .url-thump-nail;
+  box-shadow: 10px 10px 10px $neutralGrey;
+  transform: scale(1.1)
+}
+
+.selected-item{
+  height: 200px;
+  margin:2em;
+  border-radius: 2em;
+  opacity: 1;
+  animation: fade .5s ease-out;
+}
+
+@keyframes fade {
+  0% { opacity: 0; transform: scale(0.1)}
+  100%  { opacity: 1 }
+}

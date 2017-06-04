@@ -18,16 +18,12 @@ export class StoreCreator {
     const subject = new SubStore(state, 'root', this);
     subject.subscriptionCount = 0;
     subject.subscribers = {};
-    subject.subscribe = (callback) => {
-      const { subscriptionCount, subscribers, } = subject;
+    subject.subscribe = function (callback) {
+      const { subscriptionCount, subscribers, } = this;
       subscribers[subscriptionCount] = callback;
       subject.subscriptionCount++;
       return () => delete subscribers[subscriptionCount];
-    };
-    subject._version = 0;
-    subject.subscribe(() => {
-      subject._version++;
-    });
+    }.bind(subject);
     SubStore.lastInteraction = { target: [ 'root', ], action: RESET_STATE, param: state, };
     this.subject = subject;
   }
@@ -36,6 +32,5 @@ export class StoreCreator {
   }
 
   remove(...params) {
-    console.log(params);
   }
 }

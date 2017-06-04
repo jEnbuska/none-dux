@@ -1,0 +1,60 @@
+@import "./common";
+
+.app-window {
+  transition: all $defaultTransitionTime;
+  overflow: hidden;
+  background: $contentBackground;
+  position: fixed;
+  display: flex;
+  align-content: stretch;
+  justify-content: flex-start;
+  top: 0;
+  left: 0;
+  overflow-x: auto;
+  height: 100%;
+  width: 100%;
+}
+
+.activity-window {
+  top: 1%;
+  bottom: 1%;
+  right: 1%;
+  left: 20em;
+  overflow: auto;
+  padding: 2em;
+  display: flex;
+  transition: all $defaultTransitionTime;
+  position: fixed;
+  border: 1px solid white;
+}
+
+.route-change-enter {
+  opacity: 0;
+}
+
+.route-change-enter.route-change-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+
+.route-change-leave {
+  opacity: 1;
+}
+
+.route-change-leave.route-change-leave-active {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+.route-change-appear {
+  opacity: 0;
+}
+
+.route-change-appear.route-change-appear-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+.main-activity {
+  position: absolute;
+  padding: 2em;
+}
+
