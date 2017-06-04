@@ -31,7 +31,12 @@ export default class Provider extends React.Component {
         this[key](store);
       }
     }.bind(subscribERS, store));
-    if (onChange) { onChange(store.state); }
+    if (onChange) {
+      onChange(store);
+      store.subscribe(function(onChange) {
+        onChange(this);
+      }.bind(store, onChange));
+    }
     createDebugger(store);
     this.store = store;
   }
