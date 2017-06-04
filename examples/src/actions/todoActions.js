@@ -12,6 +12,7 @@ export function toggleTodo(id) {
     todo.setState({ done: !todo.state.done, });
   };
 }
+
 export function removeTodo(id) {
   return function ({ todos: { [id]: todo, }, }) {
     todo.remove();
