@@ -80,8 +80,6 @@ connect:
 )
 export default class User extends React.Component { ... }
   
-  
-  
 or without decorators:
   
 class User ...  { ... }
