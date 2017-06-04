@@ -1,8 +1,8 @@
 import React from 'react';
+import { func, object, } from 'prop-types';
 import createStore from './createStore';
 import SubStore from './SubStore';
 
-const { object, func, } = React.PropTypes;
 export default class Provider extends React.Component {
 
   static propTypes = {
@@ -20,22 +20,20 @@ export default class Provider extends React.Component {
   };
 
   subscriptionCount=0;
-  subscribers={};
+  subscribERS={};
 
   componentWillMount() {
-    this.store = createStore({ ...this.props.initialState, });
-    this.subsription = this.store.subscribe(() => {
-      const { state, } = this.store;
-      requestAnimationFrame(
-          () => {
-            if (state === this.store.state) {
-              Object.values(this.subscribers).forEach(sub => sub());
-            }
-          });
-      const { onChange, } = this.props;
-      onChange && onChange(state);
-    });
-    createDebugger(this.store);
+    const { props, subscribERS, } = this;
+    const { initialState, onChange, } = props;
+    const store = createStore({ ...initialState, });
+    this.subsriptION = store.subscribe(function (store) {
+      for (const key in this) {
+        this[key](store);
+      }
+    }.bind(subscribERS, store));
+    if (onChange) { onChange(store.state); }
+    createDebugger(store);
+    this.store = store;
   }
 
   getChildContext() {
@@ -47,10 +45,12 @@ export default class Provider extends React.Component {
   }
 
   subscribe = (callback) => {
-    const { subscriptionCount, subscribers, } = this;
-    subscribers[subscriptionCount] = callback;
+    const { subscriptionCount, subscribERS, } = this;
+    subscribERS[subscriptionCount] = callback;
     this.subscriptionCount++;
-    return () => delete this.subscribers[subscriptionCount];
+    return function (subscriptionCount) {
+      delete this[subscriptionCount];
+    }.bind(subscribERS, subscriptionCount);
   };
 
   render() {
@@ -58,7 +58,7 @@ export default class Provider extends React.Component {
   }
 
   componentWillUnmount() {
-    this.subsription();
+    this.subsriptION();
   }
 }
 
@@ -68,10 +68,10 @@ function createDebugger(store) {
       const { createStore, combineReducers, } = it;
       const reducers = combineReducers({ root: () => store.state, });
       const reduxStore = createStore(reducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
-      store.subscribe(() => {
-        const { func, target, param, } = SubStore.lastInteraction;
+      store.subscribe(function (reduxStore) {
+        const { func, target, param, } = this.lastInteraction;
         reduxStore.dispatch({ type: func.toString(), target, param, });
-      });
+      }.bind(SubStore, reduxStore));
     }).catch(() => console.error('no redux dependency'));
   }
 }
