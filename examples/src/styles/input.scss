@@ -16,6 +16,14 @@
   }
 }
 
+.input-label{
+  padding: .5em;
+  display: inline-block;
+}
+.input-wrapper{
+  display: block;
+}
+
 .invalid-input{
   @extend .input-default;
   background: #ffecec;

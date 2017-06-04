@@ -1,19 +1,12 @@
 import React from 'react';
-import propTypes from 'prop-types';
-import { connect, } from '../../../lib';
-import * as todoActions from '../actions/todoActions';
-import Div from '../components/Div';
+import { connect, } from '../../../src';
+import { addTodo, } from '../actions/todoActions';
 import Input from '../components/Input';
 import Button from '../components/Button';
+import Form from '../components/Form';
 
-const { string, func, } = propTypes;
-
-class AddTodo extends React.Component {
-
-  static propTypes = {
-    unSelect: func,
-    selected: string,
-  };
+@connect(({ todos, }, { selected, }) => ({ todo: todos[selected], }), { addTodo, })
+export default class AddTodo extends React.Component {
 
   state = {
     description: '',
@@ -22,17 +15,15 @@ class AddTodo extends React.Component {
   render() {
     const { description, } = this.state;
     return (
-      <Div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', }}>
+      <Form className='create-todo-form' onSubmit={this.onSubmit}>
         <Input onChange={description => this.setState({ description, })} value={description} />
-        <Button primary disabled={!description} onClick={this.onSubmit}>OK</Button>
-      </Div>
+        <Button primary type='submit' disabled={!description}>OK</Button>
+      </Form>
     );
   }
 
   onSubmit = () => {
-    const { unSelect, addTodo, } = this.props;
-    addTodo(this.state.description);
-    unSelect();
+    this.props.addTodo(this.state.description);
+    this.setState({ description: '', });
   }
 }
-export default connect(({ todos, }, { selected, }) => ({ todo: todos[selected], }), { ...todoActions, })(AddTodo)

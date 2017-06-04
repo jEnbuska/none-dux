@@ -1,9 +1,9 @@
 import React from 'react';
 import propTypes from 'prop-types';
 
-const Form = ({ style, className, onSubmit, children, }) => (
+const Form = ({ className, onSubmit, children, }) => (
   <form
-    style={style} className={className} onSubmit={e => {
+    className={className} onSubmit={e => {
       e.preventDefault();
       onSubmit();
     }}>

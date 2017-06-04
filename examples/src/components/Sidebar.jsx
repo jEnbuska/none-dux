@@ -4,7 +4,7 @@ import Div from './Div';
 
 const { entries, } = Object;
 const routes = {
-  Todos: '/',
+  Todos: '/todos',
 };
 export default class Sidebar extends React.Component {
 
@@ -26,15 +26,15 @@ export default class Sidebar extends React.Component {
 
   render() {
     const { pathname, } = this.state;
-    const {router} = this.context;
+    const { router, } = this.context;
     return (
-      <Div style={{ position: 'fixed', width: '12%', height: '100%', display: 'flex', flexDirection: 'column', }}>
+      <Div className='sidebar-wrapper'>
         {entries(routes).map(([ k, v, ]) => (
           <Div
             key={k}
-            style={{ height: '50px', textAlign: 'center', margin: '.5em', cursor: 'pointer', border: (pathname === v ? '2px solid blue': '1px solid black'), }}
+            className={pathname===v ? 'sidebar-item-active': 'sidebar-item'}
             onClick={() => router.push(v)}>
-            <h3 style={{ marginTop: '.7em', overflow:'hidden'}}>{k}</h3>
+            <h3 className='sidebar-item-text'>{k}</h3>
           </Div>
           ))}
       </Div>

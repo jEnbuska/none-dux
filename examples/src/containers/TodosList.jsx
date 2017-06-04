@@ -1,26 +1,16 @@
 import React from 'react';
-import propTypes from 'prop-types';
 import { connect, } from 'none-dux';
 import TodoListItem from './TodoListItem';
 
-const { values, keys, } = Object;
-const { func, } = propTypes;
+const { keys, } = Object;
 
-@connect(({ todos, }) => ({ todoIds: keys(todos), }))
-export default class TodosList extends React.Component {
+const Todos = ({ todoIds, }) => {
+  return (<div>
+    {todoIds.map(id => (
+      <TodoListItem
+        key={id}
+        id={id} />
+    ))}</div>);
+};
 
-  static propTypes = {
-    onSelect: func.isRequired,
-  };
-
-  render() {
-    const { todoIds, onSelect, } = this.props;
-    return (<div>
-      {todoIds.map(id => (
-        <TodoListItem
-          key={id}
-          id={id} onSelect={onSelect} />
-      ))}</div>);
-  }
-}
-
+export default connect(({ todos, }) => ({ todoIds: keys(todos), }))(Todos);

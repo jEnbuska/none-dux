@@ -3,10 +3,10 @@ import propTypes from 'prop-types';
 
 const { string, func, any, } = propTypes;
 const Input = ({ id, value, label, min, max, checked, className='', placeholder, type='text', onChange = () => console.log('on change not implemented'), }) => [
-  (<label key={`${id}-label`} htmlFor={id} id={`${id}-label`} style={{ padding: '.5em', display: 'inline-block', }}>
+  (<label key={`${id}-label`} htmlFor={id} id={`${id}-label`} className='input-label'>
     {label}
   </label>),
-  (<span key={`${id}-span`} style={{ display: 'block', }}>
+  (<span key={`${id}-span`} className='input-wrapper'>
     <input
       id={id}
       min={min}
