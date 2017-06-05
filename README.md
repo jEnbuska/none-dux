@@ -4,7 +4,8 @@
 ``` 
 Motivation:
  State handling should be as simple as target.setState({...})
- Take whats good in with redux with react and make it simple with less boilerplate needed
+ Take whats good in with redux with react and make it simple
+ with less boilerplate needed
 ```
 
 Syntax much like react-redux, with thunk.
@@ -52,6 +53,7 @@ action creators / actions:
 ```
 /* setState works like with react components state, 
 what ever you specify gets updated and a new application state is generated */
+
 export function removeUser(id) {
    return function (store) {
     const user = store.users[id];
@@ -66,12 +68,13 @@ export function removeUser(id) {
 export function toggleTodo(id){
   return function({todos: {[id]: todo}){
     const { state: {done}, } = todo;
-    const { state, prevState, } = todo.setState({pending: true, done: !done});
-    /*all parts of the store has state and previous state*/
+            /*all parts of the store has state and previous state*/
+    const { state, prevState, } = todo.setState({pending: true, done: !done});    
     updateTodo(id, state)
       .then(({data: nextState}) => todo.clearState(nextState))
-      .catch(() => todo.clearState(prevState))
-      /* clear state works like setState, but it remove all the non specified values from next state*/
+      .catch(() => todo.clearState(prevState))      
+             /* clear state works like setState, but it 
+             remove all the non specified values from next state*/
   }
 }
 ```
@@ -131,6 +134,7 @@ Working with deep structured store state:
 ```
 /* lets say you have a model like this an you would like 
 to remove all users appointments when user is removed*/
+
 const exampleShapeOfState = {
     users: {
       [userId]: {id: [userId], name: ..., address: ..., ...}, ...
