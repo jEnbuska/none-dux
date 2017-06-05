@@ -2,15 +2,18 @@
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
 ``` 
-Easy to use application state handling for React.
+Motivation:
+ State handling should be as simple as target.setState({...})
+ Take whats good in with redux with react and make it simple with less boilerplate needed
 ```
 
 Syntax much like react-redux, with thunk.
-
 No reducers no action types needed.
 
+Application state can be changed directly from actions 
+
 Viewing changes and state using redux devltools when:
-  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true
+  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true```
 
 Easy to work with deep structured state.
 
@@ -45,7 +48,7 @@ const root = (
 
 ```
 
-action creators:
+action creators / actions:
 ```
 /* setState works like with react components state, 
 what ever you specify gets updated and a new application state is generated */
@@ -171,8 +174,10 @@ Does not play well with arrays yet:
 const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
 ```
-Does not yet work with functions as state variables
 
 TODOS:
+ Make it work nicely with arrays
  computedValues
- It should be made able to change state using redux devtools
+ Functions as state variables (maybe)?
+ Should be made able to change state using redux devtools
+ Optional shape || model of the (store || subStores) for early catching or errors
