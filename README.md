@@ -168,6 +168,10 @@ Does not play well with arrays yet:
 const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
 ```
-Does not yet work with functions as state variables?
+Does not yet work with functions as state variables
+
+TODOS:
+ computedValues
+ 
 
 
