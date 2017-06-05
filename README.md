@@ -10,7 +10,7 @@ Syntax much like react-redux, with thunk.
 No reducers no action types needed.
 
 Viewing changes and state using redux devltools when:
-  NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true
+  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true
 
 Easy to work with deep structured state.
 
