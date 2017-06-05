@@ -168,18 +168,13 @@ user.remove();
 
 <img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
-Limitations:
-Does not play well with arrays yet:
+Limitations / Todos:
 ```
+1. Does not play well with arrays yet:
 const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
-```
-
-```
-TODOS:
- Make it work nicely with arrays
- computedValues
- Functions as state variables (maybe)?
- Should be made able to change state using redux devtools
- Optional shape || model of the (store || subStores) for early catching or errors
- Simplify asynchronicity, maybe with something like redux-observable or just rxjs```
+2. computedValues
+3. Functions as state variables (maybe)?
+4. Should be made able to change state using redux devtools
+5. Optional shape || model of the (store || subStores) for early catching or errors
+6. Maybe simplify asynchronicity, maybe with something like redux-observable or just rxjs```
