@@ -177,4 +177,5 @@ console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
 3. Functions as state variables (maybe)?
 4. Should be made able to change state using redux devtools
 5. Optional shape || model of the (store || subStores) for early catching or errors
-6. Simplify asynchronicity, maybe with something like redux-observable or just rxjs```
+6. Simplify asynchronicity, maybe with something like redux-observable or just rxjs
+```
