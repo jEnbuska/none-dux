@@ -175,4 +175,4 @@ Does not yet work with functions as state variables
 
 TODOS:
  computedValues
- It should be able to able to change state using redux devtools
+ It should be made able to change state using redux devtools
