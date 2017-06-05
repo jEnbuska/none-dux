@@ -175,10 +175,11 @@ const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
 ```
 
+```
 TODOS:
  Make it work nicely with arrays
  computedValues
  Functions as state variables (maybe)?
  Should be made able to change state using redux devtools
  Optional shape || model of the (store || subStores) for early catching or errors
- Simplify asynchronicity, maybe with something like redux-observable or just rxjs
+ Simplify asynchronicity, maybe with something like redux-observable or just rxjs```
