@@ -181,3 +181,4 @@ TODOS:
  Functions as state variables (maybe)?
  Should be made able to change state using redux devtools
  Optional shape || model of the (store || subStores) for early catching or errors
+ Simplify asynchronicity, maybe with something like redux-observable or just rxjs
