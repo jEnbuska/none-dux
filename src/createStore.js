@@ -1,4 +1,4 @@
-import SubStore, { RESET_STATE, } from './SubStore';
+import SubStore, { CLEAR_STATE, } from './SubStore';
 
 export default function createStore(initialState) {
   return new StoreCreator(initialState).subject;
@@ -27,7 +27,7 @@ export class StoreCreator {
       subject.subscriptionCount++;
       return () => delete subscribers[subscriptionCount];
     }.bind(subject);
-    SubStore.lastInteraction = { target: [ 'root', ], action: RESET_STATE, param: state, };
+    SubStore.lastInteraction = { target: [ 'root', ], action: CLEAR_STATE, param: state, };
     this.subject = subject;
   }
 
