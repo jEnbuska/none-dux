@@ -7,7 +7,10 @@ Easy to use application state handling for React.
 
 Syntax much like react-redux, with thunk.
 
-No reducers no action types.
+No reducers no action types needed.
+
+Viewing changes and state using redux devltools when:
+  NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true
 
 Easy to work with deep structured state.
 
@@ -172,6 +175,4 @@ Does not yet work with functions as state variables
 
 TODOS:
  computedValues
- 
-
-
+ It should be able to able to change state using redux devtools
