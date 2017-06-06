@@ -14,7 +14,7 @@ No reducers no action types needed.
 Application state can be changed directly from actions 
 
 Viewing changes and state using redux devltools when:
-  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true```
+  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__```
 
 Easy to work with deep structured state.
 
