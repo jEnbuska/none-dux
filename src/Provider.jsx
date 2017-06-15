@@ -34,11 +34,11 @@ export default class Provider extends React.Component {
     }.bind(subscribERS, store));
     if (onChange) {
       onChange(store);
-      store.subscribe(function(onChange) {
+      store.subscribe(function (onChange) {
         onChange(this);
       }.bind(store, onChange));
     }
-    createDebugger(store);
+    useReduxDevtools(store);
     this.store = store;
   }
 
@@ -68,16 +68,28 @@ export default class Provider extends React.Component {
   }
 }
 
-function createDebugger(store) {
-  if (process.env.NODE_ENV==='development') {
-    System.import('redux').then(it => {
-      const { createStore, combineReducers, } = it;
-      const reducers = combineReducers({ root: () => store.state, });
-      const reduxStore = createStore(reducers, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
-      store.subscribe(function (reduxStore) {
-        const { func, target, param, } = this.lastInteraction;
-        reduxStore.dispatch({ type: func.toString(), target, param, });
-      }.bind(SubStore, reduxStore));
-    }).catch(() => console.error('no redux dependency'));
+function useReduxDevtools(store) {
+  if (process.env.NODE_ENV !== 'production') {
+    System.import('redux').then(redux => {
+      const { createStore, combineReducers, } = redux;
+      const rootReducer = combineReducers({ root: () => store.state, });
+      const reduxStore = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
+      let emittedByOther = false;
+      store.subscribe(() => {
+        if (!emittedByOther) {
+          const { func, target, param, } = SubStore.lastInteraction;
+          emittedByOther = true;
+          reduxStore.dispatch({ type: func.toString(), target, param, });
+          emittedByOther = false;
+        }
+      });
+      reduxStore.subscribe(() => {
+        if (!emittedByOther) {
+          emittedByOther = true;
+          store.clearState(reduxStore.getState().root);
+          emittedByOther = false;
+        }
+      });
+    }).catch(() => console.warn('npm install --save-dev redux to be able to debug using redux devtools'));
   }
 }
