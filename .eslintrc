@@ -76,6 +76,7 @@
     "prefer-arrow-callback": "off",
     "no-restricted-syntax": "off",
     "no-prototype-builtins": "off",
-    "guard-for-in": "off"
+    "guard-for-in": "off",
+    "valid-typeof": 0
   }
 }
