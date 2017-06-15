@@ -106,9 +106,9 @@ export default class MyComponent extends React.Component {
       return (<div>...</div>)
    }
 }
-  
+```
 or without decorators:
-  
+```
 const MyComponent = (props) => {
    return (<div>...</div>) 
 }
