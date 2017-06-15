@@ -6,24 +6,22 @@ export const REMOVE = 'REMOVE';
 export default class SubStore {
 
   static lastInteraction;
+  static _maxDepth = 100;
   _id;
   _identity;
   state;
   prevState = {};
 
-  constructor(initialValue, key, parent, depth = 0) {
-    if (depth > 100) { SubStore.__kill(); }
+  constructor(initialValue, key, parent, depth, shape) {
+    if (depth>SubStore._maxDepth) { SubStore.__kill(); }
+    this.shape= shape;
     this._depth = depth;
     this._id = key;
     this._parent = parent;
     this._identity = [ ...parent._identity, key, ];
-    this._setInitialState(initialValue);
-  }
-
-  _setInitialState(initialValue) {
     if (initialValue instanceof Object) {
       for (const k in initialValue) {
-        this[k] = new SubStore(initialValue[k], k, this, this._depth + 1);
+        this._createSubStore(initialValue[k], k, this, depth + 1, shape);
       }
     }
     this.state = initialValue;
@@ -57,8 +55,7 @@ export default class SubStore {
     }
     const { state: prevState, _parent, } = this;
     if (value instanceof Object && prevState instanceof Object) {
-      this.state = this._merge(value,
-            prevState);
+      this._merge(value, prevState);
     } else {
       this._reset(value,
             prevState);
@@ -120,16 +117,18 @@ export default class SubStore {
           child._reset(obj[k], prevState[k]);
         }
       } else {
-        this[k] = new SubStore(obj[k], k, this, this._depth + 1);
+        this._createSubStore(obj[k], k, this, this._depth + 1);
       }
     }
-    return nextState;
+    this.state = nextState;
   }
 
   _reset(nextState, prevState) {
     if (nextState instanceof Object) {
+      const { shape, _depth, } = this;
       if (prevState instanceof Object) {
         const merge = { ...prevState, ...nextState, };
+
         for (const k in merge) {
           if (this[k]) {
             if (nextState.hasOwnProperty(k)) {
@@ -139,12 +138,12 @@ export default class SubStore {
               delete this[k];
             }
           } else {
-            this[k] = new SubStore(nextState[k], k, this, this._depth + 1);
+            this._createSubStore(nextState[k], k, this, _depth + 1, shape);
           }
         }
       } else {
         for (const k in nextState) {
-          this[k] = new SubStore(nextState[k], k, this, this._depth + 1);
+          this._createSubStore(nextState[k], k, this, _depth + 1, shape);
         }
       }
     } else if (prevState instanceof Object) {
@@ -169,18 +168,22 @@ export default class SubStore {
   }
 
   getChildrenRecursively() {
-    return this.children()
+    return this.getChildren()
       .reduce((acc, child) => {
         acc.push(child);
         return [ ...acc, ...child.getChildrenRecursively(), ];
       }, []);
   }
 
-  children() {
+  getChildren() {
     return this.state instanceof Object
       ? keys(this.state)
       .map(k => this[k])
       : [];
+  }
+
+  _createSubStore(initialState, key, parent, depth) {
+    this[key] = new SubStore(initialState, key, parent, depth);
   }
 
   static __kill() { /* redefined by StoreCreator*/ }

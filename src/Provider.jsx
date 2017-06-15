@@ -7,6 +7,7 @@ export default class Provider extends React.Component {
 
   static propTypes = {
     initialState: object,
+    shape: object,
     onChange: func,
   };
 
@@ -24,8 +25,8 @@ export default class Provider extends React.Component {
 
   componentWillMount() {
     const { props, subscribERS, } = this;
-    const { initialState, onChange, } = props;
-    const store = createStore({ ...initialState, });
+    const { initialState, shape, onChange, } = props;
+    const store = createStore({ ...initialState, }, shape);
     this.subsriptION = store.subscribe(function (store) {
       for (const key in this) {
         this[key](store);

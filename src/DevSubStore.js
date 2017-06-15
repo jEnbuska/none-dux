@@ -1,10 +1,10 @@
 import SubStore from './SubStore';
-import { ANY, TYPE_OF, VALIDATE, } from './createStore';
+import { TARGET_ANY, TYPE, TYPE_ANY, VALIDATE, } from './createStore';
 
 export default class DevSubStore extends SubStore {
 
-  constructor(initialValue, key, parent, depth, model) {
-    super(initialValue, key, parent, depth, model);
+  constructor(initialValue, key, parent, depth, shape) {
+    super(initialValue, key, parent, depth, shape);
     this._validate();
   }
 
@@ -14,8 +14,8 @@ export default class DevSubStore extends SubStore {
     return this;
   }
 
-  _createSubStore(initialState, key, parent, depth, model = {}) {
-    super._createSubStore(initialState, key, parent, depth, model[key] || model[ANY]);
+  _createSubStore(initialState, key, parent, depth, shape = {}) {
+    this[key] = new DevSubStore(initialState, key, parent, depth, shape[key] || shape[TARGET_ANY]);
   }
   _merge(obj, prevState) {
     super._merge(obj, prevState);
@@ -28,37 +28,38 @@ export default class DevSubStore extends SubStore {
   }
 
   _validate() {
-    const { model, state, } = this;
-    if (model) {
-      if (model instanceof Object) {
-        const { [TYPE_OF]: $typeof, [VALIDATE]: validate, } = model;
+    const { shape, state, } = this;
+    if (shape) {
+      if (shape instanceof Object) {
+        const { [TYPE]: $typeof, [VALIDATE]: validate, } = shape;
         if ($typeof) {
           if (typeof $typeof === 'string') {
-            if (!($typeof === ANY || typeof value === $typeof)) {
-              DevSubStore.onValidationError(`Validation failed.
-              Target ${JSON.stringify(this._identity, null, 1)}
-              State: ${JSON.stringify(state, null, 1)}
-              Expected ${$typeof} but received ${typeof value}`);
+            if (!(typeof state === $typeof || $typeof === TYPE_ANY)) {
+              DevSubStore.onValidationError('Validation failed.\n' +
+                'Target: '+JSON.stringify(this._identity, null, 1) + '\n' +
+                'State: '+JSON.stringify(state, null, 1) + '\n' +
+                'Expected: '+$typeof+' but received '+(typeof state));
             } else if (typeof $typeof === 'object') {
-              if (!$typeof.some(type => type === ANY || typeof value === type)) {
-                DevSubStore.onValidationError(`Validation failed.
-                Target ${JSON.stringify(this._identity, null, 1)}
-                State: ${JSON.stringify(state, null, 1)}
-                Expected some of type ${JSON.stringify($typeof, null, 1)}
-                But got ${typeof state}`);
+              if (!$typeof.some(type => typeof state === type)) {
+                DevSubStore.onValidationError('Validation failed\n.' +
+                'Target '+JSON.stringify(this._identity, null, 1)+'\n'+
+                'State: '+JSON.stringify(state, null, 1) +'\n'+
+                'Expected some of type '+JSON.stringify($typeof, null, 1) + '\n'+
+                'But got '+(typeof state));
               }
             }
           }
-        } else if (validate) {
-          if (!validate(state)) {
-            DevSubStore.onValidationError(`Custom validation failed.
-              Target ${JSON.stringify(this._identity, null, 1)}
-              State: ${JSON.stringify(state, null, 1)}`);
+        }
+        if (validate) {
+          try{
+            if(!validate(state)){
+              throw new Error();
+            }
+          }catch (ignore){
+            DevSubStore.onValidationError('Custom validation failed\n.'+
+              'Target: '+ JSON.stringify(this._identity, null, 1) +'\n'+
+              'State: '+ JSON.stringify(state, null, 1));
           }
-        } else {
-          DevSubStore.onValidationError(`
-          invalid validator ${JSON.stringify(model, null, 1)}
-          given to', ${JSON.stringify(this._identity, null, 1)}`);
         }
       }
     } else {
