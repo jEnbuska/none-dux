@@ -1,19 +1,12 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-``` 
-Motivation:
- State handling should be as simple as target.setState({...})
- Take whats good in with redux with react and make it simple with less boilerplate needed
-```
-
 Syntax much like react-redux, with thunk.
 No reducers no action types needed.
 
 Application state can be changed directly from actions 
 
-Viewing changes and state using redux devltools when:
-  ```NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__ === true```
+Works partially with redux devtools (time travel state, displays diff, events and state):
 
 Easy to work with deep structured state.
 
@@ -23,25 +16,54 @@ Shape of the state can be extended and modified at anytime.
 
 All part of the state is it's own sub-store
 
-Direction of the flow is reversed compared to React.Component: 
+Direction of the data flow is reversed compared to React.Component: 
 
 When ever a child generates a new state, it's parent and grand parents... will generated to new state, upto until Provider gets notified.
 
-import
+imports
 ```
-import {Provider, connect} from 'none-dux';
+import {Provider, connect, shapes, } from 'none-dux';
 ```
 
 init Provider:
 ```
 const initialState = {
-  todos: {},
-  users: {},
-  request: { users: {}, todos: {}, },
+  todosById: {},
+  usersById: {},
+};
+
+/*
+shape is optional. The only effect is that you will get console warnings 
+during development, when shape breaks specification
+*/
+
+const { TYPE, TARGET_ANY, VALIDATE, } = shapes;
+
+const shape = {
+  todosByUser: { [TYPE]: 'object',
+    [TARGET_ANY]: { [TYPE]: 'object',       // byUserIds 
+        [TARGET_ANY]: { [TYPE]: 'object',   // byTodoIds
+          userId: {[TYPE]: 'string', },
+          id: { [TYPE]: 'string', },
+          description: { [TYPE]: 'string', },
+          done: { [TYPE]: [ 'boolean', 'undefined', ], },
+    },
+  },
+  usersById: { [TYPE]: 'object', // userId
+     [TARGET_ANY]: {
+      id: { [TYPE]: 'string', },
+      firstName: { [TYPE]: 'string
+        [VALIDATE]: name => name.length < 25, 
+      },
+      lastName: { [TYPE]: 'string', 
+        [VALIDATE]: name => name.length < 25}, 
+      },     
+    },
+  },
 };
 
 const root = (
-  <Provider initialState={initialState}>
+  <Provider initialState={initialState} shape={shape}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         ...
@@ -50,24 +72,21 @@ const root = (
 
 action creators / actions:
 ```
-/* setState works like with react components state, 
-what ever you specify gets updated and a new application state is generated */
 export function removeUser(id) {
-   return function (store) {
-    const user = store.users[id];
+   return function ({users}) {
+    const user = users[id];
     user.setState({ pending: true, });
     deleteUser(id)
-      .then(()=> user.remove()); 
-      //or store.users.remove(id)
-  };
+      .then(()=> users.remove(id)); 
+  }
 }
 
 
 export function toggleTodo(id){
-  return function({todos: {[id]: todo}){
+  return function(store){
+    const todo = store.todos[id];
     const { state: {done}, } = todo;
     const { state, prevState, } = todo.setState({pending: true, done: !done});
-    /*all parts of the store has state and previous state*/
     updateTodo(id, state)
       .then(({data: nextState}) => todo.clearState(nextState))
       .catch(() => todo.clearState(prevState))
@@ -76,17 +95,24 @@ export function toggleTodo(id){
 }
 ```
 
-connect:
+connect with class decorators:
 ```
 @connect(
   ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
   ({ changeUserName, fetchUsers, addUser, removeUser, })
 )
-export default class User extends React.Component { ... }
+export default class MyComponent extends React.Component {
+   render(){
+      return (<div>...</div>)
+   }
+}
   
 or without decorators:
   
-class User ...  { ... }
+const MyComponent = (props) => {
+   return (<div>...</div>) 
+}
+
 export default connect(
    ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
    ({ changeUserName, fetchUsers, addUser, removeUser, }))(User)
@@ -94,22 +120,17 @@ export default connect(
 
 Other methods:
 ```
-target.remove(...ids); //removes with matching ids and all their sub children
+target.remove(...ids); //removes all children with matching ids
 target.remove(); //remove self
 ```
 
-Dynamically changing state;
+State of the store is not fixed:
 
 ```
 const store = createStore({parent:{}})
-store.subscribe(() => {
-  //get notified ones after every function call
-  console.log(store.state);
-  console.log(store.prevState);
-  console.log(SubStore.lastInteraction);
-})
+
 const {parent} = store;
-const {child} = parent.setState({
+parent.setState({
       child: {
         firstSubChild: {
           role: 'first', children: false
@@ -119,63 +140,17 @@ const {child} = parent.setState({
         }
      }
    });
-const {firstSubChild, secondSubChild} = child;
-firstSubChild.remove(); // changing the state of firstSubChild will throw an error from now on
-const {state, prevState} = secondSubChild.clearState({onlyChild: true});
-console.log(state); //{onlyChild: true}
-console.log(prevState); //'{role: 'second'};
+const {firstSubChild, secondSubChild} = parent.child;
+firstSubChild.remove(); 
+
+parent.setState('no children'); // ends up removing child and secondSubChild
 ```
-
-Working with deep structured store state:
-
-```
-/* lets say you have a model like this an you would like 
-to remove all users appointments when user is removed*/
-const exampleShapeOfState = {
-    users: {
-      [userId]: {id: [userId], name: ..., address: ..., ...}, ...
-    }
-    appointmentsByWeek: {
-       [weekNumber]: appointmentsByDay: {
-          [weekDayNumber]: {
-             [appointmentId]: {userId: [userId], appointmentId: [appointmentId], type: ..., something:...}
-          }, ...
-       }, ...
-    }
- }
-
-const user = store.users[userId];
-const {id} = user.state;
-
-store.appointmentsByWeek.getChildrenRecursively()
-  .filter(child => child.userId)
-  .filter(({state})=> state.userId === id)  
-  .forEach(appointment => appointment.remove())
-
-user.remove();
-
-/*or
-...
- const appointments = store.appointmentsByWeek.getChildrenRecursively()
-  .filter(child => child.userId)
-  .filter(({state})=> state.userId === id)
- appointments.length && appointments[0].getParent().remove(...appointments.map(ap => ap.getId()))
-... 
-*/
-
-```
-
 
 <img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
 Limitations / Todos:
 ```
-1. Does not play well with arrays yet:
+1. Does not play well with arrays:
 const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
-2. computedValues
-3. Functions as state variables (maybe)?
-4. Should be made able to change state using redux devtools
-5. Optional shape || model of the (store || subStores) for early catching or errors
-6. Simplify asynchronicity, maybe with something like redux-observable or just rxjs
 ```
