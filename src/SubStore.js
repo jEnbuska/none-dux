@@ -12,16 +12,16 @@ export default class SubStore {
   state;
   prevState = {};
 
-  constructor(initialValue, key, parent, depth, shape) {
+  constructor(initialValue, key, parent, depth, _shape) {
     if (depth>SubStore._maxDepth) { SubStore.__kill(); }
-    this.shape= shape;
+    this._shape= _shape;
     this._depth = depth;
     this._id = key;
     this._parent = parent;
     this._identity = [ ...parent._identity, key, ];
     if (initialValue instanceof Object) {
       for (const k in initialValue) {
-        this._createSubStore(initialValue[k], k, this, depth + 1, shape);
+        this._createSubStore(initialValue[k], k, this, depth + 1, _shape);
       }
     }
     this.state = initialValue;
@@ -117,7 +117,7 @@ export default class SubStore {
           child._reset(obj[k], prevState[k]);
         }
       } else {
-        this._createSubStore(obj[k], k, this, this._depth + 1);
+        this._createSubStore(obj[k], k, this, this._depth + 1, this._shape);
       }
     }
     this.state = nextState;
@@ -125,7 +125,7 @@ export default class SubStore {
 
   _reset(nextState, prevState) {
     if (nextState instanceof Object) {
-      const { shape, _depth, } = this;
+      const { _shape, _depth, } = this;
       if (prevState instanceof Object) {
         const merge = { ...prevState, ...nextState, };
 
@@ -138,12 +138,12 @@ export default class SubStore {
               delete this[k];
             }
           } else {
-            this._createSubStore(nextState[k], k, this, _depth + 1, shape);
+            this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
           }
         }
       } else {
         for (const k in nextState) {
-          this._createSubStore(nextState[k], k, this, _depth + 1, shape);
+          this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
         }
       }
     } else if (prevState instanceof Object) {
