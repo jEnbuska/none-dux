@@ -150,7 +150,7 @@ parent.setState('no children'); // ends up removing child and secondSubChild
 
 Limitations / Todos:
 ```
-1. Does not play well with arrays:
+Does not play well with arrays:
 const subStore.setState(['a','b','c'])
 console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
 ```
