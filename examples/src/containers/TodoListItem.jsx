@@ -8,6 +8,7 @@ import { removeTodo, toggleTodo, } from '../actions/todoActions';
 
 const TodoListItem = ({ todo, removeTodo, toggleTodo, }) => {
   const { id, done, description, } = todo;
+  console.log('list')
   return (
     <Div className='todo-item'>
       <h3 className={done ? 'todo-description-done' : 'todo-description'}>{description}</h3>
