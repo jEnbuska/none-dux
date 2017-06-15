@@ -77,6 +77,7 @@
     "no-restricted-syntax": "off",
     "no-prototype-builtins": "off",
     "guard-for-in": "off",
-    "valid-typeof": 0
+    "valid-typeof": "off",
+    "prefer-template": "off"
   }
 }
