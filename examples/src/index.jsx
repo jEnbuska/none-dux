@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import 'styles';
 import { Router, Route, IndexRoute, browserHistory, } from 'react-router';
 import Todos from './components/Todos';
-import { Provider, } from '../../src';
+import { Provider, shapes, } from '../../src';
 import App from './components/App';
 
 function getInitialState() {
@@ -14,10 +14,21 @@ function getInitialState() {
   return { todos: {}, };
 }
 
+const { TYPE, TARGET_ANY, VALIDATE, } = shapes;
+const shape = {
+  todos: { [TYPE]: 'object',
+    [TARGET_ANY]: {
+      id: { [TYPE]: 'string', },
+      description: { [TYPE]: 'string', },
+      done: { [TYPE]: [ 'boolean', 'undefined', ], },
+    },
+  },
+};
+
 const Root = () => (
   <Provider
     initialState={getInitialState()}
-    onChange={({ state, }) => localStorage.setItem('state', JSON.stringify(state))}>
+    shape={shape}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         <IndexRoute component={Todos} />
