@@ -35,4 +35,16 @@ describe('setState', () => {
     store.setState({ 0: 'abc', obj: { test: 'empty', }, 2: '1b', x: 3, });
     expect(store.state).to.deep.equal({ 0: 'abc', 1: 2, obj: { test: 'empty', }, 2: '1b', x: 3, });
   });
+
+  it('removing from array', () => {
+    store = createStore([ 0, 1, 2, 3, 4, 5, 6, ]);
+    store.remove(0, 2, 6);
+    expect(store.state).to.deep.equal([ 1, 3, 4, 5, ]);
+  });
+
+  it('changing arrays objects', () => {
+    store = createStore([ { a: { b: 2, }, }, 1, ]);
+    store[0].a.setState({ b: 100, });
+    expect(store.state).to.deep.equal([ { a: { b: 100, }, }, 1, ]);
+  });
 });

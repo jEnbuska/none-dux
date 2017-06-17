@@ -24,7 +24,27 @@ DevSubStore.onExclusiveViolation= err => {
 };
 
 describe('Validate shape', () => {
-  it('Valid spec bool', () => {
+
+  it('Valid array', () => {
+    refreshLists();
+    createStore(
+      { arr1: [], arr2: [ [], ], },
+      {
+        arr1: { [spec]: { type: array, }, },
+        arr2: { [spec]: { type: array, },
+          [any]: { [spec]: { type: array, }, },
+        },
+      });
+    console.log('-------------------')
+    console.log(JSON.stringify(validationErrors, null, 1))
+    expect(validationErrors.length).to.deep.equal(0);
+
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+  });
+
+  it('Valid bool', () => {
     refreshLists(); // beforeEach not working for some reason
     createStore(
       { a: false, b: true, },
@@ -38,7 +58,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec number', () => {
+  it('Valid number', () => {
     refreshLists();
     createStore(
       { a: 1, b: 2, c: 3, },
@@ -53,7 +73,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec string', () => {
+  it('Valid string', () => {
     refreshLists();
     createStore(
       { a: '', b: 'abc', },
@@ -67,7 +87,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec object', () => {
+  it('Valid object', () => {
     refreshLists();
     createStore(
       { a: {}, b: {}, },
@@ -81,7 +101,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec none', () => {
+  it('Valid none', () => {
     refreshLists();
     createStore(
       { a: undefined, b: null, },
@@ -95,7 +115,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec regex', () => {
+  it('Valid regex', () => {
     refreshLists();
     createStore(
       { a: /hello/, b: /world/, },
@@ -109,7 +129,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec symbol', () => {
+  it('Valid symbol', () => {
     refreshLists();
     createStore(
       { a: Symbol('hello'), b: Symbol('world'), },
@@ -123,7 +143,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec func', () => {
+  it('Valid func', () => {
     refreshLists();
     createStore(
       { a: () => {}, b() {}, },
@@ -137,7 +157,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid spec anyPrimitive', () => {
+  it('Valid anyLeaf', () => {
     refreshLists();
     createStore(
       { a: '', b: 2, c: false, },
@@ -147,6 +167,26 @@ describe('Validate shape', () => {
         c: { [spec]: { type: anyLeaf, }, },
       });
     expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+  });
+
+  it('invalid nones', () => {
+    refreshLists();
+    createStore(
+      { a: 123, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: /test/, g: [], h: false, },
+      {
+        a: { [spec]: { type: none, }, },
+        b: { [spec]: { type: none, }, },
+        c: { [spec]: { type: none, }, },
+        d: { [spec]: { type: none, }, },
+        e: { [spec]: { type: none, }, },
+        f: { [spec]: { type: none, }, },
+        g: { [spec]: { type: none, }, },
+        h: { [spec]: { type: none, }, },
+      });
+    expect(validationErrors.length).to.deep.equal(8);
     expect(requiredFieldsErrors.length).to.deep.equal(0);
     expect(invalidSpecTypesErrors.length).to.deep.equal(0);
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
@@ -326,19 +366,6 @@ describe('Validate shape', () => {
       { a: 123, b: 'abc', },
       { [spec]: { type: object, },
         a: { [spec]: { type: anyLeaf, }, },
-      });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
-  });
-
-  it('Valid spec object', () => {
-    refreshLists();
-    createStore(
-      { b: {}, },
-      { [spec]: { type: object, },
-        b: { [spec]: { type: object, }, },
       });
     expect(validationErrors.length).to.deep.equal(0);
     expect(invalidSpecTypesErrors.length).to.deep.equal(0);
