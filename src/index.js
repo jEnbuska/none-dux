@@ -1,6 +1,6 @@
 import Provider from './Provider';
 import connect from './connect';
-import { TYPE, TYPE_ANY, TARGET_ANY, VALIDATE, } from './createStore';
+import { string, number, spec, any, object, array, exclusive, isRequired, none, bool, } from './createStore';
 
-const shapes = { TYPE, TYPE_ANY, TARGET_ANY, VALIDATE, };
+const shapes = { string, number, spec, any, object, array, exclusive, isRequired, none, bool, };
 export { Provider, connect, shapes, };

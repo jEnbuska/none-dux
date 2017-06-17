@@ -5,10 +5,20 @@ export default function createStore(initialState, shape) {
   return new StoreCreator(initialState, shape).subject;
 }
 
-export const TARGET_ANY = '_TARGET_ANY_';
-export const TYPE_ANY = '_TYPE_ANY_';
-export const TYPE = '_TYPE_OF_';
-export const VALIDATE = '_VALIDATE_';
+export const spec = '__spec__';
+export const anyLeaf = '__anyPrimitive__';
+export const any = '__any__';
+export const object = 'object';
+export const array = 'array';
+export const string = 'string';
+export const number = 'number';
+export const isRequired = true;
+export const exclusive= true;
+export const bool = 'boolean';
+export const none = 'none';
+export const regex = 'regex';
+export const symbol = 'symbol';
+
 export class StoreCreator {
 
   static killSwitch = () => {
@@ -24,10 +34,16 @@ export class StoreCreator {
     SubStore.__kill = () => StoreCreator.killSwitch();
     if (shape && process.env.NODE_ENV!=='production') {
       shape = {
-        [TYPE]: 'object',
+        [spec]: { type: object, },
         ...shape,
       };
-      this.subject = new DevSubStore(state, 'root', this, 0, shape);
+      const shapeErrors = StoreCreator.validateShape(shape);
+      if (shapeErrors.length) {
+        console.error('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1));
+        this.subject = new SubStore(state, 'root', this, 0);
+      } else {
+        this.subject = new DevSubStore(state, 'root', this, 0, shape);
+      }
     } else {
       this.subject = new SubStore(state, 'root', this, 0);
     }
@@ -48,5 +64,22 @@ export class StoreCreator {
   }
 
   remove() {
+  }
+
+  static validateShape(shape, identity=[ 'root', ], errors = []) {
+    if (!(shape instanceof Object)) {
+      return [];
+    }
+    if (!shape[spec]) {
+      errors.push({ identity, msg: 'missing property spec', });
+    } else if (!shape[spec].type) {
+      errors.push({ identity, msg: 'missing spec type', });
+    }
+    Object.entries(shape)
+      .filter(([ k, ]) => k!==spec)
+      .forEach(([ k, v, ]) => {
+        StoreCreator.validateShape(v, [ ...identity, k, ], errors);
+      });
+    return errors;
   }
 }
