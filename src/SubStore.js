@@ -3,13 +3,15 @@ export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
+const { entries, } = Object;
+
 export function couldHaveChildren(value) {
   return value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
 }
 
 export default class SubStore {
 
-  static lastInteraction;
+  static lastChange;
   static _maxDepth = 100;
   _id;
   _identity;
@@ -37,7 +39,7 @@ export default class SubStore {
     callBack(this);
     this._parent = _parent;
     if (this.state!==state) {
-      SubStore.lastInteraction = { func: CLEAR_STATE, target: _identity, param: this.state, };
+      SubStore.lastChange = { func: CLEAR_STATE, target: _identity, param: this.state, };
       this._parent._notifyUp(this);
     }
     return this;
@@ -68,7 +70,7 @@ export default class SubStore {
       this._reset(value, prevState);
     }
     this.prevState = prevState;
-    SubStore.lastInteraction = { func: SET_STATE, target: this._identity, param: value, };
+    SubStore.lastChange = { func: SET_STATE, target: this._identity, param: value, };
     _parent._notifyUp(this);
     return this;
   }
@@ -82,7 +84,7 @@ export default class SubStore {
     const prevState = this.state;
     this._reset(value, prevState);
     this.prevState = prevState;
-    SubStore.lastInteraction = { func: CLEAR_STATE, target: this._identity, param: value, };
+    SubStore.lastChange = { func: CLEAR_STATE, target: this._identity, param: value, };
     this._parent._notifyUp(this);
     return this;
   }
@@ -97,18 +99,40 @@ export default class SubStore {
       if (!(couldHaveChildren(state))) {
         throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${state}`);
       }
-      const nextState = { ...state, };
-      for (const id of ids) {
-        if (this[id] && this[id] instanceof SubStore) {
-          delete nextState[id];
-          delete this[id]._parent;
-          delete this[id];
-        } else {
-          throw new Error('Remove error:', JSON.stringify(this._identity), `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
+      const isArray = state instanceof Array;
+      let nextState;
+      if (isArray) {
+        ids = new Set(ids);
+        nextState = state.reduce((acc, next, i) => {
+          const { length, } = acc;
+          if (!ids.has(i)) {
+            if (i!==length) {
+              const target = this[i];
+              this[length] = this[i];
+              delete this[i];
+              target._id = length;
+            }
+            acc.push(next);
+          }
+          return acc;
+        }, []);
+        ids = [ ...ids, ];
+      } else {
+        nextState = { ...state, };
+        for (const id of ids) {
+          if (this[id] && this[id] instanceof SubStore) {
+            delete nextState[id];
+            delete this[id]._parent;
+            delete this[id];
+          } else {
+            throw new Error('Remove error:',
+              JSON.stringify(this._identity),
+              `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
+          }
         }
       }
       this.state = nextState;
-      SubStore.lastInteraction = { target: this._identity, func: REMOVE, param: ids, };
+      SubStore.lastChange = { target: this._identity, func: REMOVE, param: ids, };
       this._parent._notifyUp(this);
     } else {
       this._parent.remove(this._id);
@@ -121,7 +145,7 @@ export default class SubStore {
     for (const k in nextState) {
       const child = this[k];
       if (child) {
-        if (obj.hasOwnProperty(k)) {
+        if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
           child._reset(obj[k], prevState[k]);
         }
       } else {
@@ -139,7 +163,9 @@ export default class SubStore {
         for (const k in merge) {
           if (this[k]) {
             if (nextState.hasOwnProperty(k)) {
-              this[k]._reset(nextState[k], prevState[k]);
+              if (nextState[k] !== prevState[k]) {
+                this[k]._reset(nextState[k], prevState[k]);
+              }
             } else {
               delete this[k]._parent;
               delete this[k];
@@ -165,7 +191,11 @@ export default class SubStore {
   _notifyUp(child) {
     const { _id, state, } = child;
     const prevState = this.state;
-    this.state = { ...prevState, [_id]: state, };
+    if (prevState instanceof Array) {
+      this.state = [ ...prevState.slice(0, _id), state, ...prevState.slice(_id+1, prevState.length), ];
+    } else {
+      this.state = { ...prevState, [_id]: state, };
+    }
     this.prevState = prevState;
     if (this._parent) {
       this._parent._notifyUp(this);
