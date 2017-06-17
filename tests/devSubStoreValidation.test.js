@@ -1,187 +1,210 @@
 import { expect, } from 'chai';
-import createStore, { TARGET_ANY, VALIDATE, TYPE, TYPE_ANY, } from '../src/createStore';
+import createStore, { none, any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, } from '../src/createStore';
 import DevSubStore from '../src/DevSubStore';
 
-describe('Validate shape', () => {
-  let errors;
+let validationErrors;
+let requiredFieldsErrors;
+let invalidSpecTypesErrors;
+let exclusiveFieldsErrors;
 
-  it('Valid TYPEs number', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+function refreshLists(){
+  validationErrors = [];
+  requiredFieldsErrors = [];
+  invalidSpecTypesErrors = []; // beforeEach not working for some reason
+  exclusiveFieldsErrors = [];
+}
+
+DevSubStore.onValidationError = err => validationErrors.push(err);
+DevSubStore.onMissingRequiredFields = err => requiredFieldsErrors.push(err);
+DevSubStore.onInvalidSpecType = err => {
+  invalidSpecTypesErrors.push(err);
+}
+DevSubStore.onExclusiveViolation= err => {
+  exclusiveFieldsErrors.push(err);
+}
+
+describe('Validate shape', () => {
+  it('Valid spec bool', () => {
+    refreshLists(); // beforeEach not working for some reason
+    createStore(
+      { a: false, b: true, },
+      {
+        a: { [spec]: { type: bool, }, },
+        b: { [spec]: { type: bool, }, },
+      });
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+  });
+
+  it('Valid spec number', () => {
+    refreshLists();
     createStore(
       { a: 1, b: 2, c: 3, },
       {
-        a: { [TYPE]: 'number', },
-        b: { [TYPE]: 'number', },
-        c: { [TYPE]: 'number', },
+        a: { [spec]: { type: number, }, },
+        b: { [spec]: { type: number, }, },
+        c: { [spec]: { type: number, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TYPEs string', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid spec string', () => {
+    refreshLists();
     createStore(
       { a: '', b: 'abc', },
       {
-        a: { [TYPE]: 'string', },
-        b: { [TYPE]: 'string', },
+        a: { [spec]: { type: string, }, },
+        b: { [spec]: { type: string, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TYPEs object', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid spec object', () => {
+    refreshLists();
     createStore(
       { a: {}, b: {}, },
       {
-        a: { [TYPE]: 'object', },
-        b: { [TYPE]: 'object', },
+        a: { [spec]: { type: object, }, },
+        b: { [spec]: { type: object, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TYPEs undefined', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid spec none', () => {
+    refreshLists();
     createStore(
-      { a: undefined, b: undefined, },
+      { a: undefined, b: null, },
       {
-        a: { [TYPE]: 'undefined', },
-        b: { [TYPE]: 'undefined', },
+        a: { [spec]: { type: none, }, },
+        b: { [spec]: { type: none, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TARGET_ANY', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid spec anyPrimitive', () => {
+    refreshLists();
     createStore(
-      { a: '', 1: 'abc', gdsabafda: 'c', },
+      { a: '', b: 2, c: false, },
       {
-        [TARGET_ANY]: { [TYPE]: 'string', },
+        a: { [spec]: { type: anyLeaf, }, },
+        b: { [spec]: { type: anyLeaf, }, },
+        c: { [spec]: { type: anyLeaf, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid mixed with TARGET_ANY', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid anyLeaf with any target', () => {
+    refreshLists();
     createStore(
-      { a: 123, 1: 'abc', gdsabafda: 'c', },
+      { a: 123, 1: 'abc', gdsabafda: false, },
       {
-        [TARGET_ANY]: { [TYPE]: 'string', },
-        a: 'number',
+        [any]: { [spec]: { type: anyLeaf, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TARGET_ANY, type TYPE_ANY', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Missing required field error', () => {
+    refreshLists();
     createStore(
-      { a: 123, 1: 'abc', gdsabafda: {}, },
+      { a: 123, },
       {
-        [TARGET_ANY]: { [TYPE]: TYPE_ANY, },
+        [any]: { [spec]: { type: anyLeaf, }, },
+        b: { [spec]: { type: number, isRequired, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(1);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid TYPEs mixed', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Redudant fields error', () => {
+    refreshLists();
     createStore(
-      { a: {}, b: 2, c: 'abc', d: undefined, e: null, f: [], },
-      {
-        a: { [TYPE]: 'object', },
-        b: { [TYPE]: 'number', },
-        c: { [TYPE]: 'string', },
-        d: { [TYPE]: 'undefined', },
-        e: { [TYPE]: 'object', },
-        f: { [TYPE]: 'object', },
+      { a: 123, b: 'abc', },
+      { [spec]: { type: object, exclusive, },
+        a: { [spec]: { type: anyLeaf, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(1);
   });
 
-  it('Valid TYPEs nested', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Non specified fields', () => {
+    refreshLists();
     createStore(
-      { a: { b: 'abc', c: { d: 123, e: {}, }, }, f: 2, g: 'abc', },
-      {
-        a: {
-          [TYPE]: 'object',
-          b: {
-            [TYPE]: 'string',
-          },
-          c: {
-            [TYPE]: 'object',
-            d: { [TYPE]: 'number', },
-            e: { [TYPE]: 'object', },
-          },
-        },
-        f: { [TYPE]: 'number', },
-        g: { [TYPE]: 'string', },
+      { a: 123, b: 'abc', },
+      { [spec]: { type: object, },
+        a: { [spec]: { type: anyLeaf, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid VALIDATE nested', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
+  it('Valid spec object', () => {
+    refreshLists();
     createStore(
-      { a: { b: 'abc', c: { d: {}, e: undefined, }, }, f: 2, g: 'abc', },
-      {
-        a: {
-          [VALIDATE]: state => state.hasOwnProperty('b') && state.hasOwnProperty('c'),
-          b: { [TYPE]: 'string', },
-          c: { [VALIDATE]: state => Object.keys(state).length === 2,
-            d: { [VALIDATE]: state => state instanceof Object, },
-            e: { [TYPE]: undefined, },
-          },
-        },
-        f: { [TYPE]: 'number', },
-        g: { [VALIDATE]: state => state.length>=3, },
+      { b: {}, },
+      { [spec]: { type: object, },
+        b: { [spec]: { type: object, }, },
       });
-    expect(errors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.deep.equal(0);
+    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
+    expect(requiredFieldsErrors.length).to.deep.equal(0);
+    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Invalid TYPEs nested', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
-    createStore(
-      { a: { b: 'abc', c: { d: 123, e: {}, }, }, f: 2, g: 'abc', },
-      {
-        a: { [TYPE]: 'object',
-          b: { [TYPE]: 'object',
-          },
-          c: { [TYPE]: 'string',
-            d: { [TYPE]: 'string', },
-            e: { [TYPE]: 'number', },
-          },
-        },
-        f: { [TYPE]: 'string', },
-        g: { [TYPE]: 'number', },
+  it('Invalid spec', () => {
+    const missingTypeStore = createStore(
+      { b: {}, },
+      { [spec]: { type: object, },
+        b: { [spec]: {}, },
       });
-    expect(errors.length).to.deep.equal(6);
-  });
+    expect(!(missingTypeStore instanceof DevSubStore)).to.be.ok
 
-  it('Invalid VALIDATE nested', () => {
-    errors = []; // beforeEach not working for some reason
-    DevSubStore.onValidationError = (err) => errors.push(err);
-    createStore(
-      { a: { b: 'abc', c: { d: 123, e: {}, }, }, },
-      {
-        a: { [VALIDATE]: state => state.hasOwnProperty('x'),
-          b: { [VALIDATE]: state => typeof state === 'number',
-          },
-          c: { [TYPE]: 'string',
-            d: { [VALIDATE]: state => state.length===100, },
-            e: { [VALIDATE]: () => { throw new Error(); }, },
-          },
-        },
+    const missingSpecStore = createStore(
+      { b: {}, },
+      { [spec]: { type: object, },
+        b: {},
       });
-    expect(errors.length).to.deep.equal(5);
-  });
+    expect(!(missingSpecStore instanceof DevSubStore)).to.be.ok
+  })
+
+  it('Invalid spec', () => {
+    const missingTypeStore = createStore(
+      { b: {}, },
+      { [spec]: { type: object, },
+        b: { [spec]: {}, },
+      });
+    expect(!(missingTypeStore instanceof DevSubStore)).to.be.ok
+
+    const missingSpecStore = createStore(
+      { b: {}, },
+      { [spec]: { type: object, },
+        b: {},
+      });
+    expect(!(missingSpecStore instanceof DevSubStore)).to.be.ok
+  })
 });
