@@ -5,6 +5,11 @@
   height: 100%;
   overflow-y: scroll
 }
+
+.disabled-view{
+  opacity: .4;
+  pointer-events: none;
+}
 .div-default{
   border: 1px solid black;
   border-radius: .3em;
@@ -13,7 +18,12 @@
   padding: .5em;
 };
 
-.create-todo-form{
+.flex{
+  display: flex;
+  justify-content: space-around;
+}
+
+.form{
   @extend .div-default;
   display: flex;
   justify-content: space-between;

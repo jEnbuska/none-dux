@@ -2,13 +2,15 @@ import React from 'react';
 import propTypes from 'prop-types';
 
 const { string, func, any, } = propTypes;
-const Input = ({ id, value, label, min, max, checked, className='', placeholder, type='text', onChange = () => console.log('on change not implemented'), }) => [
+const Input = ({ id, autocomplete, value, label, min, max, checked, className='',  name, placeholder, type='text', onChange = () => console.log('on change not implemented'), }) => [
   (<label key={`${id}-label`} htmlFor={id} id={`${id}-label`} className='input-label'>
     {label}
   </label>),
   (<span key={`${id}-span`} className='input-wrapper'>
     <input
       id={id}
+      name={name}
+      autoComplete={autocomplete}
       min={min}
       max={max}
       type={type}

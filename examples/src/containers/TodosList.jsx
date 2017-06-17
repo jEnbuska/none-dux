@@ -2,13 +2,12 @@ import React from 'react';
 import { connect, } from '../../../src';
 import TodoListItem from './TodoListItem';
 
-const { keys, } = Object;
-
-const Todos = ({ todoIds, }) => (<div>
-  {todoIds.map(id => (
+const TodosList = ({ todos, userId, }) => (<div>
+  {todos.map(todo => (
     <TodoListItem
-      key={id}
-      id={id} />
+      key={todo.id}
+      userId={userId}
+      todo={todo} />
     ))}</div>);
 
-export default connect(({ todos, }) => ({ todoIds: keys(todos), }))(Todos);
+export default connect(({ users, }, { userId, }) => ({ todos: (users[userId] && users[userId].todos) || [], }))(TodosList);
