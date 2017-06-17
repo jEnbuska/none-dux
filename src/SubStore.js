@@ -1,7 +1,11 @@
-const { keys, } = Object;
+const { keys, values, } = Object;
 export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
+
+export function couldHaveChildren(value) {
+  return value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
+}
 
 export default class SubStore {
 
@@ -19,7 +23,7 @@ export default class SubStore {
     this._id = key;
     this._parent = parent;
     this._identity = [ ...parent._identity, key, ];
-    if (initialValue instanceof Object) {
+    if (couldHaveChildren(initialValue)) {
       for (const k in initialValue) {
         this._createSubStore(initialValue[k], k, this, depth + 1, _shape);
       }
@@ -54,11 +58,14 @@ export default class SubStore {
       throw new Error('detached SubStore action: setState', JSON.stringify(this._identity));
     }
     const { state: prevState, _parent, } = this;
-    if (value instanceof Object && prevState instanceof Object) {
-      this._merge(value, prevState);
+    if (couldHaveChildren(value) && couldHaveChildren(prevState)) {
+      if (value instanceof Array) {
+        this._reset(value, prevState);
+      } else {
+        this._merge(value, prevState);
+      }
     } else {
-      this._reset(value,
-            prevState);
+      this._reset(value, prevState);
     }
     this.prevState = prevState;
     SubStore.lastInteraction = { func: SET_STATE, target: this._identity, param: value, };
@@ -84,12 +91,13 @@ export default class SubStore {
     if (!this._parent) {
       throw new Error('detached SubStore action: remove', JSON.stringify(this._identity));
     }
+    const { state, } = this;
     if (ids.length) {
-      this.prevState = this.state;
-      if (!(this.state instanceof Object)) {
-        throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${this.state}`);
+      this.prevState = state;
+      if (!(couldHaveChildren(state))) {
+        throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${state}`);
       }
-      const nextState = { ...this.state, };
+      const nextState = { ...state, };
       for (const id of ids) {
         if (this[id] && this[id] instanceof SubStore) {
           delete nextState[id];
@@ -124,11 +132,10 @@ export default class SubStore {
   }
 
   _reset(nextState, prevState) {
-    if (nextState instanceof Object) {
+    if (couldHaveChildren(nextState)) {
       const { _shape, _depth, } = this;
-      if (prevState instanceof Object) {
+      if (couldHaveChildren(prevState)) {
         const merge = { ...prevState, ...nextState, };
-
         for (const k in merge) {
           if (this[k]) {
             if (nextState.hasOwnProperty(k)) {
@@ -146,13 +153,13 @@ export default class SubStore {
           this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
         }
       }
-    } else if (prevState instanceof Object) {
+    } else if (couldHaveChildren(prevState)) {
       for (const k in prevState) {
         delete this[k]._parent;
         delete this[k];
       }
     }
-    this.state = nextState;
+    this.state = nextState instanceof Array ? values(nextState) : nextState;
   }
 
   _notifyUp(child) {
@@ -176,8 +183,9 @@ export default class SubStore {
   }
 
   getChildren() {
-    return this.state instanceof Object
-      ? keys(this.state)
+    const { state, } = this;
+    return couldHaveChildren(state)
+      ? keys(state)
       .map(k => this[k])
       : [];
   }
