@@ -29,13 +29,12 @@ export default class Provider extends React.Component {
     const store = createStore({ ...initialState, }, shape);
     this.subsriptION = store.subscribe(function (store) {
       for (const key in this) {
-        this[key](store);
+        this[key](store, SubStore.lastChange);
       }
     }.bind(subscribERS, store));
     if (onChange) {
-      onChange(store);
       store.subscribe(function (onChange) {
-        onChange(this);
+        onChange(this, SubStore.lastChange);
       }.bind(store, onChange));
     }
     useReduxDevtools(store);
@@ -77,7 +76,7 @@ function useReduxDevtools(store) {
       let emittedByOther = false;
       store.subscribe(() => {
         if (!emittedByOther) {
-          const { func, target, param, } = SubStore.lastInteraction;
+          const { func, target, param, } = SubStore.lastChange;
           emittedByOther = true;
           reduxStore.dispatch({ type: func.toString(), target, param, });
           emittedByOther = false;
