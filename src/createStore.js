@@ -18,6 +18,7 @@ export const bool = 'boolean';
 export const none = 'none';
 export const regex = 'regex';
 export const symbol = 'symbol';
+export const func = 'func';
 
 export class StoreCreator {
 
@@ -56,7 +57,7 @@ export class StoreCreator {
       subject.subscriptionCount++;
       return () => delete subscribers[subscriptionCount];
     }.bind(subject);
-    SubStore.lastInteraction = { target: [ 'root', ], action: CLEAR_STATE, param: state, };
+    SubStore.lastChange = { target: [ 'root', ], action: CLEAR_STATE, param: state, };
   }
 
   _notifyUp() {
