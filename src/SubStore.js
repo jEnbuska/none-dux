@@ -3,8 +3,6 @@ export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
-const { entries, } = Object;
-
 export function couldHaveChildren(value) {
   return value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
 }
@@ -99,16 +97,15 @@ export default class SubStore {
       if (!(couldHaveChildren(state))) {
         throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${state}`);
       }
-      const isArray = state instanceof Array;
       let nextState;
-      if (isArray) {
-        ids = new Set(ids);
+      if (state instanceof Array) {
+        const set = ids.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
         nextState = state.reduce((acc, next, i) => {
           const { length, } = acc;
-          if (!ids.has(i)) {
+          if (!set[i]) {
             if (i!==length) {
               const target = this[i];
-              this[length] = this[i];
+              this[length] = target;
               delete this[i];
               target._id = length;
             }
@@ -116,7 +113,6 @@ export default class SubStore {
           }
           return acc;
         }, []);
-        ids = [ ...ids, ];
       } else {
         nextState = { ...state, };
         for (const id of ids) {
