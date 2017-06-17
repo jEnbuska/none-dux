@@ -1,6 +1,6 @@
 import React from 'react';
 import { browserHistory, } from 'react-router';
-import { connect, } from '../../../src/index';
+import { connect, } from 'none-dux';
 import AddUser from './AddUser';
 import UserListItem from '../components/UserListItem';
 import { removeUser, } from '../actions/userActions';

@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider, shapes, } from 'none-dux';
 import 'styles';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
 import UserProfile from './containers/UserProfile.jsx';
 import BrowserUsers from './containers/BrowserUsers.jsx';
 import Users from './containers/Users.jsx';
-import { Provider, shapes, } from '../../src';
+
 import App from './components/App';
 
 /* just an experiment to see how how this library would work with deep structured data and arrays.
