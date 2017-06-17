@@ -22,7 +22,7 @@ When ever a child generates a new state, it's parent and grand parents... will g
 
 imports
 ```
-import {Provider, connect, shapes, } from 'none-dux';
+import { Provider, connect, shapes, } from 'none-dux';
 ```
 
 init Provider:
@@ -34,36 +34,39 @@ const initialState = {
 
 /*
 shape is optional. The only effect is that you will get console warnings 
-during development, when shape breaks specification
+during development, when shape breaks specification.
 */
-
-const { TYPE, TARGET_ANY, VALIDATE, } = shapes;
+const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 const shape = {
-  todosByUser: { [TYPE]: 'object',
-    [TARGET_ANY]: { [TYPE]: 'object',       // byUserIds 
-        [TARGET_ANY]: { [TYPE]: 'object',   // byTodoIds
-          userId: {[TYPE]: 'string', },
-          id: { [TYPE]: 'string', },
-          description: { [TYPE]: 'string', },
-          done: { [TYPE]: [ 'boolean', 'undefined', ], },
+  todosByUser: { [spec]:{ type: object, isRequired, },  //console errors when values is not in state
+    [any]: { [spec]: { type: object},                   // byUserIds 
+        [any]: { [spec]: { type: object, exclusive},    // byTodoIds, exclusive console errors when undefined values are added
+          userId: {[spec]: { type: string, isRequired, }, },
+          id: { [spec]: { type: string, isRequired}, },
+          description: { [spec]: { type: string, isRequired, }, },
+          done: { [spec]: { type: bool, }, },
     },
   },
-  usersById: { [TYPE]: 'object', // userId
-     [TARGET_ANY]: {
-      id: { [TYPE]: 'string', },
-      firstName: { [TYPE]: 'string
-        [VALIDATE]: name => name.length < 25, 
-      },
-      lastName: { [TYPE]: 'string', 
-        [VALIDATE]: name => name.length < 25}, 
-      },     
+  usersById: { [spec]: { type: object, }, // userId
+     [any]: {
+      id: { [spec]: {type: string, }, },
+      firstName: { [spec]: { type: string, },
+      lastName: { [spec]: {type: string, },     
     },
   },
 };
 
+/*
+Note that using shape makes the performance significantly slower 
+but it will allways be turned of when NODE_ENV === 'production'
+*/
+
 const root = (
-  <Provider initialState={initialState} shape={shape}>
+  <Provider 
+  initialState={initialState} 
+  shape={shape} 
+  onChange={(store, lastChange) => {/**/}}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         ...
@@ -148,9 +151,14 @@ parent.setState('no children'); // ends up removing child and secondSubChild
 
 <img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
-Limitations / Todos:
+
+
 ```
-Does not play well with arrays:
-const subStore.setState(['a','b','c'])
-console.log(subStore.state); // {1:'a', 2:'b', 3:'c'};
+Be careful when using arrays:
+
+cosnt store = createStore([1, 2, 3]);
+const {state} = store.setState({a: 4, b: 5})
+console.log(state) // {0: 1, 1: 2, 2: 3, a: 4, b: 5};
+
+//using shape will make your life a lot easier
 ```
