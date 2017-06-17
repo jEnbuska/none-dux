@@ -13,7 +13,6 @@ export function addTodo(description, userId) {
 export function toggleTodo(id, userId) {
   return function ({ users, }) {
     const user = users[userId];
-    console.log(users[userId]);
     const todo = user.todos.getChildren().find(({ state, }) => state.id===id);
     const { state, prevState, } = todo.setState({ done: !todo.state.done, });
     return new Promise(res => setTimeout(() => res({ status: 201, }), 800));

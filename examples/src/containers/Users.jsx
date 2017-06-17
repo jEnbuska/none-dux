@@ -28,7 +28,7 @@ export default class Users extends React.Component {
             selectUser(userId);
           }
         }
-      });
+      }).catch(() => { /* no previous state in cache*/ });
   }
 
   componentWillReceiveProps({ params: { userId, }, selectUser, users, }) {

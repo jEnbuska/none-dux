@@ -3,7 +3,6 @@ import uuid from 'uuid/v4';
 export function addUser() {
   return function ({ users, selections: { user, }, }) {
     const id = uuid();
-    console.log({ ADDID: id, });
     users.setState({ [id]: { id, ...user.state, todos: [], }, });
     user.clearState({ });
     return new Promise(res => setTimeout(() => res(), 800));
@@ -46,7 +45,6 @@ export function selectUser(id) {
 export function fetchUsers() {
   return function () {
     return new Promise((resolve, reject) => {
-      console.log(localStorage.getItem('users'));
       const users = JSON.parse(localStorage.getItem('users'));
       setTimeout(() => users ? resolve(users) : reject(), 1500);
     });
