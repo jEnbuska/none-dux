@@ -39,10 +39,10 @@ during development, when shape breaks specification.
 const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 const shape = {
-  todosByUser: { [spec]:{ type: object, isRequired, },  //console errors when values is not in state
+  todosByUser: { [spec]:{ type: object, isRequired, }, 
     [any]: { [spec]: { type: object},                   // byUserIds 
-        [any]: { [spec]: { type: object, exclusive},    // byTodoIds, exclusive console errors when undefined values are added
-          userId: {[spec]: { type: string, isRequired, }, },
+        [any]: { [spec]: { type: object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
+          userId: {[spec]: { type: string, isRequired, }, },  // 'isRequired' console errors when userId is not spesified in todo object
           id: { [spec]: { type: string, isRequired}, },
           description: { [spec]: { type: string, isRequired, }, },
           done: { [spec]: { type: bool, }, },
@@ -58,15 +58,15 @@ const shape = {
 };
 
 /*
-Note that using shape makes the performance significantly slower 
-but it will allways be turned of when NODE_ENV === 'production'
+using shape makes the performance significantly slower in dev environment
+shape is ignored when NODE_ENV === 'production'
 */
 
 const root = (
   <Provider 
   initialState={initialState} 
   shape={shape} 
-  onChange={(store, lastChange) => {/**/}}>
+  onChange={(store, lastChange) => {/* ... */}}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         ...
