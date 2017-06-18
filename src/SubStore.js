@@ -91,44 +91,53 @@ export default class SubStore {
       }
       let nextState;
       if (state instanceof Array) {
-        const set = ids.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
-        nextState = state.reduce((acc, next, i) => {
-          const { length, } = acc;
-          if (!set[i]) {
-            if (i !== length) {
-              const target = this[i];
-              this[length] = target;
-              delete this[i];
-              target._id = length;
-            }
-            acc.push(next);
-          } else {
-            delete this[i]._parent;
-            delete this[i];
-          }
-          return acc;
-        }, []);
+        nextState = this._removeFromArrayState(ids);
       } else {
-        nextState = { ...state, };
-        for (const id of ids) {
-          if (this[id] && this[id] instanceof SubStore) {
-            delete nextState[id];
-            delete this[id]._parent;
-            delete this[id];
-          } else {
-            throw new Error('Remove error:',
-              JSON.stringify(this._identity),
-              `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
-          }
-        }
+        nextState = this._removeFromObjectState(ids);
       }
       this.state = nextState;
-      SubStore.lastChange = { target: this._identity, func: REMOVE, param: ids, };
+      SubStore.lastChange = { func: REMOVE, target: this._identity, param: ids, };
       this._parent._notifyUp(this);
     } else {
       this._parent.remove(this._id);
     }
     return this;
+  }
+
+  _removeFromArrayState(ids) {
+    const set = ids.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
+    return this.state.reduce((acc, next, i) => {
+      const { length, } = acc;
+      if (!set[i]) {
+        if (i !== length) {
+          const target = this[i];
+          this[length] = target;
+          delete this[i];
+          target._id = length;
+        }
+        acc.push(next);
+      } else {
+        delete this[i]._parent;
+        delete this[i];
+      }
+      return acc;
+    }, []);
+  }
+
+  _removeFromObjectState(ids) {
+    const nextState = { ...this.state, };
+    for (const id of ids) {
+      if (this[id] && this[id] instanceof SubStore) {
+        delete nextState[id];
+        delete this[id]._parent;
+        delete this[id];
+      } else {
+        throw new Error('Remove error:',
+          JSON.stringify(this._identity),
+          `Has no such child as ${id} when state: ${JSON.stringify(this.state, null, 1)}`);
+      }
+    }
+    return nextState;
   }
 
   _merge(obj, prevState) {
