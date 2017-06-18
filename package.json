@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "2.0.2",
+  "version": "2.1.2",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
