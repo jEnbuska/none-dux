@@ -14,7 +14,6 @@ export function onTodoUpdate() {
     todos.setState({ updating: true, });
   };
 }
-
 export function onTodoUpdateSuccess() {
   return function ({ request: { todos, }, }) {
     todos.setState({ updating: false, });
