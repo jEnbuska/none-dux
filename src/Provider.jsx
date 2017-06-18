@@ -68,11 +68,12 @@ export default class Provider extends React.Component {
 }
 
 function useReduxDevtools(store) {
-  if (process.env.NODE_ENV !== 'production') {
-    System.import('redux').then(redux => {
+  if (process.env.NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__) {
+    try {
+      const redux = require.resolve('redux') && require('redux');
       const { createStore, combineReducers, } = redux;
       const rootReducer = combineReducers({ root: () => store.state, });
-      const reduxStore = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
+      const reduxStore = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__());
       let emittedByOther = false;
       store.subscribe(() => {
         if (!emittedByOther) {
@@ -89,6 +90,8 @@ function useReduxDevtools(store) {
           emittedByOther = false;
         }
       });
-    }).catch(() => console.warn('npm install --save-dev redux to be able to debug using redux devtools'));
+    } catch (Exception) {
+      console.warn('"npm install --save-dev redux" is recommended');
+    }
   }
 }
