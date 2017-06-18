@@ -154,11 +154,11 @@ parent.setState('no children'); // ends up removing child and secondSubChild
 
 
 ```
-Be careful when using arrays:
+Behavior of state can be misleading when using arrays because array state is not merged
 
-cosnt store = createStore([1, 2, 3]);
-const {state} = store.setState({a: 4, b: 5})
-console.log(state) // {0: 1, 1: 2, 2: 3, a: 4, b: 5};
-
-//using shape will make your life a lot easier
+cosnt store = createStore([1, 2, 3]); // state = [1, 2, 3]
+store.setState({a: 4, b: 5})          // state = {a: 4, b: 5}
+store.setState({b: 6, c: 7})          // state = {a: 4, b: 6, c: 7}
+store.setState([1, 2, 3]);            // state = [1, 2, 3]
+store.setState([4, 5]);               // state = [4, 5]
 ```
