@@ -1,4 +1,4 @@
-import SubStore, { couldHaveChildren, } from './SubStore';
+import SubStore from './SubStore';
 import { spec, none, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './createStore';
 
 const { entries, } = Object;
@@ -34,9 +34,9 @@ export default class DevSubStore extends SubStore {
   }
 
   _reset(nextState, prevState) {
-    if (!(prevState instanceof Array) && couldHaveChildren(nextState) && nextState instanceof Array) {
+    if (!(prevState instanceof Array) && SubStore.couldHaveSubStores(nextState) && nextState instanceof Array) {
       console.warn('transforming state of '+JSON.stringify(this._identity)+' from object into array');
-    } else if (prevState instanceof Array && couldHaveChildren(nextState) && !(nextState instanceof Array)) {
+    } else if (prevState instanceof Array && SubStore.couldHaveSubStores(nextState) && !(nextState instanceof Array)) {
       console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
     }
     super._reset(nextState, prevState);
@@ -147,7 +147,7 @@ export default class DevSubStore extends SubStore {
     const specificType = DevSubStore.getSpecificType(state);
     if (isRequired && (specificType==='undefined' || specificType==='null')) {
       return { anyLeaf, type, specificType, isRequired, state, identity, };
-    } else if (couldHaveChildren(state)) {
+    } else if (SubStore.couldHaveSubStores(state)) {
       return { anyLeaf, type, specificType, isRequired, state, identity, };
     }
     return false;

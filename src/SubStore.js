@@ -3,10 +3,6 @@ export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
-export function couldHaveChildren(value) {
-  return value && value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
-}
-
 export default class SubStore {
 
   static lastChange;
@@ -23,7 +19,7 @@ export default class SubStore {
     this._id = key;
     this._parent = parent;
     this._identity = [ ...parent._identity, key, ];
-    if (couldHaveChildren(initialValue)) {
+    if (SubStore.couldHaveSubStores(initialValue)) {
       for (const k in initialValue) {
         this._createSubStore(initialValue[k], k, this, depth + 1, _shape);
       }
@@ -58,7 +54,7 @@ export default class SubStore {
       throw new Error('detached SubStore action: setState', JSON.stringify(this._identity));
     }
     const { state: prevState, _parent, } = this;
-    if (couldHaveChildren(value) && couldHaveChildren(prevState) && !(value instanceof Array || prevState instanceof Array)) {
+    if (SubStore.couldHaveSubStores(value) && SubStore.couldHaveSubStores(prevState) && !(value instanceof Array || prevState instanceof Array)) {
       this._merge(value, prevState);
     } else {
       this._reset(value, prevState);
@@ -90,7 +86,7 @@ export default class SubStore {
     const { state, } = this;
     if (ids.length) {
       this.prevState = state;
-      if (!(couldHaveChildren(state))) {
+      if (!(SubStore.couldHaveSubStores(state))) {
         throw new Error('Remove error:', `${JSON.stringify(this._identity)}. Has no children, was given,${JSON.stringify(ids)} when state: ${state}`);
       }
       let nextState;
@@ -151,9 +147,9 @@ export default class SubStore {
   }
 
   _reset(nextState, prevState) {
-    if (couldHaveChildren(nextState)) {
+    if (SubStore.couldHaveSubStores(nextState)) {
       const { _shape, _depth, } = this;
-      if (couldHaveChildren(prevState)) {
+      if (SubStore.couldHaveSubStores(prevState)) {
         const merge = { ...prevState, ...nextState, };
         for (const k in merge) {
           if (this[k]) {
@@ -174,7 +170,7 @@ export default class SubStore {
           this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
         }
       }
-    } else if (couldHaveChildren(prevState)) {
+    } else if (SubStore.couldHaveSubStores(prevState)) {
       for (const k in prevState) {
         delete this[k]._parent;
         delete this[k];
@@ -209,7 +205,7 @@ export default class SubStore {
 
   getChildren() {
     const { state, } = this;
-    return couldHaveChildren(state)
+    return SubStore.couldHaveSubStores(state)
       ? keys(state)
       .map(k => this[k])
       : [];
@@ -220,4 +216,8 @@ export default class SubStore {
   }
 
   static __kill() { /* redefined by StoreCreator*/ }
+
+  static couldHaveSubStores(value) {
+    return value && value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
+  }
 }
