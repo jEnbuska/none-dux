@@ -1,5 +1,5 @@
 import SubStore, { couldHaveChildren, } from './SubStore';
-import { spec, none, bool, number, string, object, array, anyLeaf, any, regex, symbol, func} from './createStore';
+import { spec, none, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './createStore';
 
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
@@ -15,9 +15,6 @@ export default class DevSubStore extends SubStore {
 
   remove(...ids) {
     super.remove(...ids);
-    if (this.state instanceof Array) {
-      console.warn('Remove should not be called to array state. Avoid using arrays all together');
-    }
     const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
     if (deviation) {
       DevSubStore.onValidationError(deviation);
@@ -50,9 +47,9 @@ export default class DevSubStore extends SubStore {
 
   _reset(nextState, prevState) {
     if (!(prevState instanceof Array) && couldHaveChildren(nextState) && nextState instanceof Array) {
-      console.warn('reset transforming state from object into array. Try avoid using arrays all together');
+      console.warn('transforming state of '+JSON.stringify(this._identity)+' from object into array');
     } else if (prevState instanceof Array && couldHaveChildren(nextState) && !(nextState instanceof Array)) {
-      console.warn('reset transforming state from array to object. Try avoid using arrays all together');
+      console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
     }
     super._reset(nextState, prevState);
     const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
@@ -68,6 +65,25 @@ export default class DevSubStore extends SubStore {
     const { state, _identity: identity, _shape, } = this;
     const { isRequired, } = _shape;
     switch (type) {
+      case string:
+      case number:
+      case bool:
+      case symbol: {
+        deviation = DevSubStore.validateLeaf(this, type);
+        break;
+      } case object: {
+        deviation = DevSubStore.validateObjectType(this, 'object');
+        break;
+      } case array: {
+        deviation = DevSubStore.validateObjectType(this, 'array');
+        break;
+      } case anyLeaf:
+        deviation = DevSubStore.validateAnyLeaf(this, type);
+        break;
+      case func: {
+        deviation = DevSubStore.validateObjectType(this, 'function');
+        break;
+      }
       case none: {
         const actualType = DevSubStore.getSpecificType(state);
         if (actualType!=='null' && actualType !=='undefined') {
@@ -86,26 +102,7 @@ export default class DevSubStore extends SubStore {
         }
         break;
       }
-      case bool:
-      case number:
-      case symbol:
-      case string: {
-        deviation = DevSubStore.validateLeaf(this, type);
-        break;
-      } case anyLeaf:
-        deviation = DevSubStore.validateAnyLeaf(this, type);
-        break;
-      case func: {
-        deviation = DevSubStore.validateObjectType(this, 'function');
-        break;
-      }
-      case object: {
-        deviation = DevSubStore.validateObjectType(this, 'object');
-        break;
-      } case array: {
-        deviation = DevSubStore.validateObjectType(this, 'array');
-        break;
-      } default: {
+      default: {
         if (type instanceof Array) {
           const someDoesNotDeviate = type.some(type => !this._checkSpecTypeDeviation(type));
           if (!someDoesNotDeviate) {
