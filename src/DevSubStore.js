@@ -6,20 +6,12 @@ export default class DevSubStore extends SubStore {
 
   constructor(initialValue, key, parent, depth, _shape) {
     super(initialValue, key, parent, depth, _shape);
-    const deviation = this._checkSpecTypeDeviation(_shape[spec].type);
-    if (deviation) {
-      DevSubStore.onValidationError(deviation);
-    }
-    DevSubStore.ensureRequiredFields(this);
+    this._afterChanged();
   }
 
   remove(...ids) {
     super.remove(...ids);
-    const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
-    if (deviation) {
-      DevSubStore.onValidationError(deviation);
-    }
-    DevSubStore.ensureRequiredFields(this);
+    this._afterChanged();
     return this;
   }
 
@@ -37,11 +29,7 @@ export default class DevSubStore extends SubStore {
 
   _merge(obj, prevState) {
     super._merge(obj, prevState);
-    const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
-    if (deviation) {
-      DevSubStore.onValidationError(deviation);
-    }
-    DevSubStore.ensureRequiredFields(this);
+    this._afterChanged();
     return this;
   }
 
@@ -52,12 +40,16 @@ export default class DevSubStore extends SubStore {
       console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
     }
     super._reset(nextState, prevState);
+    this._afterChanged();
+    return this;
+  }
+
+  _afterChanged(){
     const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
     if (deviation) {
       DevSubStore.onValidationError(deviation);
     }
     DevSubStore.ensureRequiredFields(this);
-    return this;
   }
 
   _checkSpecTypeDeviation(type) {
