@@ -4,7 +4,7 @@ export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
 export function couldHaveChildren(value) {
-  return value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
+  return value && value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
 }
 
 export default class SubStore {
@@ -58,12 +58,8 @@ export default class SubStore {
       throw new Error('detached SubStore action: setState', JSON.stringify(this._identity));
     }
     const { state: prevState, _parent, } = this;
-    if (couldHaveChildren(value) && couldHaveChildren(prevState)) {
-      if (value instanceof Array) {
-        this._reset(value, prevState);
-      } else {
-        this._merge(value, prevState);
-      }
+    if (couldHaveChildren(value) && couldHaveChildren(prevState) && !(value instanceof Array || prevState instanceof Array)) {
+      this._merge(value, prevState);
     } else {
       this._reset(value, prevState);
     }
@@ -103,13 +99,16 @@ export default class SubStore {
         nextState = state.reduce((acc, next, i) => {
           const { length, } = acc;
           if (!set[i]) {
-            if (i!==length) {
+            if (i !== length) {
               const target = this[i];
               this[length] = target;
               delete this[i];
               target._id = length;
             }
             acc.push(next);
+          } else {
+            delete this[i]._parent;
+            delete this[i];
           }
           return acc;
         }, []);
