@@ -35,8 +35,6 @@ describe('Validate shape', () => {
           [any]: { [spec]: { type: array, }, },
         },
       });
-    console.log('-------------------')
-    console.log(JSON.stringify(validationErrors, null, 1))
     expect(validationErrors.length).to.deep.equal(0);
 
     expect(invalidSpecTypesErrors.length).to.deep.equal(0);
