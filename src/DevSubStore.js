@@ -6,12 +6,12 @@ export default class DevSubStore extends SubStore {
 
   constructor(initialValue, key, parent, depth, _shape) {
     super(initialValue, key, parent, depth, _shape);
-    this._afterChanged();
+    DevSubStore.afterChanged(this);
   }
 
   remove(...ids) {
     super.remove(...ids);
-    this._afterChanged();
+    DevSubStore.afterChanged(this);
     return this;
   }
 
@@ -29,7 +29,7 @@ export default class DevSubStore extends SubStore {
 
   _merge(obj, prevState) {
     super._merge(obj, prevState);
-    this._afterChanged();
+    DevSubStore.afterChanged(this);
     return this;
   }
 
@@ -40,16 +40,16 @@ export default class DevSubStore extends SubStore {
       console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
     }
     super._reset(nextState, prevState);
-    this._afterChanged();
+    DevSubStore.afterChanged(this);
     return this;
   }
 
-  _afterChanged() {
-    const deviation = DevSubStore.checkSpecTypeDeviation(this);
+  static afterChanged(target) {
+    const deviation = DevSubStore.checkSpecTypeDeviation(target);
     if (deviation) {
       DevSubStore.onValidationError(deviation);
     }
-    DevSubStore.ensureRequiredFields(this);
+    DevSubStore.ensureRequiredFields(target);
   }
 
   static checkSpecTypeDeviation(target) {
