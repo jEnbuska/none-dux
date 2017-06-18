@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { spec, none, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './createStore';
+import { spec, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './createStore';
 
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
@@ -45,32 +45,34 @@ export default class DevSubStore extends SubStore {
   }
 
   _afterChanged() {
-    const deviation = this._checkSpecTypeDeviation(this._shape[spec].type);
+    const deviation = DevSubStore.checkSpecTypeDeviation(this);
     if (deviation) {
       DevSubStore.onValidationError(deviation);
     }
     DevSubStore.ensureRequiredFields(this);
   }
 
-  _checkSpecTypeDeviation(type) {
+  static checkSpecTypeDeviation(target) {
+    const { type, } = target._shape[spec];
     switch (type) {
       case string:
       case number:
       case bool:
       case symbol:
-        return DevSubStore.validateLeaf(this, type);
+        return DevSubStore.validateLeaf(target, type);
       case object:
-        return DevSubStore.validateObjectType(this, 'object');
+        return DevSubStore.validateObjectType(target, 'object');
       case array:
-        return DevSubStore.validateObjectType(this, 'array');
+        return DevSubStore.validateObjectType(target, 'array');
       case anyLeaf:
-        return DevSubStore.validateAnyLeaf(this, type);
+        return DevSubStore.validateAnyLeaf(target);
       case regex:
-        return DevSubStore.validateObjectType(this, 'regex');
+        return DevSubStore.validateObjectType(target, 'regex');
       case func:
-        return DevSubStore.validateObjectType(this, 'function');
+        return DevSubStore.validateObjectType(target, 'function');
       default:
-        DevSubStore.onInvalidSpecType(this);
+        DevSubStore.onInvalidSpecType(target);
+        return;
     }
   }
 
@@ -130,8 +132,8 @@ export default class DevSubStore extends SubStore {
 
   static ensureRequiredFields(target) {
     const { _shape, _identity: identity, } = target;
-    const { [spec]: s, [any]: a, ...rest } = _shape;
-    const missingRequiredFields = entries(rest).filter(([ k, v, ]) => v[spec].isRequired)
+    const { [spec]: ignore, [any]: ignore2, ...rest } = _shape;
+    const missingRequiredFields = entries(rest).filter(([ _, v, ]) => v[spec].isRequired)
       .filter(([ k, ]) => !target[k])
       .map(([ k, ]) => k);
     if (missingRequiredFields.length) {
