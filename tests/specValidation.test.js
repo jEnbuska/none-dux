@@ -1,5 +1,5 @@
 import { expect, } from 'chai';
-import createStore, { none, any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, } from '../src/createStore';
+import createStore, { any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, } from '../src/createStore';
 import DevSubStore from '../src/DevSubStore';
 
 let validationErrors;
@@ -99,19 +99,6 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('Valid none', () => {
-    refreshLists();
-    createStore(
-      { a: undefined, b: null, },
-      {
-        a: { [spec]: { type: none, }, },
-        b: { [spec]: { type: none, }, },
-      });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
-  });
 
   it('Valid regex', () => {
     refreshLists();
@@ -165,26 +152,6 @@ describe('Validate shape', () => {
         c: { [spec]: { type: anyLeaf, }, },
       });
     expect(validationErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
-  });
-
-  it('invalid nones', () => {
-    refreshLists();
-    createStore(
-      { a: 123, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: /test/, g: [], h: false, },
-      {
-        a: { [spec]: { type: none, }, },
-        b: { [spec]: { type: none, }, },
-        c: { [spec]: { type: none, }, },
-        d: { [spec]: { type: none, }, },
-        e: { [spec]: { type: none, }, },
-        f: { [spec]: { type: none, }, },
-        g: { [spec]: { type: none, }, },
-        h: { [spec]: { type: none, }, },
-      });
-    expect(validationErrors.length).to.deep.equal(8);
     expect(requiredFieldsErrors.length).to.deep.equal(0);
     expect(invalidSpecTypesErrors.length).to.deep.equal(0);
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
@@ -247,7 +214,7 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-  it('invalid regexs', () => {
+  it('invalid regex', () => {
     refreshLists();
     createStore(
       { a: true, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: 123, g: [], },

@@ -15,7 +15,6 @@ export const number = 'number';
 export const isRequired = true;
 export const exclusive= true;
 export const bool = 'boolean';
-export const none = 'none';
 export const regex = 'regex';
 export const symbol = 'symbol';
 export const func = 'func';

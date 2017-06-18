@@ -53,60 +53,25 @@ export default class DevSubStore extends SubStore {
   }
 
   _checkSpecTypeDeviation(type) {
-    let deviation;
-    const { state, _identity: identity, _shape, } = this;
-    const { isRequired, } = _shape;
     switch (type) {
       case string:
       case number:
       case bool:
-      case symbol: {
-        deviation = DevSubStore.validateLeaf(this, type);
-        break;
-      } case object: {
-        deviation = DevSubStore.validateObjectType(this, 'object');
-        break;
-      } case array: {
-        deviation = DevSubStore.validateObjectType(this, 'array');
-        break;
-      } case anyLeaf:
-        deviation = DevSubStore.validateAnyLeaf(this, type);
-        break;
-      case func: {
-        deviation = DevSubStore.validateObjectType(this, 'function');
-        break;
-      }
-      case none: {
-        const specificType = DevSubStore.getSpecificType(state);
-        if (specificType!=='null' && specificType !=='undefined') {
-          deviation = { type, specificType, state, identity, isRequired, };
-        }
-        break;
-      }
-      case regex: {
-        const { state, _shape, _identity: identity, } = this;
-        const { isRequired, } = _shape;
-        const specificType = DevSubStore.getSpecificType(state);
-        if (isRequired && (specificType!=='null' || specificType!== 'undefined')) {
-          deviation = { type, specificType, isRequired, state, identity, };
-        } else if (specificType!=='null' && specificType!== 'undefined' && specificType!=='regex') {
-          deviation = { type, specificType, state, identity, isRequired, };
-        }
-        break;
-      }
-      default: {
-        if (type instanceof Array) {
-          const someDoesNotDeviate = type.some(type => !this._checkSpecTypeDeviation(type));
-          if (!someDoesNotDeviate) {
-            const specificType = DevSubStore.getSpecificType(state);
-            deviation = { type, specificType, state, identity, isRequired, };
-          }
-        } else {
-          DevSubStore.onInvalidSpecType(this);
-        }
-      }
+      case symbol:
+        return DevSubStore.validateLeaf(this, type);
+      case object:
+        return DevSubStore.validateObjectType(this, 'object');
+      case array:
+        return DevSubStore.validateObjectType(this, 'array');
+      case anyLeaf:
+        return DevSubStore.validateAnyLeaf(this, type);
+      case regex:
+        return DevSubStore.validateObjectType(this, 'regex');
+      case func:
+        return DevSubStore.validateObjectType(this, 'function');
+      default:
+        DevSubStore.onInvalidSpecType(this);
     }
-    return deviation;
   }
 
   static getSpecificType(state) {
