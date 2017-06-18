@@ -200,22 +200,20 @@ export default class SubStore {
     if (this._parent) {
       this._parent._notifyUp(this);
     } else {
-      throw new Error('Child of detached SubStore cannot be modified:', JSON.stringify(this._identity));
+      throw new Error('Detached Child SubStore cannot be modified:', JSON.stringify(this._identity));
     }
   }
 
   getChildrenRecursively() {
     return this.getChildren()
-      .reduce((acc, child) => {
-        acc.push(child);
-        return [ ...acc, ...child.getChildrenRecursively(), ];
+      .reduce(function (acc, child) {
+        return [ ...acc, child, ...child.getChildrenRecursively(), ];
       }, []);
   }
 
   getChildren() {
-    const { state, } = this;
-    return SubStore.couldHaveSubStores(state)
-      ? keys(state)
+    return SubStore.couldHaveSubStores(this.state)
+      ? keys(this.state)
       .map(k => this[k])
       : [];
   }
