@@ -77,7 +77,7 @@ const base = (env) => ({
 });
 
 const vendor = [
-  'react', 'react-dom', 'none-dux', 'react-router', 'uuid',
+  'react', 'react-dom', 'react-router', 'uuid',
 ];
 module.exports = {
   API_URL: process.env.API_URL || JSON.stringify('http://138.197.65.89:9000'),
