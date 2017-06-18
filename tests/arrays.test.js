@@ -10,6 +10,20 @@ describe('arrays as state', () => {
     expect(store.a[0].state).to.equal(1);
   });
 
+  it('remove from array in arbitrary order', () => {
+    store = createStore([ 1, 2, 3, 4, 5, 6, 7, 8, ]);
+    store.remove(3, 1, 0, 7);
+    expect(store.state).to.deep.equal([ 3, 5, 6, 7, ]);
+    expect(store[0].state).to.equal(3);
+    expect(store[1].state).to.equal(5);
+    expect(store[2].state).to.equal(6);
+    expect(store[3].state).to.equal(7);
+    expect(store[4]).to.equal(undefined);
+    expect(store[5]).to.equal(undefined);
+    expect(store[6]).to.equal(undefined);
+    expect(store[7]).to.equal(undefined);
+  });
+
   it('should replace current array sub state with a array', () => {
     store = createStore({ a: [ 1, 2, { b: 2, }, ], });
     expect(store.state).to.deep.equal({ a: [ 1, 2, { b: 2, }, ], });
