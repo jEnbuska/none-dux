@@ -1,31 +1,15 @@
 import { expect, } from 'chai';
 import createStore from '../src/createStore';
-import odd from './resources';
+import { data, data2, } from './resources';
 
-function clone(value) {
-  if (value instanceof Object) {
-    return value instanceof Object ? Object.keys(value).reduce((acc, key) => {
-      acc[key] = clone(value[key]);
-      return acc;
-    }, {}) : [];
-  }
-  return value;
-}
-
+const {keys} = Object;
 describe('performance', () => {
   it('performance simple', function () {
     this.timeout(15000);
-    const even = clone(odd);
-    delete even.companies.Eficode;
-    const california = even.companies.GE.offices.California;
-    california.address = 'Silicon valley 10 b';
-    const employeeOne = Object.keys(california.employees)[0];
-    const employee = california.employees[employeeOne];
-    employee.name = 'Carl';
-    const employeeTwo = Object.keys(california.employees)[1];
-    delete california.employees[employeeTwo];
-    california.employees.something = { name: 'Jukka', };
-    even.companies.Google = { offices: { first: '', }, };
+    const even = data;
+    const odd = data2;
+    const firstCompany = keys(even.companies)[0];
+    const firstChildOdd = Object.keys(odd)[0];
     const root = createStore({});
     root.setState(even);
     const time = new Date();
@@ -33,8 +17,16 @@ describe('performance', () => {
       if (i%7 === 0) {
         root.clearState({});
       }
-      root.setState(i % 3 === 0 ? even : odd);
+      if (i % 2 === 0) {
+        root.setState(even);
+        root.companies[firstCompany].setState(odd[firstChildOdd]);
+        root.companies[firstCompany].remove();
+      } else {
+        root.setState(odd);
+        root[firstChildOdd].setState(even.companies[firstCompany]);
+        root[firstChildOdd].remove();
+      }
     }
-    console.log('setState 10000 times: took ', new Date() - time, 'ms');
+    console.log('with deep 1000 line json object, x10000 took ', new Date() - time, 'ms');
   });
 });
