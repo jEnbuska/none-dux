@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -15,9 +15,9 @@
     "state"
   ],
   "scripts": {
-    "compile": "babel -d lib/ src/",
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
-    "prepublish": "npm run compile",
+    "prepublish": "npm run build",
+    "build": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch"
   },
@@ -30,15 +30,17 @@
     "babel-eslint": "^7.2.1",
     "babel-loader": "^6.2.10",
     "babel-polyfill": "^6.23.0",
-    "babel-preset-latest": "^6.16.0",
+    "babel-preset-latest": "^6.24.1",
     "babel-preset-react": "^6.16.0",
-    "babel-preset-stage-0": "^6.22.0",
+    "babel-preset-stage-0": "^6.24.1",
     "chai": "^3.5.0",
+    "cross-env": "^5.0.1",
     "eslint": "^3.13.0",
     "eslint-config-airbnb": "^13.0.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "rollup": "^0.43.0"
   }
 }
