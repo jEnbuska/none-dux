@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../lib';
 import { addUser, modifySelectedUser, } from '../actions/userActions';
 import { onUpdateUser, onUserUpdateSuccess, } from '../actions/requestActions';
 import Input from '../components/Input';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { browserHistory, } from 'react-router';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../lib';
 import { onFetchUsers, onFetchUsersSuccess, } from '../actions/requestActions';
 import { fetchUsers, setUsers, selectUser, } from '../actions/userActions';
 

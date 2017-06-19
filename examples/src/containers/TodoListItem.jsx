@@ -1,6 +1,6 @@
 import React from 'react';
 import { string, object, } from 'prop-types';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../lib';
 import Div from '../components/Div';
 import Input from '../components/Input';
 import Button from '../components/Button';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../lib';
 import TodoListItem from './TodoListItem';
 
 const TodosList = ({ todos, userId, }) => (<div>

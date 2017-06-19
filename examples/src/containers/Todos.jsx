@@ -1,6 +1,6 @@
 import React from 'react';
 import { string, } from 'prop-types';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../lib';
 import AddTodo from './AddTodo';
 import TodoList from './TodosList';
 
