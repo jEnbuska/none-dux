@@ -1,5 +1,6 @@
 import { expect, } from 'chai';
 import createStore from '../src/createStore';
+import SubStore from '../src/SubStore'
 import { data, data2, } from './resources';
 
 const { keys, } = Object;
@@ -27,6 +28,6 @@ describe('performance', () => {
         root[firstChildOdd].remove();
       }
     }
-    console.log('~ 12000 removals, 25000 merges, 25000 resets took ', new Date() - time, 'ms');
+    console.log('~ 10000 merges, 10000 resets, 5000 removes, 1 000 000 SubStores created. Took total of: ', new Date() - time, 'ms');
   });
 });
