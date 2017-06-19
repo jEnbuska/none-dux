@@ -42,10 +42,10 @@ export default class DevSubStore extends SubStore {
         DevSubStore.verbose=false;
       }
       if (!(prevState instanceof Array) && SubStore.couldHaveSubStores(nextState)) {
-        console.warn('transforming state of '+JSON.stringify(this._identity)+' from object into array');
+        console.warn('transforming state of '+JSON.stringify(this.__substore_identity__)+' from object into array');
       }
     } else if (prevState instanceof Array && SubStore.couldHaveSubStores(nextState)) {
-      console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
+      console.warn('transforming state of '+JSON.stringify(this.__substore_identity__)+' from array to object');
     }
     super._reset(nextState, prevState);
     DevSubStore.afterChanged(this);
@@ -103,7 +103,7 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateLeaf(target, type) {
-    const { state, _shape, _identity: identity, } = target;
+    const { state, _shape, __substore_identity__: identity, } = target;
     const { isRequired, } = _shape[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (type!==actualType) {
@@ -117,7 +117,7 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateAnyLeaf(target) {
-    const { state, _shape, _identity: identity, } = target;
+    const { state, _shape, __substore_identity__: identity, } = target;
     const { isRequired, type, } = _shape[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (isRequired && (actualType==='undefined' || actualType==='null')) {
@@ -129,7 +129,7 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateObjectType(target, expected) {
-    const { state, _shape, _identity: identity, } = target;
+    const { state, _shape, __substore_identity__: identity, } = target;
     const { type, isRequired, } = _shape[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (actualType !== expected && (isRequired || (actualType !=='null'&& actualType!=='undefined'))) {
@@ -139,7 +139,7 @@ export default class DevSubStore extends SubStore {
   }
 
   static ensureRequiredFields(target) {
-    const { _shape, _identity: identity, } = target;
+    const { _shape, __substore_identity__: identity, } = target;
     const { [spec]: ignore, [any]: ignore2, ...rest } = _shape;
     const missingRequiredFields = entries(rest).filter(([ _, v, ]) => v[spec].isRequired)
       .filter(([ k, ]) => !target[k])
@@ -151,7 +151,7 @@ export default class DevSubStore extends SubStore {
 
   static onExclusiveViolation({ key, target, shape, value, }) {
     const { [spec]: _, ...rest } = shape;
-    console.error('Exclusive validation failed: '+JSON.stringify(target._identity)+'\n'+
+    console.error('Exclusive validation failed: '+JSON.stringify(target.getIdentity())+'\n'+
       'Has no validation for key: ' + key + '\n' +
       'With value: '+JSON.stringify(value, null, 1)+'\n'+
       'Expected '+ entries(rest).map(([ k, v, ]) => {
@@ -169,6 +169,6 @@ export default class DevSubStore extends SubStore {
   }
 
   static onInvalidSpecType(target) {
-    console.error(`invalid spec type '${JSON.stringify(target._shape[spec].type)}\nTarget ${JSON.stringify(target._identity)}`);
+    console.error(`invalid spec type '${JSON.stringify(target._shape[spec].type)}\nTarget ${JSON.stringify(target.get)}`);
   }
 }

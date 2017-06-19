@@ -8,8 +8,8 @@ export default function createStore(initialState, shape) {
 
 export class StoreCreator {
 
-  _id = '__ground__';
-  _identity = [];
+  __substore_id__ = '__ground__';
+  __substore_identity__ = [];
 
   constructor(state = {}, shape) {
     SubStore.__kill = () => StoreCreator.killSwitch();
