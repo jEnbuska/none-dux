@@ -2,14 +2,14 @@ import { expect, } from 'chai';
 import createStore from '../src/createStore';
 import { data, data2, } from './resources';
 
-const {keys} = Object;
+const { keys, } = Object;
 describe('performance', () => {
   it('performance simple', function () {
     this.timeout(15000);
     const even = data;
     const odd = data2;
     const firstCompany = keys(even.companies)[0];
-    const firstChildOdd = Object.keys(odd)[0];
+    const firstChildOdd = keys(odd)[0];
     const root = createStore({});
     root.setState(even);
     const time = new Date();
@@ -27,6 +27,6 @@ describe('performance', () => {
         root[firstChildOdd].remove();
       }
     }
-    console.log('with deep 1000 line json object, x10000 took ', new Date() - time, 'ms');
+    console.log('~ 12000 removals, 25000 merges, 25000 resets took ', new Date() - time, 'ms');
   });
 });
