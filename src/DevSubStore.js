@@ -4,6 +4,8 @@ import { spec, bool, number, string, object, array, anyLeaf, any, regex, symbol,
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
 
+  static verbose = true;
+
   constructor(initialValue, key, parent, depth, _shape) {
     super(initialValue, key, parent, depth, _shape);
     DevSubStore.afterChanged(this);
@@ -34,9 +36,15 @@ export default class DevSubStore extends SubStore {
   }
 
   _reset(nextState, prevState) {
-    if (!(prevState instanceof Array) && SubStore.couldHaveSubStores(nextState) && nextState instanceof Array) {
-      console.warn('transforming state of '+JSON.stringify(this._identity)+' from object into array');
-    } else if (prevState instanceof Array && SubStore.couldHaveSubStores(nextState) && !(nextState instanceof Array)) {
+    if (nextState instanceof Array) {
+      if (DevSubStore.verbose) {
+        console.warn('Arrays in state can be behave unintuitively, consider using objects instead');
+        DevSubStore.verbose=false;
+      }
+      if (!(prevState instanceof Array) && SubStore.couldHaveSubStores(nextState)) {
+        console.warn('transforming state of '+JSON.stringify(this._identity)+' from object into array');
+      }
+    } else if (prevState instanceof Array && SubStore.couldHaveSubStores(nextState)) {
       console.warn('transforming state of '+JSON.stringify(this._identity)+' from array to object');
     }
     super._reset(nextState, prevState);
