@@ -141,4 +141,15 @@ describe('arrays as state', () => {
     store.setState(symbol);
     expect(store.state).to.deep.equal(symbol);
   });
+
+  it('shift array values', () => {
+    const store = createStore([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+    expect(store.state).to.deep.equal([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+    const { 0: a, 1: b, 2: c, } = store;
+    store.setState([ { c: 3, }, { a: 1, }, { b: 2, }, ]);
+    expect(a.state).to.deep.equal({ c: 3, });
+    expect(b.state).to.deep.equal({ a: 1, });
+    expect(c.state).to.deep.equal({ b: 2, });
+    // This is unintuitive. Creating new stores every time store gets changed brings it's own challenges
+  });
 });
