@@ -21,12 +21,6 @@ export const func = 'func';
 
 export class StoreCreator {
 
-  static killSwitch = () => {
-    console.trace();
-    this.subject.remove();
-    throw new Error('Infinite recursion on SubStore');
-  };
-
   _id = '__ground__';
   _identity = [];
 
@@ -65,6 +59,12 @@ export class StoreCreator {
 
   remove() {
   }
+
+  static killSwitch = () => {
+    console.trace();
+    this.subject.remove();
+    throw new Error('Infinite recursion on SubStore');
+  };
 
   static validateShape(shape, identity=[ 'root', ], errors = []) {
     if (!(shape instanceof Object)) {
