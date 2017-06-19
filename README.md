@@ -149,7 +149,7 @@ firstSubChild.remove();
 parent.setState('no children'); // ends up removing child and secondSubChild
 ```
 
-<img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
+
 
 
 
@@ -162,3 +162,6 @@ store.setState({b: 6, c: 7})          // state = {a: 4, b: 6, c: 7}
 store.setState([1, 2, 3]);            // state = [1, 2, 3]
 store.setState([4, 5]);               // state = [4, 5]
 ```
+
+<img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
+All parts of the store is its own substore. But only root store can be subscribed
