@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { spec, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './createStore';
+import { spec, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './shape';
 
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
@@ -22,7 +22,7 @@ export default class DevSubStore extends SubStore {
     } else {
       this[key] = new SubStore(initialState, key, parent, depth, subShape);
       if (shape[spec].exclusive) {
-        DevSubStore.onExclusiveViolation(key, this, shape, initialState);
+        DevSubStore.onExclusiveViolation({ key, target: this, shape, value: initialState, });
       }
     }
   }
@@ -69,7 +69,7 @@ export default class DevSubStore extends SubStore {
       case regex:
         return DevSubStore.validateObjectType(target, 'regex');
       case func:
-        return DevSubStore.validateObjectType(target, 'function');
+        return DevSubStore.validateObjectType(target, 'func');
       default:
         DevSubStore.onInvalidSpecType(target);
         return;
@@ -80,13 +80,13 @@ export default class DevSubStore extends SubStore {
     const type = typeof state;
     if (state instanceof Object) {
       if (type === 'function') {
-        return 'function';
+        return func;
       } else if (state instanceof Array) {
-        return 'array';
+        return array;
       } else if (state instanceof RegExp) {
-        return 'regex';
+        return regex;
       }
-      return 'object';
+      return object;
     }
     if (state === null) {
       return 'null';
@@ -97,12 +97,12 @@ export default class DevSubStore extends SubStore {
   static validateLeaf(target, type) {
     const { state, _shape, _identity: identity, } = target;
     const { isRequired, } = _shape[spec];
-    const specificType = DevSubStore.getSpecificType(state);
-    if (type!==specificType) {
+    const actualType = DevSubStore.getSpecificType(state);
+    if (type!==actualType) {
       if (isRequired) {
-        return { type, specificType, isRequired, state, identity, };
-      } else if (specificType !== 'null' && specificType !== 'undefined') {
-        return { type, specificType, isRequired, state, identity, };
+        return { expectedType: type, actualType, isRequired, state, identity, };
+      } else if (actualType !== 'null' && actualType !== 'undefined') {
+        return { expectedType: type, actualType, isRequired, state, identity, };
       }
     }
     return false;
@@ -111,11 +111,11 @@ export default class DevSubStore extends SubStore {
   static validateAnyLeaf(target) {
     const { state, _shape, _identity: identity, } = target;
     const { isRequired, type, } = _shape[spec];
-    const specificType = DevSubStore.getSpecificType(state);
-    if (isRequired && (specificType==='undefined' || specificType==='null')) {
-      return { anyLeaf, type, specificType, isRequired, state, identity, };
+    const actualType = DevSubStore.getSpecificType(state);
+    if (isRequired && (actualType==='undefined' || actualType==='null')) {
+      return { expectedType: type, actualType, isRequired, state, identity, };
     } else if (SubStore.couldHaveSubStores(state)) {
-      return { anyLeaf, type, specificType, isRequired, state, identity, };
+      return { expectedType: type, actualType, isRequired, state, identity, };
     }
     return false;
   }
@@ -123,9 +123,9 @@ export default class DevSubStore extends SubStore {
   static validateObjectType(target, expected) {
     const { state, _shape, _identity: identity, } = target;
     const { type, isRequired, } = _shape[spec];
-    const specificType = DevSubStore.getSpecificType(state);
-    if (specificType !== expected && (isRequired || (specificType !=='null'&& specificType!=='undefined'))) {
-      return { type, specificType, state, identity, };
+    const actualType = DevSubStore.getSpecificType(state);
+    if (actualType !== expected && (isRequired || (actualType !=='null'&& actualType!=='undefined'))) {
+      return { expectedType: type, actualType, state, identity, isRequired, };
     }
     return false;
   }
@@ -141,7 +141,7 @@ export default class DevSubStore extends SubStore {
     }
   }
 
-  static onExclusiveViolation(key, target, shape, value) {
+  static onExclusiveViolation({ key, target, shape, value, }) {
     const { [spec]: _, ...rest } = shape;
     console.error('Exclusive validation failed: '+JSON.stringify(target._identity)+'\n'+
       'Has no validation for key: ' + key + '\n' +
@@ -152,8 +152,8 @@ export default class DevSubStore extends SubStore {
       }).join(', '));
   }
 
-  static onValidationError({ type, specificType, state, identity, isRequired, }) {
-    console.error(`Validations failed\nExpected type ${JSON.stringify(type)}\nBut got ${specificType}\nisRequired: ${!!isRequired}\nTarget: ${JSON.stringify(identity)}\nState: ${JSON.stringify(state, null, 1)}`);
+  static onValidationError({ expectedType, actualType, state, identity, isRequired, }) {
+    console.error(`Validations failed\nExpected type ${expectedType}\nBut got ${actualType}\nisRequired: ${!!isRequired}\nTarget: ${JSON.stringify(identity)}\nState: ${JSON.stringify(state, null, 1)}`);
   }
 
   static onMissingRequiredFields({ identity, missingRequiredFields, }) {
