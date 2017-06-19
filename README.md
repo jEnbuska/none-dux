@@ -28,7 +28,7 @@ import { Provider, connect, shapes, } from 'none-dux';
 init Provider:
 ```
 const initialState = {
-  todosById: {},
+  todosByUser: {},
   usersById: {},
 };
 
