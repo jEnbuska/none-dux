@@ -1,5 +1,6 @@
 import { expect, } from 'chai';
-import createStore, { any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, } from '../src/createStore';
+import createStore from '../src/createStore';
+import { any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, } from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
 
 let validationErrors;
@@ -14,6 +15,12 @@ function refreshLists() {
   exclusiveFieldsErrors = [];
 }
 
+const emptyFunc = () => {};
+const emptyObj = {};
+const helloSymbol= Symbol('hello world');
+const emptyArr = [];
+const testRegex = /test/;
+
 DevSubStore.onValidationError = err => validationErrors.push(err);
 DevSubStore.onMissingRequiredFields = err => requiredFieldsErrors.push(err);
 DevSubStore.onInvalidSpecType = err => {
@@ -24,7 +31,6 @@ DevSubStore.onExclusiveViolation= err => {
 };
 
 describe('Validate shape', () => {
-
   it('Valid array', () => {
     refreshLists();
     createStore(
@@ -99,7 +105,6 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).to.deep.equal(0);
   });
 
-
   it('Valid regex', () => {
     refreshLists();
     createStore(
@@ -151,16 +156,16 @@ describe('Validate shape', () => {
         b: { [spec]: { type: anyLeaf, }, },
         c: { [spec]: { type: anyLeaf, }, },
       });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid bools', () => {
     refreshLists();
     createStore(
-      { a: 123, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: /test/, g: [], },
+      { a: 123, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         a: { [spec]: { type: bool, }, },
         b: { [spec]: { type: bool, }, },
@@ -170,16 +175,31 @@ describe('Validate shape', () => {
         f: { [spec]: { type: bool, }, },
         g: { [spec]: { type: bool, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: number, state: 123, }, { identity: [ 'root', 'b', ], actualType: string, state: 'abc', },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object, state: emptyObj, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex, state: testRegex, },
+      { identity: [ 'root', 'g', ], actualType: array, state: emptyArr, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: bool, actualType, state, identity, isRequired: undefined, });
+    }
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid numbers', () => {
     refreshLists();
     createStore(
-      { a: true, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: /test/, g: [], },
+      { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         a: { [spec]: { type: number, }, },
         b: { [spec]: { type: number, }, },
@@ -189,16 +209,30 @@ describe('Validate shape', () => {
         f: { [spec]: { type: number, }, },
         g: { [spec]: { type: number, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: bool, state: true, }, { identity: [ 'root', 'b', ], actualType: string, state: 'abc', },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object, state: emptyObj, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex, state: testRegex, },
+      { identity: [ 'root', 'g', ], actualType: array, state: emptyArr, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: number, actualType, state, identity, isRequired: undefined, });
+    }
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid strings', () => {
     refreshLists();
     createStore(
-      { a: true, b: 1, c: () => {}, d: {}, e: Symbol('hello world'), f: /test/, g: [], },
+      { a: true, b: 123, c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         a: { [spec]: { type: string, }, },
         b: { [spec]: { type: string, }, },
@@ -208,16 +242,29 @@ describe('Validate shape', () => {
         f: { [spec]: { type: string, }, },
         g: { [spec]: { type: string, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: bool, state: true, }, { identity: [ 'root', 'b', ], actualType: number, state: 123, },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object, state: emptyObj, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex, state: testRegex, },
+      { identity: [ 'root', 'g', ], actualType: array, state: emptyArr, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: string, actualType, state, identity, isRequired: undefined, });
+    }
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid regex', () => {
     refreshLists();
     createStore(
-      { a: true, b: 'abc', c: () => {}, d: {}, e: Symbol('hello world'), f: 123, g: [], },
+      { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: 123, g: emptyArr, },
       {
         a: { [spec]: { type: regex, }, },
         b: { [spec]: { type: regex, }, },
@@ -227,16 +274,31 @@ describe('Validate shape', () => {
         f: { [spec]: { type: regex, }, },
         g: { [spec]: { type: regex, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: bool, state: true, }, { identity: [ 'root', 'b', ], actualType: string, state: 'abc', },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object, state: emptyObj, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number, state: 123, },
+      { identity: [ 'root', 'g', ], actualType: array, state: emptyArr, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: regex, actualType, state, identity, isRequired: undefined, });
+    }
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid object', () => {
     refreshLists();
     createStore(
-      { a: true, b: 'abc', c: () => {}, d: /test/, e: Symbol('hello world'), f: 123, g: [], },
+      { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyArr, },
       {
         a: { [spec]: { type: object, }, },
         b: { [spec]: { type: object, }, },
@@ -246,16 +308,30 @@ describe('Validate shape', () => {
         f: { [spec]: { type: object, }, },
         g: { [spec]: { type: object, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: bool, state: true, }, { identity: [ 'root', 'b', ], actualType: string, state: 'abc', },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: regex, state: testRegex, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number, state: 123, },
+      { identity: [ 'root', 'g', ], actualType: array, state: emptyArr, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: object, actualType, state, identity, isRequired: undefined, });
+    }
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid array', () => {
     refreshLists();
     createStore(
-      { a: true, b: 'abc', c: () => {}, d: /test/, e: Symbol('hello world'), f: 123, g: {}, },
+      { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyObj, },
       {
         a: { [spec]: { type: array, }, },
         b: { [spec]: { type: array, }, },
@@ -265,24 +341,41 @@ describe('Validate shape', () => {
         f: { [spec]: { type: array, }, },
         g: { [spec]: { type: array, }, },
       });
-    expect(validationErrors.length).to.deep.equal(7);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(7);
+
+    const expectedErrors =[
+      { identity: [ 'root', 'a', ], actualType: bool, state: true, }, { identity: [ 'root', 'b', ], actualType: string, state: 'abc', },
+      { identity: [ 'root', 'c', ], actualType: func, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: regex, state: testRegex, },
+      { identity: [ 'root', 'e', ], actualType: symbol, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number, state: 123, },
+      { identity: [ 'root', 'g', ], actualType: object, state: emptyObj, },
+    ];
+
+    for (let i = 0; i<validationErrors.length; i++) {
+      const next = validationErrors[i];
+      const { actualType, state, identity, }= expectedErrors[i];
+      expect(next).to.deep.equal({ expectedType: array, actualType, state, identity, isRequired: undefined, });
+    }
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('invalid anyLeafs', () => {
     refreshLists();
     createStore(
-      { a: {}, b: [], },
+      { a: emptyObj, b: emptyArr, },
       {
         a: { [spec]: { type: anyLeaf, }, },
         b: { [spec]: { type: anyLeaf, }, },
       });
-    expect(validationErrors.length).to.deep.equal(2);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(2);
+    expect(validationErrors[0]).to.deep.equal({ expectedType: anyLeaf, actualType: object, state: emptyObj, identity: [ 'root', 'a', ], isRequired: undefined, });
+    expect(validationErrors[1]).to.deep.equal({ expectedType: anyLeaf, actualType: array, state: emptyArr, identity: [ 'root', 'b', ], isRequired: undefined, });
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('Valid anyLeaf with any target', () => {
@@ -292,10 +385,10 @@ describe('Validate shape', () => {
       {
         [any]: { [spec]: { type: anyLeaf, }, },
       });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('Missing required field error', () => {
@@ -305,11 +398,13 @@ describe('Validate shape', () => {
       {
         [any]: { [spec]: { type: anyLeaf, }, },
         b: { [spec]: { type: number, isRequired, }, },
+        c: { [spec]: { type: object, isRequired, }, },
       });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(1);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(1);
+    expect(requiredFieldsErrors[0]).to.deep.equal({ identity: [ 'root', ], missingRequiredFields: [ 'b', 'c', ], });
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('Redudant fields error', () => {
@@ -319,10 +414,12 @@ describe('Validate shape', () => {
       { [spec]: { type: object, exclusive, },
         a: { [spec]: { type: anyLeaf, }, },
       });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(1);
+    expect(validationErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(1);
+    const { key, target, shape, value, } = exclusiveFieldsErrors[0];
+    expect({ key, value, }).to.deep.equal({ key: 'b', value: 'abc', });
   });
 
   it('Non specified fields', () => {
@@ -332,10 +429,10 @@ describe('Validate shape', () => {
       { [spec]: { type: object, },
         a: { [spec]: { type: anyLeaf, }, },
       });
-    expect(validationErrors.length).to.deep.equal(0);
-    expect(invalidSpecTypesErrors.length).to.deep.equal(0);
-    expect(requiredFieldsErrors.length).to.deep.equal(0);
-    expect(exclusiveFieldsErrors.length).to.deep.equal(0);
+    expect(validationErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
   });
 
   it('Invalid spec', () => {
