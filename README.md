@@ -77,12 +77,16 @@ const root = (
 
 action creators / actions:
 ```
-export function removeUser(id) {
-   return function ({users}) {
-    const user = users[id];
+export function removeUser(userId) {
+   return function ({users, todosByUser, }) {
+    const user = users[userId];
+    const usersTodos = todosByUser[userId]
     user.setState({ pending: true, });
-    deleteUser(id)
-      .then(()=> users.remove(id)); 
+    deleteUser(userId)
+      .then(()=> {
+        users.remove(userId);
+        userTodos.remove();
+      }); 
   }
 }
 
