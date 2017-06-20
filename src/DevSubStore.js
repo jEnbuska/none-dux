@@ -6,8 +6,8 @@ export default class DevSubStore extends SubStore {
 
   static verbose = true;
 
-  constructor(initialValue, key, parent, depth, _shape) {
-    super(initialValue, key, parent, depth, _shape);
+  constructor(initialValue, key, parent, depth, __substore_shape__) {
+    super(initialValue, key, parent, depth, __substore_shape__);
     DevSubStore.afterChanged(this);
   }
 
@@ -62,7 +62,7 @@ export default class DevSubStore extends SubStore {
   }
 
   static checkSpecTypeDeviation(target) {
-    const { type, } = target._shape[spec];
+    const { type, } = target.__substore_shape__[spec];
     switch (type) {
       case string:
       case number:
@@ -104,8 +104,8 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateLeaf(target, type) {
-    const { state, _shape, __substore_identity__: identity, } = target;
-    const { isRequired, } = _shape[spec];
+    const { state, __substore_shape__, __substore_identity__: identity, } = target;
+    const { isRequired, } = __substore_shape__[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (type!==actualType) {
       if (isRequired) {
@@ -118,8 +118,8 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateAnyLeaf(target) {
-    const { state, _shape, __substore_identity__: identity, } = target;
-    const { isRequired, type, } = _shape[spec];
+    const { state, __substore_shape__, __substore_identity__: identity, } = target;
+    const { isRequired, type, } = __substore_shape__[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (isRequired && (actualType==='undefined' || actualType==='null')) {
       return { expectedType: type, actualType, isRequired, state, identity, };
@@ -130,8 +130,8 @@ export default class DevSubStore extends SubStore {
   }
 
   static validateObjectType(target, expected) {
-    const { state, _shape, __substore_identity__: identity, } = target;
-    const { type, isRequired, } = _shape[spec];
+    const { state, __substore_shape__, __substore_identity__: identity, } = target;
+    const { type, isRequired, } = __substore_shape__[spec];
     const actualType = DevSubStore.getSpecificType(state);
     if (actualType !== expected && (isRequired || (actualType !=='null'&& actualType!=='undefined'))) {
       return { expectedType: type, actualType, state, identity, isRequired, };
@@ -140,8 +140,8 @@ export default class DevSubStore extends SubStore {
   }
 
   static ensureRequiredFields(target) {
-    const { _shape, __substore_identity__: identity, } = target;
-    const { [spec]: ignore, [any]: ignore2, ...rest } = _shape;
+    const { __substore_shape__, __substore_identity__: identity, } = target;
+    const { [spec]: ignore, [any]: ignore2, ...rest } = __substore_shape__;
     const missingRequiredFields = entries(rest).filter(([ _, v, ]) => v[spec].isRequired)
       .filter(([ k, ]) => !target[k])
       .map(([ k, ]) => k);
@@ -170,6 +170,6 @@ export default class DevSubStore extends SubStore {
   }
 
   static onInvalidSpecType(target) {
-    console.error(`invalid spec type '${JSON.stringify(target._shape[spec].type)}\nTarget ${JSON.stringify(target.get)}`);
+    console.error(`invalid spec type '${JSON.stringify(target.__substore_shape__[spec].type)}\nTarget ${JSON.stringify(target.get)}`);
   }
 }

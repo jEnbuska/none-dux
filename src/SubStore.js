@@ -21,16 +21,16 @@ export default class SubStore {
   prevState = {};
   __substore_parent__;
 
-  constructor(initialValue, key, parent, depth, _shape) {
+  constructor(initialValue, key, parent, depth, shape) {
     if (depth>SubStore._maxDepth) { SubStore.__kill(); }
-    this._shape= _shape;
+    this.__substore_shape__= shape;
     this._depth = depth;
     this.__substore_id__ = key;
     this.__substore_parent__ = parent;
     this.__substore_identity__ = [ ...parent.__substore_identity__, key, ];
     if (SubStore.couldHaveSubStores(initialValue)) {
       for (const k in initialValue) {
-        initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, _shape).state;
+        initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, shape).state;
       }
     }
     this.state = initialValue;
@@ -163,7 +163,7 @@ export default class SubStore {
           nextState[k] = child._reset(obj[k], prevState[k]).state;
         }
       } else {
-        nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this._shape).state;
+        nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this.__substore_shape__).state;
       }
     }
     this.state = nextState;
@@ -173,7 +173,7 @@ export default class SubStore {
   _reset(nextState, prevState) {
     this.prevState = prevState;
     if (SubStore.couldHaveSubStores(nextState)) {
-      const { _shape, _depth, } = this;
+      const { __substore_shape__, _depth, } = this;
       if (SubStore.couldHaveSubStores(prevState)) {
         const merge = { ...prevState, ...nextState, };
         for (const k in merge) {
@@ -187,12 +187,12 @@ export default class SubStore {
               delete this[k];
             }
           } else {
-            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, _shape).state;
+            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
           }
         }
       } else {
         for (const k in nextState) {
-          nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, _shape).state;
+          nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
         }
       }
     } else if (SubStore.couldHaveSubStores(prevState)) {
