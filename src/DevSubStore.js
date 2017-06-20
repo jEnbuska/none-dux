@@ -27,6 +27,7 @@ export default class DevSubStore extends SubStore {
         DevSubStore.onExclusiveViolation({ key, target: this, shape, value: initialState, });
       }
     }
+    return this[key];
   }
 
   _merge(obj, prevState) {

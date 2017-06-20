@@ -3,6 +3,14 @@ export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
+const { getPrototypeOf, } = Object;
+const leafs= {
+  Number: true,
+  String: true,
+  RegExp: true,
+  Boolean: true,
+};
+
 export default class SubStore {
 
   static lastChange;
@@ -22,7 +30,7 @@ export default class SubStore {
     this.__substore_identity__ = [ ...parent.__substore_identity__, key, ];
     if (SubStore.couldHaveSubStores(initialValue)) {
       for (const k in initialValue) {
-        this._createSubStore(initialValue[k], k, this, depth + 1, _shape);
+        initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, _shape).state;
       }
     }
     this.state = initialValue;
@@ -48,7 +56,7 @@ export default class SubStore {
     return this.__substore_id__;
   }
 
-  getIdentity(){
+  getIdentity() {
     return this.__substore_identity__;
   }
 
@@ -78,7 +86,6 @@ export default class SubStore {
     }
     const prevState = this.state;
     this._reset(value, prevState);
-    this.prevState = prevState;
     SubStore.lastChange = { func: CLEAR_STATE, target: this.__substore_identity__, param: value, };
     this.__substore_parent__._notifyUp(this);
     return this;
@@ -153,16 +160,18 @@ export default class SubStore {
       const child = this[k];
       if (child) {
         if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
-          child._reset(obj[k], prevState[k]);
+          nextState[k] = child._reset(obj[k], prevState[k]).state;
         }
       } else {
-        this._createSubStore(obj[k], k, this, this._depth + 1, this._shape);
+        nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this._shape).state;
       }
     }
     this.state = nextState;
+    return this;
   }
 
   _reset(nextState, prevState) {
+    this.prevState = prevState;
     if (SubStore.couldHaveSubStores(nextState)) {
       const { _shape, _depth, } = this;
       if (SubStore.couldHaveSubStores(prevState)) {
@@ -171,19 +180,19 @@ export default class SubStore {
           if (this[k]) {
             if (nextState.hasOwnProperty(k)) {
               if (nextState[k] !== prevState[k]) {
-                this[k]._reset(nextState[k], prevState[k]);
+                nextState[k] = this[k]._reset(nextState[k], prevState[k]).state;
               }
             } else {
               delete this[k].__substore_parent__;
               delete this[k];
             }
           } else {
-            this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
+            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, _shape).state;
           }
         }
       } else {
         for (const k in nextState) {
-          this._createSubStore(nextState[k], k, this, _depth + 1, _shape);
+          nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, _shape).state;
         }
       }
     } else if (SubStore.couldHaveSubStores(prevState)) {
@@ -193,6 +202,7 @@ export default class SubStore {
       }
     }
     this.state = nextState instanceof Array ? values(nextState) : nextState;
+    return this;
   }
 
   _notifyUp(child) {
@@ -226,12 +236,12 @@ export default class SubStore {
   }
 
   _createSubStore(initialState, key, parent, depth) {
-    this[key] = new SubStore(initialState, key, parent, depth);
+    return this[key] = new SubStore(initialState, key, parent, depth);
   }
 
   static __kill() { /* redefined by StoreCreator*/ }
 
   static couldHaveSubStores(value) {
-    return value && value instanceof Object && !(value instanceof Function) && !(value instanceof RegExp);
+    return value && value instanceof Object && !leafs[getPrototypeOf(value).constructor.name];
   }
 }
