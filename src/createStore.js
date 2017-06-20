@@ -20,7 +20,7 @@ export class StoreCreator {
       };
       const shapeErrors = StoreCreator.validateShape(shape);
       if (shapeErrors.length) {
-        console.error('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1));
+        console.error('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1)+'\nCreated default SubStore instead');
         this.subject = new SubStore(state, 'root', this, 0);
       } else {
         this.subject = new DevSubStore(state, 'root', this, 0, shape);
