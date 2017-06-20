@@ -28,8 +28,9 @@ import { Provider, connect, shapes, } from 'none-dux';
 init Provider:
 ```
 const initialState = {
+  request: {},
   todosByUser: {},
-  usersById: {},
+  users: {},
 };
 
 /*
@@ -48,13 +49,14 @@ const shape = {
           done: { [spec]: { type: bool, }, },
     },
   },
-  usersById: { [spec]: { type: object, }, // userId
+  users: { [spec]: { type: object, }, // by id
      [any]: {
       id: { [spec]: {type: string, }, },
       firstName: { [spec]: { type: string, },
       lastName: { [spec]: {type: string, },     
     },
   },
+  request: {[spec]: {type: object, isRequired}}
 };
 
 /*
@@ -85,9 +87,9 @@ export function removeUser(id) {
 }
 
 
-export function toggleTodo(id){
+export function toggleTodo(id,userId){
   return function(store){
-    const todo = store.todos[id];
+    const todo = store.todosByUser[id];
     const { state: {done}, } = todo;
     const { state, prevState, } = todo.setState({pending: true, done: !done});
     updateTodo(id, state)
@@ -127,7 +129,7 @@ target.remove(...ids); //removes all children with matching ids
 target.remove(); //remove self
 ```
 
-State of the store is not fixed:
+State of the store is can be reformed at any time:
 
 ```
 const store = createStore({parent:{}})
