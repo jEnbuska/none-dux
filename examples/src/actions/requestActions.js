@@ -31,3 +31,9 @@ export function onUserUpdateSuccess() {
     users.setState({ updating: false, });
   };
 }
+
+export function onUsersNotFound() {
+  return function ({ request: { users, }, }) {
+    users.setState({ fetching: false, });
+  };
+}

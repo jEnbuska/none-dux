@@ -16,7 +16,7 @@
   "license": "UNLICENCED",
   "private": true,
   "dependencies": {
-    "none-dux": "latest",
+    "none-dux": "^2.2.2",
     "react": "^16.0.0-alpha.12",
     "react-dom": "^16.0.0-alpha.12",
     "react-router": "^3.0.0",

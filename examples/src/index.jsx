@@ -2,7 +2,7 @@ import 'styles';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
-import { Provider, shapes, } from '../../lib';
+import { Provider, shapes, } from 'none-dux';
 import UserProfile from './containers/UserProfile.jsx';
 import BrowserUsers from './containers/BrowserUsers.jsx';
 import Users from './containers/Users.jsx';

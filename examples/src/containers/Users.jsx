@@ -1,10 +1,10 @@
 import React from 'react';
 import { browserHistory, } from 'react-router';
-import { connect, } from '../../../lib';
-import { onFetchUsers, onFetchUsersSuccess, } from '../actions/requestActions';
-import { fetchUsers, setUsers, selectUser, } from '../actions/userActions';
+import { connect, } from 'none-dux';
+import * as requestActions from '../actions/requestActions';
+import * as userActions from '../actions/userActions';
 
-@connect(({ users, request: { users: { fetching, }, }, }) => ({ users, fetching, }), { fetchUsers, onFetchUsers, onFetchUsersSuccess, setUsers, selectUser, })
+@connect(({ users, request: { users: { fetching, }, }, }) => ({ users, fetching, }), { ...requestActions, ...userActions, })
 export default class Users extends React.Component {
 
   render() {
@@ -13,7 +13,7 @@ export default class Users extends React.Component {
   }
 
   componentDidMount() {
-    const { fetchUsers, setUsers, onFetchUsers, onFetchUsersSuccess, selectUser, } = this.props;
+    const { fetchUsers, setUsers, onFetchUsers, onFetchUsersSuccess, selectUser, onUsersNotFound, } = this.props;
     onFetchUsers();
     fetchUsers()
       .then(data => {
@@ -28,7 +28,7 @@ export default class Users extends React.Component {
             selectUser(userId);
           }
         }
-      }).catch(() => { /* no previous state in cache*/ });
+      }).catch(() => onUsersNotFound());
   }
 
   componentWillReceiveProps({ params: { userId, }, selectUser, users, }) {

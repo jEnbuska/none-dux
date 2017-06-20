@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from '../../../lib';
+import { connect, } from 'none-dux';
 import Todos from './Todos';
 import Input from '../components/Input';
 import Button from '../components/Button';
