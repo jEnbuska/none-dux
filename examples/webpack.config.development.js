@@ -1,6 +1,5 @@
 const webpack = require('webpack');
 const merge = require('webpack-merge');
-const OpenBrowserPlugin = require('open-browser-webpack-plugin');
 const { context, distPath, publicPath, base, API_URL, vendor, }= require('./webpack.config.base');
 
 const port = process.env.PORT || 8000;
@@ -26,7 +25,6 @@ module.exports = merge(base('development'), {
       },
     }),
     new webpack.HotModuleReplacementPlugin(),
-    new OpenBrowserPlugin({ url: `http://${host}:${port}/`, }),
   ],
   devServer: {
     // host must be set to enable accessing server from localhost:${PORT} when devServer running in docker
