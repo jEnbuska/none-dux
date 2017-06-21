@@ -1,11 +1,21 @@
 import uuid from 'uuid/v4';
 
 export function addUser() {
-  return function ({ users, selections: { user, }, }) {
+  return function ({ users, selections, todosByUser, }) {
     const id = uuid();
-    users.setState({ [id]: { id, ...user.state, todos: [], }, });
-    user.clearState({ });
-    return new Promise(res => setTimeout(() => res(), 800));
+    const { single, ...rest } = selections.user.state;
+    const { [id]: newUser, }= users.setState({ [id]: { id, ...rest, single: !!single, pending: true, }, });
+    selections.user.setState({ pending: true, });
+    return new Promise(res => {
+      setTimeout(() => {
+        todosByUser.setState({ [id]: {}, });
+        selections.user.clearState({});
+        newUser.setState({ pending: false, });
+        localStorage.setItem('todosByUser', JSON.stringify(todosByUser.state));
+        localStorage.setItem('users', JSON.stringify(users.state));
+        res();
+      }, 800);
+    });
   };
 }
 
@@ -17,10 +27,16 @@ export function modifySelectedUser(obj) {
 
 export function saveUserChanges() {
   return function ({ selections: { user: selectedUser, }, users, }) {
-    const { id, todos, ...rest } = selectedUser.state;
-    const user = users[id];
-    user.setState({ ...rest, });
-    return new Promise(res => setTimeout(() => res(), 800));
+    const { state, } = selectedUser.setState({ pending: true, });
+    const user = users[state.id];
+    user.setState(state);
+    return new Promise(res => setTimeout(() => {
+      user.remove('pending');
+      selectedUser.remove('pending');
+      localStorage.setItem('users', JSON.stringify(users.state));
+      res();
+    }, 800
+    ));
   };
 }
 
@@ -31,8 +47,13 @@ export function clearUserModification() {
 }
 
 export function removeUser(id) {
-  return function ({ users: { [id]: user, }, }) {
-    user.remove();
+  return function ({ users, }) {
+    users[id].setState({ pending: true, });
+    return new Promise(res => {
+      users[id].removeSelf();
+      localStorage.setItem('users', JSON.stringify(users.state));
+      res();
+    }, 800);
   };
 }
 
@@ -43,16 +64,19 @@ export function selectUser(id) {
 }
 
 export function fetchUsers() {
-  return function () {
-    return new Promise((resolve, reject) => {
-      const users = JSON.parse(localStorage.getItem('users'));
-      setTimeout(() => users ? resolve(users) : reject(), 1500);
+  return function ({ users, todosByUser, }) {
+    return new Promise((resolve) => {
+      users.setState({ pending: true, });
+      todosByUser.setState({ pending: true, });
+      setTimeout(() => {
+        console.log(localStorage.getItem('users'));
+        const userData = JSON.parse(localStorage.getItem('users')) || {};
+        users.clearState({ ...userData, pending: false, });
+        const todoData = JSON.parse(localStorage.getItem('todosByUser')) || {};
+        todosByUser.setState({ ...todoData, pending: false, });
+        console.log({ userData, todosByUser, });
+        resolve();
+      }, 800);
     });
-  };
-}
-
-export function setUsers(users) {
-  return function (store) {
-    store.setState({ users, });
   };
 }

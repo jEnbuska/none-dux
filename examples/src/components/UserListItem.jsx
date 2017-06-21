@@ -3,8 +3,8 @@ import { func, string, } from 'prop-types';
 import Div from './Div';
 import Button from './Button';
 
-const UserListItem = ({ id, firstName, lastName, email, phone, onSelectUser, onRemoveUser, }) => (
-  <Div>
+const UserListItem = ({ id, firstName, lastName, email, phone, onSelectUser, onRemoveUser, pending, }) => (
+  <Div className={pending ? 'disabled-view' : ''}>
     <div className='flex'>
       <Div>{firstName}</Div>
       <Div>{lastName}</Div>

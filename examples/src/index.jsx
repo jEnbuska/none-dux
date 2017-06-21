@@ -2,19 +2,16 @@ import 'styles';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
-import { Provider, shapes, } from 'none-dux';
+import { Provider, shapes, } from '../../src';
 import UserProfile from './containers/UserProfile.jsx';
-import BrowserUsers from './containers/BrowserUsers.jsx';
+import BrowseUsers from './containers/BrowseUsers.jsx';
 import Users from './containers/Users.jsx';
 import App from './components/App';
 
-/* just an experiment to see how how this library would work with deep structured data and arrays.
-* I dont recommend using this library this way*/
-
 const initialState= {
-  selections: { user: {}, },
   users: {},
-  request: { users: {}, todos: {}, },
+  todosByUser: {},
+  selections: { user: {}, },
 };
 
 const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
@@ -25,6 +22,7 @@ const { spec, any, array, object, number, string, exclusive, isRequired, bool, }
 const shape = {
   [spec]: { type: object, exclusive, },
   users: { [spec]: { type: object, isRequired, },
+    pending: { [spec]: { type: bool, }, },
     [any]: { [spec]: { type: object, exclusive, }, // users [any] means any key, in this case its userId uuid
       id: { [spec]: { type: string, isRequired, }, },
       firstName: { [spec]: { type: string, isRequired, }, },
@@ -33,13 +31,18 @@ const shape = {
       phone: { [spec]: { type: string, isRequired, }, },
       age: { [spec]: { type: number, }, },
       single: { [spec]: { type: bool, }, },
-      todos: { [spec]: { type: array, isRequired, },
-        [any]: { [spec]: { type: object, isRequired, exclusive, },
-          id: { [spec]: { type: string, isRequired, }, },
-          userId: { [spec]: { type: string, isRequired, }, },
-          description: { [spec]: { type: string, isRequired, }, },
-          done: { [spec]: { type: bool, }, },
-        },
+      pending: { [spec]: { type: bool, }, },
+    },
+  },
+  todosByUser: { [spec]: { type: object, isRequired, },
+    pending: { [spec]: { type: bool, }, },
+    [any]: { [spec]: { type: object, },
+      [any]: { [spec]: { type: object, exclusive, },
+        id: { [spec]: { type: string, isRequired, }, },
+        userId: { [spec]: { type: string, isRequired, }, },
+        description: { [spec]: { type: string, isRequired, }, },
+        done: { [spec]: { type: bool, }, },
+        pending: { [spec]: { type: bool, }, },
       },
     },
   },
@@ -53,28 +56,18 @@ const shape = {
       single: { [spec]: { type: bool, }, },
     },
   },
-  request: { [spec]: { type: object, },
-    users: { [spec]: { type: object, isRequired, }, },
-    todos: { [spec]: { type: object, isRequired, }, },
-  },
 };
-
-function onChange(store, lastChange) {
-  if (lastChange.target[1]==='users') {
-    localStorage.setItem('users', JSON.stringify(store.state.users));
-  }
-}
 
 const Root = () => (
   <Provider
     initialState={initialState}
-    onChange={onChange}
+    onChange={(store, lastChange) => {}}
     shape={shape}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         <IndexRedirect to='users' />
         <Route path='/users' component={Users}>
-          <IndexRoute relative component={BrowserUsers} />
+          <IndexRoute relative component={BrowseUsers} />
           <Route path=':userId' relative component={UserProfile} />
         </Route>
       </Route>

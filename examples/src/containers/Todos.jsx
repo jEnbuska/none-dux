@@ -1,23 +1,18 @@
 import React from 'react';
-import { string, } from 'prop-types';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../src';
 import AddTodo from './AddTodo';
 import TodoList from './TodosList';
 
-@connect(({ users, request: { todos: { updating, }, }, }) => ({ users, updating, }),)
+@connect(({ todosByUser, }) => ({ pending: todosByUser.pending, }))
 export default class Todos extends React.Component {
 
-  static propTypes = {
-    userId: string.isRequired,
-  }
-
   render() {
-    const {userId, updating } = this.props;
+    const { userId, pending, } = this.props;
     return (
-      <div className={updating ? 'disabled-view' : ''}>
-        <AddTodo userId={userId}/>
-        <TodoList userId={userId}/>
+      <div className={pending ? 'disabled-view' : ''}>
+        <AddTodo userId={userId} />
+        <TodoList userId={userId} />
       </div>
     );
   }
-};
+}

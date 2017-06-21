@@ -1,29 +1,41 @@
 import uuid from 'uuid/v4';
 
 export function addTodo(description, userId) {
-  return function ({ users, }) {
+  return function ({ todosByUser, }) {
     const id = uuid();
-    const user = users[userId];
-    const { todos, } = user.state;
-    const { state, prevState, } = user.setState({ todos: [ ...todos, { id, userId, description, done: false, }, ], });
-    return new Promise(res => setTimeout(() => res({ status: 201, }), 800));
+    const usersTodos = todosByUser[userId];
+    const { [id]: todo, } = usersTodos.setState({ [id]: { id, userId, description, done: false, pending: true, }, });
+    return new Promise(res => setTimeout(() => {
+      todo.remove('pending');
+      localStorage.setItem('todosByUser', JSON.stringify(todosByUser.state));
+      res();
+    }, 800));
   };
 }
 
 export function toggleTodo(id, userId) {
-  return function ({ users, }) {
-    const user = users[userId];
-    const todo = user.todos.getChildren().find(({ state, }) => state.id===id);
-    const { state, prevState, } = todo.setState({ done: !todo.state.done, });
-    return new Promise(res => setTimeout(() => res({ status: 201, }), 800));
+  return function ({ todosByUser, }) {
+    const todo = todosByUser[userId][id];
+    todo.setState({ done: !todo.state.done, pending: true, });
+    return new Promise(res => setTimeout(() => {
+      if (todo.stillAttatched()) {
+        todo.remove('pending');
+        localStorage.setItem('todosByUser', JSON.stringify(todosByUser.state));
+      }
+      res();
+    }, 800));
   };
 }
 
 export function removeTodo(id, userId) {
-  return function ({ users, }) {
-    const { todos, } = users[userId];
-    const todo = todos.getChildren().find(({ state, }) => state.id===id);
-    const { prevState, } = todo.remove();
-    return new Promise(res => setTimeout(() => res({ status: 201, }), 800));
+  return function ({ todosByUser, }) {
+    const todo = todosByUser[userId][id];
+    todo.setState({ pending: true, });
+    return new Promise(res => setTimeout(() => {
+      todo.removeSelf();
+      console.log(todosByUser.state)
+      localStorage.setItem('todosByUser', JSON.stringify(todosByUser.state));
+      res();
+    }, 800));
   };
 }

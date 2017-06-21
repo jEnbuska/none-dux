@@ -1,20 +1,19 @@
 import React from 'react';
-import { connect, } from 'none-dux';
+import { connect, } from '../../../src';
 import Todos from './Todos';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { modifySelectedUser, clearUserModification, saveUserChanges, } from '../actions/userActions';
-import { onUpdateUser, onUserUpdateSuccess, } from '../actions/requestActions';
 
-@connect(({ selections: { user, }, request: { users: { updating, }, }, }) => ({ user, updating, }), { modifySelectedUser, clearUserModification, saveUserChanges, onUpdateUser, onUserUpdateSuccess, })
+@connect(({ selections: { user, }, }) => ({ user, }), { modifySelectedUser, clearUserModification, saveUserChanges, })
 export default class UserProfile extends React.Component {
 
   render() {
-    const { user, modifySelectedUser, updating, } = this.props;
-    const { firstName, lastName, single, age, phone, email, } = user || {};
+    const { user, modifySelectedUser, saveUserChanges, } = this.props;
+    const { firstName, lastName, single, age, phone, email, pending, } = user || {};
     return (
       <div className='flex'>
-        <div className={updating ? 'disabled-view' : ''}>
+        <div className={pending ? 'disabled-view' : ''}>
           <Input placeholder='firstname' onChange={firstName => modifySelectedUser({ firstName, })} value={firstName} />
           <Input placeholder='lastname' onChange={lastName => modifySelectedUser({ lastName, })} value={lastName} />
           <Input placeholder='age' type='range' min='18' max='80' onChange={age => modifySelectedUser({ age: Number(age), })} value={age} label={'Age: '+ (age || '')} />
@@ -25,7 +24,7 @@ export default class UserProfile extends React.Component {
             primary
             type='submit'
             text='Update'
-            onClick={this.onSaveUserChanges}
+            onClick={saveUserChanges}
             disabled={[ firstName, lastName, phone, email, ].some(exists => !exists)} />
         </div>
         <div>
@@ -33,12 +32,6 @@ export default class UserProfile extends React.Component {
         </div>
       </div>
     );
-  }
-
-  onSaveUserChanges = () => {
-    const { saveUserChanges, onUserUpdateSuccess, onUpdateUser, } = this.props;
-    onUpdateUser();
-    saveUserChanges().then(onUserUpdateSuccess);
   }
 
   componentWillUnmount() {

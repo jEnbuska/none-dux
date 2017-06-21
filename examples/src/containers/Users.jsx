@@ -1,34 +1,29 @@
 import React from 'react';
 import { browserHistory, } from 'react-router';
-import { connect, } from 'none-dux';
-import * as requestActions from '../actions/requestActions';
+import { connect, } from '../../../src';
 import * as userActions from '../actions/userActions';
 
-@connect(({ users, request: { users: { fetching, }, }, }) => ({ users, fetching, }), { ...requestActions, ...userActions, })
+@connect(({ users, }) => ({ users, }), { ...userActions, })
 export default class Users extends React.Component {
 
   render() {
-    const { fetching, } = this.props;
-    return <div className={fetching ? 'disabled-view': ''}>{this.props.children}</div>;
+    return <div>{this.props.children}</div>;
   }
 
   componentDidMount() {
-    const { fetchUsers, setUsers, onFetchUsers, onFetchUsersSuccess, selectUser, onUsersNotFound, } = this.props;
-    onFetchUsers();
+    const { fetchUsers, selectUser, } = this.props;
     fetchUsers()
-      .then(data => {
-        setUsers(data);
-        onFetchUsersSuccess();
+      .then(() => {
         const { params, users, } = this.props;
         const { userId, } = params;
         if (userId) {
-          if (!users[userId]) {
-            browserHistory.replace('/');
-          } else {
+          if (users[userId]) {
             selectUser(userId);
+          } else {
+            browserHistory.replace('/');
           }
         }
-      }).catch(() => onUsersNotFound());
+      });
   }
 
   componentWillReceiveProps({ params: { userId, }, selectUser, users, }) {

@@ -5,9 +5,8 @@ import Form from '../components/Form';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { addTodo, } from '../actions/todoActions';
-import { onTodoUpdate, onTodoUpdateSuccess, } from '../actions/requestActions';
 
-@connect(undefined, { addTodo, onTodoUpdate, onTodoUpdateSuccess, })
+@connect(undefined, { addTodo, })
 export default class AddTodo extends React.Component {
 
   static propTypes = {
@@ -31,9 +30,7 @@ export default class AddTodo extends React.Component {
   }
 
   onSubmit = () => {
-    const { userId, addTodo, onTodoUpdate, onTodoUpdateSuccess, } = this.props;
-    onTodoUpdate();
-    addTodo(this.state.description, userId).then(onTodoUpdateSuccess);
+    this.props.addTodo(this.state.description, this.props.userId);
     this.setState({ description: '', });
   }
 }
