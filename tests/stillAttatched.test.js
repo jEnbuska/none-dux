@@ -8,7 +8,7 @@ describe('Still attatched', () => {
     const { a, e, } = root;
     const { b, } = a;
     const { c, d, } =b;
-    root.a.b.remove();
+    root.a.b.removeSelf();
     expect(a.stillAttatched()).to.be.ok;
     expect(!b.stillAttatched()).to.be.ok;
     expect(!c.stillAttatched()).to.be.ok;

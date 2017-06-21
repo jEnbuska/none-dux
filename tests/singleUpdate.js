@@ -12,7 +12,7 @@ describe('Single update', () => {
     root.e.singleUpdate(e => {
       e.setState(2);
       e.setState({ a: 1, b: 2, c: 3, });
-      e.b.remove();
+      e.b.removeSelf();
     });
     expect(updates).to.equal(1);
   });
@@ -22,7 +22,7 @@ describe('Single update', () => {
     const { state, } = root.e.singleUpdate((e => {
       e.setState(2);
       e.setState({ a: 1, b: 2, c: 3, });
-      e.b.remove();
+      e.b.removeSelf();
     }));
     expect(state).to.deep.equal({ a: 1, c: 3, });
   });

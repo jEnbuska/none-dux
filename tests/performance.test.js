@@ -21,7 +21,7 @@ describe('performance', () => {
       if (i % 2 === 0) {
         root.setState(even);
         root.companies[firstCompany].setState(odd[firstChildOdd]);
-        root.companies[firstCompany].remove();
+        root.companies[firstCompany].removeSelf();
       } else {
         root.setState(odd);
         root[firstChildOdd].setState(even.companies[firstCompany]);

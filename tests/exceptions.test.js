@@ -7,7 +7,7 @@ function verifyErrorOnChange(...params) {
     expect(() => next.setState({ x: 100, })).to.throw(Error);
     expect(() => next.clearState(1)).to.throw(Error);
     expect(() => next.clearState({ x: 100, })).to.throw(Error);
-    expect(() => next.remove()).to.throw(Error);
+    expect(() => next.removeSelf()).to.throw(Error);
     expect(() => next.remove('b')).to.throw(Error);
   });
 }
@@ -34,7 +34,7 @@ describe('killSwitch', () => {
       const { a, c, } = store;
       const { d, } = c;
       store.remove('a');
-      store.c.remove();
+      store.c.removeSelf();
       verifyErrorOnChange(a, c, d);
     });
 

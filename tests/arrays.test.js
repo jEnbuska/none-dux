@@ -89,7 +89,7 @@ describe('arrays as state', () => {
   it('arrays child removing self', () => {
     store = createStore([ 0, 1, 2, 3, 4, 5, 6, ]);
     const third = store[2];
-    third.remove();
+    third.removeSelf();
     expect(store.state).to.deep.equal([ 0, 1, 3, 4, 5, 6, ]);
     expect(third._parent).to.equal(undefined);
     expect(store[2].state).to.equal(3);

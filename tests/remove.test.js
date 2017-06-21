@@ -23,7 +23,7 @@ describe('remove', () => {
       store.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
       let children = store.getChildrenRecursively();
       expect(children.length).to.deep.equal(12);
-      store.b.e.h.remove();
+      store.b.e.h.removeSelf();
       children = store.getChildrenRecursively();
       expect(children.length).to.deep.equal(7);
     });
@@ -50,7 +50,7 @@ describe('remove', () => {
       store = createStore({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, });
       store.b.remove('d');
       expect(store.state).to.deep.equal({ a: 1, b: { c: undefined, e: { f: 4, g: 7, }, }, });
-      store.b.c.remove();
+      store.b.c.removeSelf();
       expect(store.state).to.deep.equal({ a: 1, b: { e: { f: 4, g: 7, }, }, });
     });
 
@@ -64,17 +64,17 @@ describe('remove', () => {
   it('should be able to remove multiple children little by little',
     () => {
       store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.e.h.x.remove();
+      store.b.e.h.x.removeSelf();
       expect(store.state).to.deep.equal({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      store.b.d.remove();
-      store.b.remove();
+      store.b.d.removeSelf();
+      store.b.removeSelf();
       expect(store.state).to.deep.equal({ a: 1, });
     });
 
   it('sub store should be removed',
     () => {
       store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.remove();
+      store.b.removeSelf();
       expect(store.b).to.deep.equal(undefined);
       expect(store.state.b).to.deep.equal(undefined);
     });
@@ -84,10 +84,10 @@ describe('remove', () => {
       store = createStore({ a: 1, b: { c: 'test', d: { x: 1, }, }, });
       const { b, } = store;
       const { c, d, } = store.b;
-      c.remove();
+      c.removeSelf();
       expect(c.state).to.equal(undefined);
       expect(c.prevState).to.equal('test');
-      b.remove();
+      b.removeSelf();
       expect(d.state).to.equal(undefined);
       expect(d.prevState).to.deep.equal({ x: 1, });
       expect(b.state).to.equal(undefined);
