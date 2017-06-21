@@ -28,6 +28,6 @@ describe('performance', () => {
         root[firstChildOdd].remove();
       }
     }
-    console.log('~ 1000 node merges, 1000 resets, 100 000 substore nodes removals, 100 000 substore nodes created. Took total of: ', new Date() - time, 'ms');
+    console.log('~ 1000 node merges, 1000 resets, 1 000  000 substore nodes removals, 1 000 000 substore nodes created. Took total of: ', new Date() - time, 'ms');
   });
 });
