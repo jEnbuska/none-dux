@@ -17,6 +17,12 @@ export default class DevSubStore extends SubStore {
     return this;
   }
 
+  removeSelf() {
+    const { __substore_parent__, } = this;
+    super.removeSelf();
+    DevSubStore.after(__substore_parent__);
+  }
+
   _createSubStore(initialState, key, parent, depth, shape = {}) {
     const subShape = shape[key] || shape[any];
     if (subShape) {

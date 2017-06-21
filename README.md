@@ -85,7 +85,7 @@ export function removeUser(userId) {
     deleteUser(userId)
       .then(()=> {
         users.remove(userId);
-        userTodos.remove();
+        userTodos.removeSelf();
       }); 
   }
 }
@@ -130,7 +130,7 @@ export default connect(
 Other methods:
 ```
 target.remove(...ids); //removes all children with matching ids
-target.remove(); //remove self
+target.removeSelf(); //remove self
 ```
 
 State of the store is can be reformed at any time:
@@ -150,7 +150,7 @@ parent.setState({
      }
    });
 const {firstSubChild, secondSubChild} = parent.child;
-firstSubChild.remove(); 
+firstSubChild.removeSelf(); 
 
 parent.setState('no children'); // ends up removing child and secondSubChild
 ```
