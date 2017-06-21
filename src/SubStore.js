@@ -148,7 +148,6 @@ export default class SubStore {
     for (const k of keys) {
       if (this[k] && this[k] instanceof SubStore) {
         delete nextState[k];
-        if (k==='b') { console.log('remove child ', k); }
         this._removeChild(k);
       } else {
         throw new Error('Remove error:',
