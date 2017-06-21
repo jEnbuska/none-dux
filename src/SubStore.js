@@ -1,9 +1,9 @@
-const { keys, values, } = Object;
 export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
-const { getPrototypeOf, } = Object;
+const { getPrototypeOf, assign, values, keys, } = Object;
+
 const leafs= {
   Number: true,
   String: true,
@@ -21,14 +21,14 @@ export default class SubStore {
   prevState = {};
   __substore_parent__;
 
-  constructor(initialValue, key, parent, depth, shape) {
+  constructor(initialValue, id, parent, depth, shape) {
     if (depth>SubStore._maxDepth) { SubStore.__kill(); }
     this.__substore_shape__= shape;
     this._depth = depth;
-    this.__substore_id__ = key;
+    this.__substore_id__ = id;
     this.__substore_parent__ = parent;
-    this.__substore_identity__ = [ ...parent.__substore_identity__, key, ];
-    if (SubStore.couldHaveSubStores(initialValue)) {
+    this.__substore_identity__ = [ ...parent.__substore_identity__, id, ];
+    if (SubStore.couldBeParent(initialValue)) {
       for (const k in initialValue) {
         initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, shape).state;
       }
@@ -68,13 +68,13 @@ export default class SubStore {
   }
 
   setState(value) {
+    const { state: prevState, __substore_parent__, } = this;
     if (value instanceof SubStore) {
       throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
-    } else if (!this.__substore_parent__) {
+    } else if (!__substore_parent__) {
       throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
     }
-    const { state: prevState, __substore_parent__, } = this;
-    if (SubStore.couldHaveSubStores(value) && SubStore.couldHaveSubStores(prevState) && !(value instanceof Array || prevState instanceof Array)) {
+    if (SubStore.couldBeParent(value) && SubStore.couldBeParent(prevState) && !(value instanceof Array || prevState instanceof Array)) {
       this._merge(value, prevState);
     } else {
       this._reset(value, prevState);
@@ -102,12 +102,21 @@ export default class SubStore {
     if (!this.__substore_parent__) {
       throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
     }
+    this._remove(keys);
+    return this;
+  }
+
+  removeSelf() {
+    if (!this.__substore_parent__) {
+      throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
+    }
+    this.__substore_parent__._remove([ this.__substore_id__, ]);
+  }
+
+  _remove(keys) {
     const { state, } = this;
-    if (keys.length) {
-      this.prevState = state;
-      if (!(SubStore.couldHaveSubStores(state))) {
-        throw new Error('Remove error:', `${JSON.stringify(this.__substore_identity__)}. Has no children, was given,${JSON.stringify(keys)} when state: ${state}`);
-      }
+    this.prevState = state;
+    if (SubStore.couldBeParent(state)) {
       let nextState;
       if (state instanceof Array) {
         nextState = this._removeFromArrayState(keys);
@@ -118,9 +127,8 @@ export default class SubStore {
       SubStore.lastChange = { func: REMOVE, target: this.__substore_identity__, param: keys, };
       this.__substore_parent__._notifyUp(this);
     } else {
-      this.__substore_parent__.remove(this.__substore_id__);
+      console.error('Remove error:', `${JSON.stringify(this.__substore_identity__)}. Has no children, was given,${JSON.stringify(keys)} when state: ${state}`);
     }
-    return this;
   }
 
   _removeFromArrayState(indexes) {
@@ -150,7 +158,7 @@ export default class SubStore {
         delete nextState[k];
         this._removeChild(k);
       } else {
-        throw new Error('Remove error:',
+        console.error('Remove error:',
           JSON.stringify(this.__substore_identity__),
           `Has no such child as ${k} when state: ${JSON.stringify(this.state, null, 1)}`);
       }
@@ -164,7 +172,9 @@ export default class SubStore {
       const child = this[k];
       if (child) {
         if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
-          nextState[k] = child._reset(obj[k], prevState[k]).state;
+          const nisNode = SubStore.couldBeParent(nextState[k]);
+          const pIsNode= SubStore.couldBeParent(prevState[k]);
+          nextState[k] = child._reset(obj[k], prevState[k], nisNode, pIsNode).state;
         }
       } else {
         nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this.__substore_shape__).state;
@@ -176,9 +186,9 @@ export default class SubStore {
 
   _reset(nextState, prevState) {
     this.prevState = prevState;
-    if (SubStore.couldHaveSubStores(nextState)) {
+    if (SubStore.couldBeParent(nextState)) {
       const { __substore_shape__, _depth, } = this;
-      if (SubStore.couldHaveSubStores(prevState)) {
+      if (SubStore.couldBeParent(prevState)) {
         const merge = { ...prevState, ...nextState, };
         for (const k in merge) {
           if (this[k]) {
@@ -198,7 +208,7 @@ export default class SubStore {
           nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
         }
       }
-    } else if (SubStore.couldHaveSubStores(prevState)) {
+    } else if (SubStore.couldBeParent(prevState)) {
       for (const k in prevState) {
         this._removeChild(k);
       }
@@ -226,12 +236,10 @@ export default class SubStore {
   _removeChild(k) {
     const target = this[k];
     const { state, } = target;
-    if (SubStore.couldHaveSubStores(state)) {
+    if(SubStore.couldBeParent(state)){
       keys(state).forEach(key => target._removeChild(key));
     }
-    delete target.__substore_parent__;
-    target.prevState = state;
-    delete target.state;
+    assign(target, { __substore_parent__: undefined, state: undefined, prevState: state, });
     delete this[k];
   }
 
@@ -243,7 +251,7 @@ export default class SubStore {
   }
 
   getChildren() {
-    return SubStore.couldHaveSubStores(this.state)
+    return SubStore.couldBeParent(this.state)
       ? keys(this.state)
       .map(k => this[k])
       : [];
@@ -255,7 +263,7 @@ export default class SubStore {
 
   static __kill() { /* redefined by StoreCreator*/ }
 
-  static couldHaveSubStores(value) {
+  static couldBeParent(value) {
     return value && value instanceof Object && !leafs[getPrototypeOf(value).constructor.name];
   }
 }

@@ -17,12 +17,6 @@ export default class DevSubStore extends SubStore {
     return this;
   }
 
-  removeSelf() {
-    const { __substore_parent__, } = this;
-    super.removeSelf();
-    DevSubStore.after(__substore_parent__);
-  }
-
   _createSubStore(initialState, key, parent, depth, shape = {}) {
     const subShape = shape[key] || shape[any];
     if (subShape) {
@@ -48,10 +42,10 @@ export default class DevSubStore extends SubStore {
         console.warn('Arrays in state can be behave unintuitively, consider using objects instead');
         DevSubStore.verbose=false;
       }
-      if (!(prevState instanceof Array) && SubStore.couldHaveSubStores(nextState)) {
+      if (!(prevState instanceof Array) && SubStore.couldBeParent(nextState)) {
         console.warn('transforming state of '+JSON.stringify(this.__substore_identity__)+' from object into array');
       }
-    } else if (prevState instanceof Array && SubStore.couldHaveSubStores(nextState)) {
+    } else if (prevState instanceof Array && SubStore.couldBeParent(nextState)) {
       console.warn('transforming state of '+JSON.stringify(this.__substore_identity__)+' from array to object');
     }
     super._reset(nextState, prevState);
@@ -129,7 +123,7 @@ export default class DevSubStore extends SubStore {
     const actualType = DevSubStore.getSpecificType(state);
     if (isRequired && (actualType==='undefined' || actualType==='null')) {
       return { expectedType: type, actualType, isRequired, state, identity, };
-    } else if (SubStore.couldHaveSubStores(state)) {
+    } else if (SubStore.couldBeParent(state)) {
       return { expectedType: type, actualType, isRequired, state, identity, };
     }
     return false;

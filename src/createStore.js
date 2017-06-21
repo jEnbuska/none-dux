@@ -44,8 +44,7 @@ export class StoreCreator {
     Object.values(this.subject.subscribers).forEach(function (sub) { sub(); });
   }
 
-  remove() {
-  }
+  remove() {}
 
   stillAttatched(){
     return true;
@@ -53,7 +52,7 @@ export class StoreCreator {
 
   static killSwitch = () => {
     console.trace();
-    this.subject.remove();
+    this.subject.removeSelf();
     throw new Error('Infinite recursion on SubStore');
   };
 
