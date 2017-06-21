@@ -14,7 +14,7 @@ describe('performance', () => {
     const root = createStore({});
     root.setState(even);
     const time = new Date();
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 1000; i++) {
       if (i%7 === 0) {
         root.clearState({});
       }
@@ -28,6 +28,6 @@ describe('performance', () => {
         root[firstChildOdd].remove();
       }
     }
-    console.log('~ 10000 merges, 10000 resets, 5000 removes, 1 000 000 SubStores created. Took total of: ', new Date() - time, 'ms');
+    console.log('~ 1000 merges, 1000 resets, 500 removes, 100 000 SubStores created. Took total of: ', new Date() - time, 'ms');
   });
 });

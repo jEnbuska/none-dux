@@ -78,4 +78,19 @@ describe('remove', () => {
       expect(store.b).to.deep.equal(undefined);
       expect(store.state.b).to.deep.equal(undefined);
     });
+
+  it('state should be shift after removal',
+    () => {
+      store = createStore({ a: 1, b: { c: 'test', d: { x: 1, }, }, });
+      const { b, } = store;
+      const { c, d, } = store.b;
+      c.remove();
+      expect(c.state).to.equal(undefined);
+      expect(c.prevState).to.equal('test');
+      b.remove();
+      expect(d.state).to.equal(undefined);
+      expect(d.prevState).to.deep.equal({ x: 1, });
+      expect(b.state).to.equal(undefined);
+      expect(b.prevState).to.deep.equal({ d: { x: 1, }, });
+    });
 });
