@@ -132,6 +132,7 @@ export default class SubStore {
           const target = this[i];
           this[length] = target;
           delete this[i];
+          target.__substore_identity__[target.__substore_identity__.length-1] = length;
           target.__substore_id__ = length;
         }
         acc.push(next);

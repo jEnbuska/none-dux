@@ -152,4 +152,11 @@ describe('arrays as state', () => {
     expect(c.state).to.deep.equal({ b: 2, });
     // This is unintuitive. Creating new stores every time store gets changed brings it's own challenges
   });
+
+  it('change identity when moved', () => {
+    const store = createStore([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+    store.remove(1);
+    expect(store[1].getIdentity()).to.deep.equal([ 'root', 1, ]);
+    // This is unintuitive. Creating new stores every time store gets changed brings it's own challenges
+  });
 });
