@@ -47,6 +47,10 @@ export class StoreCreator {
   remove() {
   }
 
+  stillAttatched(){
+    return true;
+  }
+
   static killSwitch = () => {
     console.trace();
     this.subject.remove();

@@ -60,6 +60,13 @@ export default class SubStore {
     return this.__substore_identity__;
   }
 
+  stillAttatched() {
+    if (this.__substore_parent__) {
+      return this.__substore_parent__.stillAttatched();
+    }
+    return false;
+  }
+
   setState(value) {
     if (value instanceof SubStore) {
       throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
