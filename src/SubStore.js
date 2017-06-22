@@ -133,8 +133,11 @@ export default class SubStore {
 
   _removeFromArrayState(indexes) {
     const set = indexes.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
-    return this.state.reduce((acc, next, i) => {
-      const { length, } = acc;
+    const nextState = [];
+    const { state, } = this;
+    const stateLength = state.length;
+    for (let i = 0; i<stateLength; i++) {
+      const { length, } = nextState;
       if (!set[i]) {
         if (i !== length) {
           const target = this[i];
@@ -143,18 +146,18 @@ export default class SubStore {
           target.__substore_identity__[target.__substore_identity__.length-1] = length;
           target.__substore_id__ = length;
         }
-        acc.push(next);
+        nextState.push(state[i]);
       } else {
         this._removeChild(i);
       }
-      return acc;
-    }, []);
+    }
+    return nextState;
   }
 
   _removeFromObjectState(keys) {
     const nextState = { ...this.state, };
     for (const k of keys) {
-      if (this[k] && this[k] instanceof SubStore) {
+      if (this[k] instanceof SubStore) {
         delete nextState[k];
         this._removeChild(k);
       } else {
@@ -236,25 +239,31 @@ export default class SubStore {
   _removeChild(k) {
     const target = this[k];
     const { state, } = target;
-    if(SubStore.couldBeParent(state)){
-      keys(state).forEach(key => target._removeChild(key));
+    if (SubStore.couldBeParent(state)) {
+      for (const key in state) {
+        target._removeChild(key);
+      }
     }
-    assign(target, { __substore_parent__: undefined, state: undefined, prevState: state, });
+    assign(target, { __substore_parent__: undefined, __substore_shape__: undefined, state: undefined, prevState: state, });
     delete this[k];
   }
 
   getChildrenRecursively() {
-    return this.getChildren()
-      .reduce(function (acc, child) {
-        return [ ...acc, child, ...child.getChildrenRecursively(), ];
-      }, []);
+    const onReduceChildren = function (acc, child) {
+      return [ ...acc, child, ...child.getChildrenRecursively(), ];
+    };
+    return this.getChildren().reduce(onReduceChildren, []);
   }
 
   getChildren() {
-    return SubStore.couldBeParent(this.state)
-      ? keys(this.state)
-      .map(k => this[k])
-      : [];
+    if (SubStore.couldBeParent(this.state)) {
+      const acc = [];
+      for (const key in this.state) {
+        acc.push(this[key]);
+      }
+      return acc;
+    }
+    return [];
   }
 
   _createSubStore(initialState, k, parent, depth) {
