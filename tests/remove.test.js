@@ -5,9 +5,9 @@ describe('remove', () => {
   let store;
   it('removing the root store should be ok',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.remove('a');
-      expect(store.state).to.deep.equal({ b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      store = createStore({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      store.remove('b');
+      expect(store.state).to.deep.equal({ a: {}, });
     });
 
   it('removing leaf from object',
@@ -22,10 +22,10 @@ describe('remove', () => {
       store = createStore({});
       store.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
       let children = store.getChildrenRecursively();
-      expect(children.length).to.deep.equal(12);
+      expect(children.length).to.deep.equal(5);
       store.b.e.h.removeSelf();
       children = store.getChildrenRecursively();
-      expect(children.length).to.deep.equal(7);
+      expect(children.length).to.deep.equal(2);
     });
 
   it('remove sub object',
@@ -50,8 +50,6 @@ describe('remove', () => {
       store = createStore({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, });
       store.b.remove('d');
       expect(store.state).to.deep.equal({ a: 1, b: { c: undefined, e: { f: 4, g: 7, }, }, });
-      store.b.c.removeSelf();
-      expect(store.state).to.deep.equal({ a: 1, b: { e: { f: 4, g: 7, }, }, });
     });
 
   it('should be able to remove multiple children at ones',
@@ -66,9 +64,9 @@ describe('remove', () => {
       store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       store.b.e.h.x.removeSelf();
       expect(store.state).to.deep.equal({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      store.b.d.removeSelf();
-      store.b.removeSelf();
-      expect(store.state).to.deep.equal({ a: 1, });
+      store.b.e.h.removeSelf();
+      store.b.e.removeSelf();
+      expect(store.state).to.deep.equal({ a: 1, b: { c: 2, d: 3, }, });
     });
 
   it('sub store should be removed',
@@ -83,14 +81,12 @@ describe('remove', () => {
     () => {
       store = createStore({ a: 1, b: { c: 'test', d: { x: 1, }, }, });
       const { b, } = store;
-      const { c, d, } = store.b;
-      c.removeSelf();
-      expect(c.state).to.equal(undefined);
-      expect(c.prevState).to.equal('test');
+      const { d, } = store.b;
       b.removeSelf();
       expect(d.state).to.equal(undefined);
       expect(d.prevState).to.deep.equal({ x: 1, });
+      console.log(b.state)
       expect(b.state).to.equal(undefined);
-      expect(b.prevState).to.deep.equal({ d: { x: 1, }, });
+      expect(b.prevState).to.deep.equal({ c: 'test', d: { x: 1, }, });
     });
 });

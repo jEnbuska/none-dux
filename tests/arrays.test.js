@@ -5,7 +5,7 @@ describe('arrays as state', () => {
   it('sub state should stay as array', () => {
     const store = createStore({ a: [ 1, 2, 3, ], });
     expect(store.state).to.deep.equal({ a: [ 1, 2, 3, ], });
-    expect(store.a[0].state).to.equal(1);
+    expect(store.a.state[0]).to.equal(1);
   });
 
   it('remove from array in arbitrary order', () => {
@@ -27,7 +27,7 @@ describe('arrays as state', () => {
     expect(store.state).to.deep.equal({ a: [ 1, 2, { b: 2, }, ], });
     store.setState({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
     expect(store.state).to.deep.equal({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
-    expect(store.a[1].test.state).to.equal('empty');
+    expect(store.a[1].state.test).to.equal('empty');
     store.setState({ a: [ 1, 2, [], ], });
     expect(store.state).to.deep.equal({ a: [ 1, 2, [], ], });
     expect(store.a.state).to.deep.equal([ 1, 2, [], ]);
@@ -44,12 +44,12 @@ describe('arrays as state', () => {
   });
 
   it('kill old references', () => {
-    const store = createStore([ 'abc', { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
-    expect(store.state).to.deep.equal([ 'abc', { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
+    const store = createStore([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
+    expect(store.state).to.deep.equal([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
     const fourth = store[3];
     store.setState([ 1, 2, [], ]);
     expect(store.state).to.deep.equal([ 1, 2, [], ]);
-    expect(fourth._parent).to.equal(undefined);
+    expect(fourth.__substore_parent__).to.equal(undefined);
     expect(store[3]).to.equal(undefined);
   });
 
@@ -82,7 +82,7 @@ describe('arrays as state', () => {
     store.remove(0, 2, 6);
     expect(store.state).to.deep.equal([ { b: 2, }, 3, 4, 5, ]);
     expect(store.state[0]).to.deep.equal({ b: 2, });
-    expect(store[1].state).to.deep.equal(3);
+    expect(store.state[1]).to.deep.equal(3);
     expect(store.state[2]).to.equal(4);
     expect(store.state[3]).to.equal(5);
   });
@@ -94,7 +94,7 @@ describe('arrays as state', () => {
     expect(store.state).to.deep.equal([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
     expect(third.state).to.equal(undefined);
     expect(third.prevState).to.deep.equal({ toBeRemoved: 2, });
-    expect(third._parent).to.equal(undefined);
+    expect(third.__substore_parent__).to.equal(undefined);
     expect(store.state[2]).to.equal(3);
     expect(store[3].state).to.deep.equal({ toBeKept: 4, });
   });

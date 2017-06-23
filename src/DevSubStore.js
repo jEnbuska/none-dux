@@ -58,6 +58,18 @@ export default class DevSubStore extends SubStore {
     if (deviation) {
       DevSubStore.onValidationError(deviation);
     }
+    const { state, __substore_shape__, } = target;
+    const { type, } = __substore_shape__[spec];
+    if ((type === object || type === array) && SubStore.couldBeParent(target.state)) {
+      const { [spec]: _, childData, } = { ...__substore_shape__, ...state, };
+      for (const key in childData) {
+        if (target[key]) {
+          if (spec) {
+            DevSubStore.checkSpecTypeDeviation(target[key])
+          }
+        }
+      }
+    }
     DevSubStore.ensureRequiredFields(target);
   }
 

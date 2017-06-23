@@ -40,7 +40,7 @@ describe('setState', () => {
   });
   it('undefined leaf to object', () => {
     store = createStore({ a: 1, b: 'hello', c: { d: undefined, }, });
-    store.c.d.setState({ x: { y: 13, }, });
+    store.c.setState({ d: { x: { y: 13, }, }, });
     expect(store.state).to.deep.equal({ a: 1, b: 'hello', c: { d: { x: { y: 13, }, }, }, });
   });
   it('null  leaf into object', () => {
@@ -48,7 +48,7 @@ describe('setState', () => {
     store.setState({ 1: 1, b: { c: 2, d: 3, e: null, }, });
     store.b.setState({ e: { x: 2, }, });
     expect(store.state).to.deep.equal({ 1: 1, b: { c: 2, d: 3, e: { x: 2, }, }, });
-    expect(store[1].state).to.deep.equal(1);
+    expect(store.state[1]).to.deep.equal(1);
   });
 
   it('undefined leaf to string', () => {

@@ -28,8 +28,8 @@ export default class SubStore {
     this.__substore_id__ = id;
     this.__substore_parent__ = parent;
     this.__substore_identity__ = [ ...parent.__substore_identity__, id, ];
-    if (SubStore.couldBeParent(initialValue)) {
-      for (const k in initialValue) {
+    for (const k in initialValue) {
+      if (SubStore.couldBeParent(initialValue[k])) {
         initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, shape).state;
       }
     }
@@ -61,10 +61,7 @@ export default class SubStore {
   }
 
   stillAttatched() {
-    if (this.__substore_parent__) {
-      return this.__substore_parent__.stillAttatched();
-    }
-    return false;
+    return !!this.__substore_parent__
   }
 
   setState(value) {
@@ -139,7 +136,7 @@ export default class SubStore {
     for (let i = 0; i<stateLength; i++) {
       const { length, } = nextState;
       if (!set[i]) {
-        if (i !== length) {
+        if (i !== length && this[i]) {
           const target = this[i];
           this[length] = target;
           delete this[i];
@@ -147,7 +144,7 @@ export default class SubStore {
           target.__substore_id__ = length;
         }
         nextState.push(state[i]);
-      } else {
+      } else if (SubStore.couldBeParent(state[i])) {
         this._removeChild(i);
       }
     }
@@ -157,13 +154,9 @@ export default class SubStore {
   _removeFromObjectState(keys) {
     const nextState = { ...this.state, };
     for (const k of keys) {
-      if (this[k] instanceof SubStore) {
-        delete nextState[k];
+      delete nextState[k];
+      if (this[k]) {
         this._removeChild(k);
-      } else {
-        console.error('Remove error:',
-          JSON.stringify(this.__substore_identity__),
-          `Has no such child as ${k} when state: ${JSON.stringify(this.state, null, 1)}`);
       }
     }
     return nextState;
@@ -175,9 +168,13 @@ export default class SubStore {
       const child = this[k];
       if (child) {
         if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
-          nextState[k] = child._reset(obj[k], prevState[k]).state;
+          if (SubStore.couldBeParent(obj[k])) {
+            nextState[k] = child._reset(obj[k], prevState[k]).state;
+          } else {
+            this._removeChild(k);
+          }
         }
-      } else {
+      } else if (SubStore.couldBeParent(obj[k])) {
         nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this.__substore_shape__).state;
       }
     }
@@ -192,26 +189,32 @@ export default class SubStore {
       if (SubStore.couldBeParent(prevState)) {
         const merge = { ...prevState, ...nextState, };
         for (const k in merge) {
-          if (this[k]) {
+          const child = this[k];
+          const next = nextState[k];
+          if (child) {
             if (nextState.hasOwnProperty(k)) {
-              if (nextState[k] !== prevState[k]) {
-                nextState[k] = this[k]._reset(nextState[k], prevState[k]).state;
+              if (next !== prevState[k] && SubStore.couldBeParent(next)) {
+                nextState[k] = child._reset(next, prevState[k]).state;
               }
             } else {
               this._removeChild(k);
             }
-          } else {
-            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
+          } else if (SubStore.couldBeParent(next)) {
+            nextState[k] = this._createSubStore(next, k, this, _depth + 1, __substore_shape__).state;
           }
         }
       } else {
         for (const k in nextState) {
-          nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
+          if (SubStore.couldBeParent(nextState[k])) {
+            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
+          }
         }
       }
     } else if (SubStore.couldBeParent(prevState)) {
       for (const k in prevState) {
-        this._removeChild(k);
+        if (SubStore.couldBeParent(prevState[k])) {
+          this._removeChild(k);
+        }
       }
     }
     this.state = nextState instanceof Array ? values(nextState) : nextState;
@@ -239,7 +242,9 @@ export default class SubStore {
     const { state, } = target;
     if (SubStore.couldBeParent(state)) {
       for (const key in state) {
-        target._removeChild(key);
+        if (target[key]) {
+          target._removeChild(key);
+        }
       }
     }
     assign(target, { __substore_parent__: undefined, __substore_shape__: undefined, state: undefined, prevState: state, });
@@ -254,14 +259,8 @@ export default class SubStore {
   }
 
   getChildren() {
-    if (SubStore.couldBeParent(this.state)) {
-      const acc = [];
-      for (const key in this.state) {
-        acc.push(this[key]);
-      }
-      return acc;
-    }
-    return [];
+    // refactor
+    return values(this).filter(v => v instanceof SubStore && v!==this.__substore_parent__);
   }
 
   _createSubStore(initialState, k, parent, depth) {

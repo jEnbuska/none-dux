@@ -9,9 +9,9 @@ describe('Single update', () => {
     root.subscribe(() => {
       updates++;
     });
-    root.e.singleUpdate(e => {
+    root.singleUpdate(({ e, }) => {
       e.setState({ a: 2, });
-      e.setState({ a: 1, b: 2, c: 3, });
+      e.setState({ a: 1, b: { x: 100, }, c: 3, });
       e.b.removeSelf();
     });
     expect(updates).to.equal(1);
@@ -21,7 +21,7 @@ describe('Single update', () => {
     root = createStore({ a: { b: { c: 2, d: {}, }, }, e: { a: 1, }, });
     const { state, } = root.e.singleUpdate((e => {
       e.remove('a');
-      e.setState({ a: 1, b: 2, c: 3, });
+      e.setState({ a: 1, b: { x: 100, }, c: 3, });
       e.b.removeSelf();
     }));
     expect(state).to.deep.equal({ a: 1, c: 3, });
