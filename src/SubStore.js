@@ -175,9 +175,7 @@ export default class SubStore {
       const child = this[k];
       if (child) {
         if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
-          const nisNode = SubStore.couldBeParent(nextState[k]);
-          const pIsNode= SubStore.couldBeParent(prevState[k]);
-          nextState[k] = child._reset(obj[k], prevState[k], nisNode, pIsNode).state;
+          nextState[k] = child._reset(obj[k], prevState[k]).state;
         }
       } else {
         nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this.__substore_shape__).state;
