@@ -30,7 +30,7 @@ describe('killSwitch', () => {
     });
   it('changing removed sub store should throw an exception',
     () => {
-      store = createStore({ a: 1, b: 2, c: { d: 3, }, });
+      store = createStore({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
       const { a, c, } = store;
       const { d, } = c;
       store.remove('a');
@@ -39,7 +39,7 @@ describe('killSwitch', () => {
     });
 
   it('changing excluded sub store should throw an exception', () => {
-    store = createStore({ a: 1, b: 2, c: { d: 3, }, });
+    store = createStore({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
     const { a, c, } = store;
     const { d, } = c;
     store.clearState({ b: 2, });

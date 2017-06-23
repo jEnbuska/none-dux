@@ -19,6 +19,6 @@ describe('Create store', () => {
   });
   it('should be able to reference children', () => {
     root = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, }, }, });
-    root.b.c;
+    root.b.e;
   })
 });
