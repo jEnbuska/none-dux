@@ -60,10 +60,9 @@ describe('setState', () => {
     });
   });
 
-  it('setState with a  primitive', () => {
+  it('setState with a  primitive should throw error', () => {
     store = createStore({ a: 1, b: { c: undefined, d: 3, e: { f: 4, }, }, });
-    store.b.setState(2);
-    expect(store.state).to.deep.equal({ a: 1, b: 2, });
+    expect(() => store.b.setState(2)).to.throw(Error);
   });
 
   it('immidiate string to empty object', () => {

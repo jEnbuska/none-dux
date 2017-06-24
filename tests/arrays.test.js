@@ -137,7 +137,7 @@ describe('arrays as state', () => {
     {
       const store = createStore({ content: [ 1, 2, { a: 3, }, ], });
       expect(store.state).to.deep.equal({ content: [ 1, 2, { a: 3, }, ], });
-      store.content.setState(null);
+      store.setState({ content: null, });
       expect(store.state.content).to.deep.equal(null);
     }
     {
@@ -147,17 +147,18 @@ describe('arrays as state', () => {
       expect(store.state.content).to.deep.equal(0);
     }
     {
-      const store = createStore([ 1, 2, { a: 3, }, ]);
-      expect(store.state).to.deep.equal([ 1, 2, { a: 3, }, ]);
-      store.setState(/test/);
-      expect(store.state.toString()).to.deep.equal('/test/');
+      const store = createStore({ content: [ 1, 2, { a: 3, }, ], });
+      expect(store.state).to.deep.equal({ content: [ 1, 2, { a: 3, }, ], });
+      store.setState({ content: /test/, });
+      expect(store.state.content.toString()).to.deep.equal('/test/');
     }
     {
-      const store = createStore([ 1, 2, { a: 3, }, ]);
+      const store = createStore({ content: [ 1, 2, { a: 3, }, ], });
+
+      expect(store.state).to.deep.equal({ content: [ 1, 2, { a: 3, }, ], });
       const symbol = Symbol('test');
-      expect(store.state).to.deep.equal([ 1, 2, { a: 3, }, ]);
-      store.setState(symbol);
-      expect(store.state).to.deep.equal(symbol);
+      store.setState({ content: symbol, });
+      expect(store.state.content).to.deep.equal(symbol);
     }
   });
 

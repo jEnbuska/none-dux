@@ -1,6 +1,11 @@
 import SubStore, { CLEAR_STATE, } from './SubStore';
 import DevSubStore from './DevSubStore';
-import { spec, object, } from './shape';
+import { spec, object, array, anyLeaf, isRequired, number, none, symbol, string, bool, regex, func, } from './shape';
+
+const { entries, assign, } = Object;
+const parentTypes = { object, array, };
+const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, };
+const types = { ...parentTypes, ...childTypes, none, };
 
 export default function createStore(initialState, shape) {
   return new StoreCreator(initialState, shape).subject;
@@ -15,8 +20,8 @@ export class StoreCreator {
     SubStore.__kill = () => StoreCreator.killSwitch();
     if (shape && process.env.NODE_ENV!=='production') {
       shape = {
-        [spec]: { type: object, },
-        ...shape,
+        [spec]: { types: [ object, ], isRequired, },
+        ...StoreCreator.reformatShape(shape),
       };
       const shapeErrors = StoreCreator.validateShape(shape);
       if (shapeErrors.length) {
@@ -46,8 +51,33 @@ export class StoreCreator {
 
   remove() {}
 
-  stillAttatched(){
+  stillAttatched() {
     return true;
+  }
+
+  static reformatShape(shape) {
+    return entries(shape).reduce((acc, [ key, value, ]) => {
+      const { isRequired, exclusive, } = value;
+      acc[key] = {};
+      if (isRequired) {
+        acc[key].isRequired = isRequired;
+      }
+      if (exclusive) {
+        acc[key].exclusive = exclusive;
+      }
+      if (key===spec) {
+        acc[spec].types = entries(value)
+          .filter(([ k, ]) => types[k])
+          .map(([ _, v, ]) => v); // remove name
+        if (acc[spec].types.length && !value.none && !isRequired) {
+          acc[spec].types.push(none);
+        }
+        assign((acc[key], { isRequired, exclusive, }));
+      } else if (value[spec] || value[spec]) {
+        acc[key] = StoreCreator.reformatShape(value);
+      }
+      return acc;
+    }, {});
   }
 
   static killSwitch = () => {
@@ -60,16 +90,23 @@ export class StoreCreator {
     if (!(shape instanceof Object)) {
       return [];
     }
+    const entryMap = entries(shape)
+      .filter(([ k, ]) => k!==spec);
     if (!shape[spec]) {
       errors.push({ identity, msg: 'missing property spec', });
-    } else if (!shape[spec].type) {
+    } else if (!shape[spec].types || !shape[spec].types.length) {
       errors.push({ identity, msg: 'missing spec type', });
+    } else {
+      const childTypeNames = shape[spec].types.filter(type => childTypes[type.name]).map(it => it.name);
+      if (entryMap.length && childTypeNames.length) {
+        errors.push({ identity, msg: ('Shape types '+JSON.stringify(childTypeNames)+', Cannot have child properties'), });
+      }
     }
-    Object.entries(shape)
-      .filter(([ k, ]) => k!==spec)
+    entryMap
       .forEach(([ k, v, ]) => {
         StoreCreator.validateShape(v, [ ...identity, k, ], errors);
       });
+
     return errors;
   }
 }

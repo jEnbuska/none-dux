@@ -24,7 +24,7 @@ export default class SubStore {
   constructor(initialValue, id, parent, depth, shape) {
     if (depth>SubStore._maxDepth) { SubStore.__kill(); }
     this.__substore_shape__= shape;
-    this._depth = depth;
+    this.__substore_depth__ = depth;
     this.__substore_id__ = id;
     this.__substore_parent__ = parent;
     this.__substore_identity__ = [ ...parent.__substore_identity__, id, ];
@@ -61,38 +61,48 @@ export default class SubStore {
   }
 
   stillAttatched() {
-    return !!this.__substore_parent__
+    return !!this.__substore_parent__;
   }
 
   setState(value) {
-    const { state: prevState, __substore_parent__, } = this;
-    if (value instanceof SubStore) {
-      throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
-    } else if (!__substore_parent__) {
-      throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
+    if (SubStore.couldBeParent(value)) {
+      const { state: prevState, __substore_parent__, } = this;
+      if (value instanceof SubStore) {
+        throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
+      } else if (!__substore_parent__) {
+        throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
+      }
+      if (!(value instanceof Array || prevState instanceof Array)) {
+        this._merge(value, prevState);
+      } else {
+        this._reset(value, prevState);
+      }
+      this.prevState = prevState;
+      SubStore.lastChange = { func: SET_STATE, target: this.__substore_identity__, param: value, };
+      __substore_parent__._notifyUp(this);
+      return this;
     }
-    if (SubStore.couldBeParent(value) && SubStore.couldBeParent(prevState) && !(value instanceof Array || prevState instanceof Array)) {
-      this._merge(value, prevState);
-    } else {
-      this._reset(value, prevState);
-    }
-    this.prevState = prevState;
-    SubStore.lastChange = { func: SET_STATE, target: this.__substore_identity__, param: value, };
-    __substore_parent__._notifyUp(this);
-    return this;
+    throw new Error(`${JSON.stringify(this.__substore_identity__)}. Expected setState parameter to be an Object or Array, but got ${value}.`);
   }
 
   clearState(value) {
-    if (!this.__substore_parent__) {
-      throw new Error('detached SubStore action: clearState', JSON.stringify(this.__substore_identity__));
-    } else if (value instanceof SubStore) {
-      throw new Error('SubStore does not take other SubStores as resetState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
+    if (SubStore.couldBeParent(value)) {
+      if (!this.__substore_parent__) {
+        throw new Error('detached SubStore action: clearState',
+          JSON.stringify(this.__substore_identity__));
+      } else if (value instanceof SubStore) {
+        throw new Error('SubStore does not take other SubStores as resetState parameters. Got:',
+          `${value}. Identity:`,
+          JSON.stringify(this.__substore_identity__));
+      }
+      const prevState = this.state;
+      this._reset(value,
+        prevState);
+      SubStore.lastChange = { func: CLEAR_STATE, target: this.__substore_identity__, param: value, };
+      this.__substore_parent__._notifyUp(this);
+      return this;
     }
-    const prevState = this.state;
-    this._reset(value, prevState);
-    SubStore.lastChange = { func: CLEAR_STATE, target: this.__substore_identity__, param: value, };
-    this.__substore_parent__._notifyUp(this);
-    return this;
+    throw new Error(`${JSON.stringify(this.__substore_identity__)}. Expected clearState parameter to be an Object or Array, but got ${value}.`);
   }
 
   remove(...keys) {
@@ -167,15 +177,16 @@ export default class SubStore {
     for (const k in nextState) {
       const child = this[k];
       if (child) {
-        if (obj.hasOwnProperty(k) && obj[k]!==prevState[k]) {
-          if (SubStore.couldBeParent(obj[k])) {
-            nextState[k] = child._reset(obj[k], prevState[k]).state;
+        const next = obj[k];
+        if (obj.hasOwnProperty(k) && next!==prevState[k]) {
+          if (SubStore.couldBeParent(next)) {
+            nextState[k] = child._reset(next, prevState[k]).state;
           } else {
             this._removeChild(k);
           }
         }
       } else if (SubStore.couldBeParent(obj[k])) {
-        nextState[k] = this._createSubStore(obj[k], k, this, this._depth + 1, this.__substore_shape__).state;
+        nextState[k] = this._createSubStore(obj[k], k, this, this.__substore_depth__ + 1, this.__substore_shape__).state;
       }
     }
     this.state = nextState;
@@ -184,37 +195,20 @@ export default class SubStore {
 
   _reset(nextState, prevState) {
     this.prevState = prevState;
-    if (SubStore.couldBeParent(nextState)) {
-      const { __substore_shape__, _depth, } = this;
-      if (SubStore.couldBeParent(prevState)) {
-        const merge = { ...prevState, ...nextState, };
-        for (const k in merge) {
-          const child = this[k];
-          const next = nextState[k];
-          if (child) {
-            if (nextState.hasOwnProperty(k)) {
-              if (next !== prevState[k] && SubStore.couldBeParent(next)) {
-                nextState[k] = child._reset(next, prevState[k]).state;
-              }
-            } else {
-              this._removeChild(k);
-            }
-          } else if (SubStore.couldBeParent(next)) {
-            nextState[k] = this._createSubStore(next, k, this, _depth + 1, __substore_shape__).state;
+    const merge = { ...prevState, ...nextState, };
+    for (const k in merge) {
+      const child = this[k];
+      const next = nextState[k];
+      if (child) {
+        if (nextState.hasOwnProperty(k)) {
+          if (next !== prevState[k] && SubStore.couldBeParent(next)) {
+            nextState[k] = child._reset(next, prevState[k]).state;
           }
-        }
-      } else {
-        for (const k in nextState) {
-          if (SubStore.couldBeParent(nextState[k])) {
-            nextState[k] = this._createSubStore(nextState[k], k, this, _depth + 1, __substore_shape__).state;
-          }
-        }
-      }
-    } else if (SubStore.couldBeParent(prevState)) {
-      for (const k in prevState) {
-        if (SubStore.couldBeParent(prevState[k])) {
+        } else {
           this._removeChild(k);
         }
+      } else if (SubStore.couldBeParent(next)) {
+        nextState[k] = this._createSubStore(next, k, this).state;
       }
     }
     this.state = nextState instanceof Array ? values(nextState) : nextState;
@@ -263,8 +257,9 @@ export default class SubStore {
     return values(this).filter(v => v instanceof SubStore && v!==this.__substore_parent__);
   }
 
-  _createSubStore(initialState, k, parent, depth) {
-    return this[k] = new SubStore(initialState, k, parent, depth);
+  _createSubStore(initialState, k, parent) {
+    this[k] = new SubStore(initialState, k, parent, this.__substore_depth__ + 1);
+    return this[k];
   }
 
   static __kill() { /* redefined by StoreCreator*/ }
