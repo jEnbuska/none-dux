@@ -20,6 +20,8 @@ Direction of the data flow is reversed compared to React.Component:
 
 When ever a child generates a new state, it's parent and grand parents... will generated to new state, upto until Provider gets notified.
 
+if you are using react-redux and redux thunk:
+
 imports
 ```
 import { Provider, connect, shapes, } from 'none-dux';
@@ -41,8 +43,8 @@ const { spec, any, array, object, number, string, exclusive, isRequired, bool, }
 
 const shape = {
   todosByUser: { [spec]:{ object, isRequired, }, 
-    [any]: { [spec]: { object},                   // byUserIds 
-        [any]: { [spec]: { object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
+    [anyKey]: { [spec]: { object},                   // byUserIds 
+        [anyKey]: { [spec]: { object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
           userId: {[spec]: { string, isRequired, }, },  // 'isRequired' console errors when userId is not spesified in todo object
           id: { [spec]: { string, isRequired}, },
           description: { [spec]: { string, isRequired, }, },
@@ -50,7 +52,7 @@ const shape = {
     },
   },
   users: { [spec]: { object, }, // by id
-     [any]: {
+     [anyKey]: {
       id: { [spec]: { string, }, },
       firstName: { [spec]: { string, },
       lastName: { [spec]: { string, },     
@@ -154,10 +156,6 @@ firstSubChild.removeSelf();
 
 parent.setState('no children'); // ends up removing child and secondSubChild
 ```
-
-
-
-
 
 ```
 Behavior of state can be misleading when using arrays because array state is not merged

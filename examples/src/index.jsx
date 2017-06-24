@@ -14,7 +14,7 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
+const { spec, anyKey, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 // If you specify invalid shape to provider, console errors will try to provided information to fix the problem
 // Note that shape is not used when NODE_ENV==='production '
@@ -23,7 +23,7 @@ const shape = {
   [spec]: { object, exclusive, },
   users: { [spec]: { object, isRequired, },
     pending: { [spec]: { bool, }, },
-    [any]: { [spec]: { object, exclusive, }, // users [any] means any key, in this case its userId uuid
+    [anyKey]: { [spec]: { object, exclusive, }, // users [anyKey] means any key, in this case its userId uuid
       id: { [spec]: { string, isRequired, }, },
       firstName: { [spec]: { string, isRequired, }, },
       lastName: { [spec]: { string, isRequired, }, },
@@ -36,8 +36,8 @@ const shape = {
   },
   todosByUser: { [spec]: { object, isRequired, },
     pending: { [spec]: { bool, }, },
-    [any]: { [spec]: { object, },
-      [any]: { [spec]: { object, exclusive, },
+    [anyKey]: { [spec]: { object, },
+      [anyKey]: { [spec]: { object, exclusive, },
         id: { [spec]: { string, isRequired, }, },
         userId: { [spec]: { string, isRequired, }, },
         description: { [spec]: { string, isRequired, }, },
