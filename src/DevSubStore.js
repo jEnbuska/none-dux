@@ -98,13 +98,13 @@ export default class DevSubStore extends SubStore {
     const type = typeof state;
     if (state instanceof Object) {
       if (type === 'function') {
-        return 'func';
+        return func.name;
       } else if (state instanceof Array) {
-        return 'array';
+        return array.name;
       } else if (state instanceof RegExp) {
-        return 'regex';
+        return regex.name;
       }
-      return 'object';
+      return object.name;
     }
     if (state === null) {
       return 'null';
