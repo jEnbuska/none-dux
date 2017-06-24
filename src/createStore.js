@@ -1,10 +1,10 @@
 import SubStore, { CLEAR_STATE, } from './SubStore';
 import DevSubStore from './DevSubStore';
-import { spec, object, array, anyLeaf, isRequired, number, none, symbol, string, bool, regex, func, } from './shape';
+import { spec, object, array, anyLeaf, isRequired, number, none, symbol, string, bool, regex, func, date, anyValue, } from './shape';
 
 const { entries, assign, } = Object;
 const parentTypes = { object, array, };
-const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, };
+const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, anyValue, date, };
 const types = { ...parentTypes, ...childTypes, none, };
 
 export default function createStore(initialState, shape) {

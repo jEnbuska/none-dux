@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { spec, bool, number, string, object, array, anyLeaf, anyKey, regex, symbol, func, } from './shape';
+import { spec, object, array, anyKey, regex, func, date, } from './shape';
 
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
@@ -103,6 +103,8 @@ export default class DevSubStore extends SubStore {
         return array.name;
       } else if (state instanceof RegExp) {
         return regex.name;
+      } else if (state instanceof Date) {
+        return date.name;
       }
       return object.name;
     }

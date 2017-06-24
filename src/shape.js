@@ -14,5 +14,6 @@ export const bool = { check: (val) => val===false || (val && getPrototypeOf(val)
 export const regex = { check: (val) => val && getPrototypeOf(val).constructor.name === 'RegExp', name: 'regex', };
 export const symbol = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Symbol', name: 'symbol', };
 export const func = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Function', name: 'func', };
-export const anyLeaf = { check: (val) => [ bool, number, bool, regex, func, string, symbol, ].some(({ check, }) => check(val)), name: 'anyLeaf', };
-export const anyValue = { check: () => true, name: 'anyValue', };
+export const date = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Date', name: 'date', };
+export const anyLeaf = { check: (val) => [ date, bool, number, regex, func, string, symbol, ].some(({ check, }) => check(val)), name: 'anyLeaf', };
+export const anyValue = { check: (val) => isRequired(val), name: 'anyValue', };
