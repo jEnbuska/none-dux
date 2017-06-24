@@ -25,7 +25,7 @@ export default class DevSubStore extends SubStore {
     } else {
       this[key] = new SubStore(initialState, key, parent, depth + 1, subShape);
       if (shape[spec].exclusive) {
-        DevSubStore.onExclusiveViolation({ key, target: this, shape, value: initialState, });
+        DevSubStore.onExclusiveViolation({ key, target: this, shape, value: this[key].state, });
       }
     }
     return this[key];
