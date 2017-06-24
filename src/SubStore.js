@@ -29,12 +29,18 @@ export default class SubStore {
     this.__substore_id__ = id;
     this.__substore_parent__ = parent;
     this.__substore_identity__ = [ ...parent.__substore_identity__, id, ];
-    for (const k in initialValue) {
-      if (SubStore.couldBeParent(initialValue[k])) {
-        initialValue[k] = this._createSubStore(initialValue[k], k, this, depth + 1, shape).state;
+    let initialState;
+    if (initialValue instanceof Array) {
+      initialState = [ ...initialValue, ];
+    } else {
+      initialState= { ...initialValue, };
+    }
+    for (const k in initialState) {
+      if (SubStore.couldBeParent(initialState[k])) {
+        initialState[k] = this._createSubStore(initialState[k], k, this, depth + 1, shape).state;
       }
     }
-    this.state = initialValue;
+    this.state = initialState;
   }
 
   singleUpdate(callBack) {
