@@ -1,6 +1,6 @@
 import { expect, } from 'chai';
 import createStore, { StoreCreator, } from '../src/createStore';
-import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, anyValue, } from '../src/shape';
+import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue,} from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
 
 let validationErrors;
@@ -543,4 +543,69 @@ describe('Validate shape', () => {
     expect(!(missingTypeStore instanceof DevSubStore)).to.be.ok;
   });
 
+  it('Valid anyValue', () => {
+    refreshLists();
+    createStore(
+      { a: emptyObj, b: emptyArr, c: null, d: undefined, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
+      {
+        a: { [spec]: { anyValue, }, },
+        b: { [spec]: { anyValue, }, },
+        c: { [spec]: { anyValue, }, },
+        d: { [spec]: { anyValue, }, },
+        e: { [spec]: { anyValue, }, },
+        f: { [spec]: { anyValue, }, },
+        g: { [spec]: { anyValue, }, },
+        h: { [spec]: { anyValue, }, },
+        i: { [spec]: { anyValue, }, },
+        j: { [spec]: { anyValue, }, },
+      });
+    expect(validationErrors.length).to.equal(0);
+
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+  });
+
+  it('required anyValue', () => {
+    refreshLists();
+    createStore(
+      { a: emptyObj, b: emptyArr, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
+      {
+        a: { [spec]: { anyValue, isRequired, }, },
+        b: { [spec]: { anyValue, isRequired, }, },
+        e: { [spec]: { anyValue, isRequired, }, },
+        f: { [spec]: { anyValue, isRequired, }, },
+        g: { [spec]: { anyValue, isRequired, }, },
+        h: { [spec]: { anyValue, isRequired, }, },
+        i: { [spec]: { anyValue, isRequired, }, },
+        j: { [spec]: { anyValue, isRequired, }, },
+      });
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+    createStore({ c: null, d: undefined, },
+      {
+        c: { [spec]: { anyValue, isRequired, }, },
+        d: { [spec]: { anyValue, isRequired, }, },
+      }
+    );
+    expect(validationErrors.length).to.equal(2);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+  });
+
+  it('valid date', () => {
+    refreshLists();
+    createStore(
+      { a: new Date(), },
+      {
+        a: { [spec]: { date, isRequired, }, },
+      });
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+  });
 });
