@@ -1,6 +1,6 @@
 import { expect, } from 'chai';
 import createStore, { StoreCreator, } from '../src/createStore';
-import { any, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, } from '../src/shape';
+import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, anyValue, } from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
 
 let validationErrors;
@@ -35,7 +35,7 @@ describe('Validate shape', () => {
     const reformatted = StoreCreator.reformatShape({
       [spec]: { object, isRequired, },
       a: { [spec]: { array, isRequired, exclusive, },
-        [any]: { [spec]: { object, },
+        [anyKey]: { [spec]: { object, },
           b: { [spec]: { number, }, },
           c: { [spec]: { string, isRequired, }, },
         },
@@ -45,7 +45,7 @@ describe('Validate shape', () => {
     expect(reformatted).to.deep.equal(
       { [spec]: { types: [ object, ], isRequired, },
         a: { [spec]: { types: [ array, ], isRequired, exclusive, },
-          [any]: { [spec]: { types: [ object, none, ], },
+          [anyKey]: { [spec]: { types: [ object, none, ], },
             b: { [spec]: { types: [ number, none, ], }, },
             c: { [spec]: { types: [ string, ], isRequired, }, },
           },
@@ -62,7 +62,7 @@ describe('Validate shape', () => {
       {
         arr1: { [spec]: { array, }, },
         arr2: { [spec]: { array, },
-          [any]: { [spec]: { array, }, },
+          [anyKey]: { [spec]: { array, }, },
         },
       });
     expect(validationErrors.length).to.deep.equal(0);
@@ -405,7 +405,7 @@ describe('Validate shape', () => {
     createStore(
       { a: 123, 1: 'abc', gdsabafda: false, },
       {
-        [any]: { [spec]: { anyLeaf, }, },
+        [anyKey]: { [spec]: { anyLeaf, }, },
       });
     expect(validationErrors.length).to.equal(0);
     expect(requiredFieldsErrors.length).to.equal(0);
@@ -418,7 +418,7 @@ describe('Validate shape', () => {
     createStore(
       { a: 123, },
       {
-        [any]: { [spec]: { anyLeaf, }, },
+        [anyKey]: { [spec]: { anyLeaf, }, },
         b: { [spec]: { number, isRequired, }, },
         c: { [spec]: { object, isRequired, }, },
       });
@@ -542,4 +542,5 @@ describe('Validate shape', () => {
       });
     expect(!(missingTypeStore instanceof DevSubStore)).to.be.ok;
   });
+
 });

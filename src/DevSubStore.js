@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { spec, bool, number, string, object, array, anyLeaf, any, regex, symbol, func, } from './shape';
+import { spec, bool, number, string, object, array, anyLeaf, anyKey, regex, symbol, func, } from './shape';
 
 const { entries, } = Object;
 export default class DevSubStore extends SubStore {
@@ -19,7 +19,7 @@ export default class DevSubStore extends SubStore {
 
   _createSubStore(initialState, key, parent) {
     const { __substore_depth__: depth, __substore_shape__: shape = {}, } = this;
-    const subShape = shape[key] || shape[any];
+    const subShape = shape[key] || shape[anyKey];
     if (subShape) {
       this[key] = new DevSubStore(initialState, key, parent, depth + 1, subShape);
     } else {
@@ -116,7 +116,7 @@ export default class DevSubStore extends SubStore {
 
   static ensureRequiredFields(target) {
     const { __substore_shape__, __substore_identity__: identity, state, } = target;
-    const { [spec]: ignore, [any]: ignore2, ...rest } = __substore_shape__;
+    const { [spec]: ignore, [anyKey]: ignore2, ...rest } = __substore_shape__;
     const missingRequiredFields = entries(rest)
       .filter(([ _, v, ]) => v[spec].isRequired)
       .filter(([ k, ]) => !state.hasOwnProperty(k))

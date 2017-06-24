@@ -1,7 +1,7 @@
 const { getPrototypeOf, keys, } = Object;
 
 export const spec = '__substore_spec__';
-export const any = '__substore_target_any__'; // any object key like uuid or array index. Can not be isRequired
+export const anyKey = '__substore_target_any__'; // any object key like uuid or array index. Can not be isRequired
 
 export const object = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Object', name: 'object', };
 export const array = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Array', name: 'array', };
@@ -15,3 +15,4 @@ export const regex = { check: (val) => val && getPrototypeOf(val).constructor.na
 export const symbol = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Symbol', name: 'symbol', };
 export const func = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Function', name: 'func', };
 export const anyLeaf = { check: (val) => [ bool, number, bool, regex, func, string, symbol, ].some(({ check, }) => check(val)), name: 'anyLeaf', };
+export const anyValue = { check: () => true, name: 'anyValue', };
