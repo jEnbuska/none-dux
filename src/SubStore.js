@@ -9,6 +9,7 @@ const leafs= {
   String: true,
   RegExp: true,
   Boolean: true,
+  Function: true,
 };
 
 export default class SubStore {
