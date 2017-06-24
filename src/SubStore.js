@@ -4,14 +4,6 @@ export const REMOVE = 'REMOVE';
 
 const { getPrototypeOf, assign, values, keys, } = Object;
 
-const leafs= {
-  Number: true,
-  String: true,
-  RegExp: true,
-  Boolean: true,
-  Function: true,
-};
-
 export default class SubStore {
 
   static lastChange;
@@ -21,6 +13,14 @@ export default class SubStore {
   state;
   prevState = {};
   __substore_parent__;
+  static invalidSubStores = {
+    Number: true,
+    String: true,
+    RegExp: true,
+    Boolean: true,
+    Function: true,
+    Date: true,
+  };
 
   constructor(initialValue, id, parent, depth, shape) {
     if (depth>SubStore._maxDepth) { SubStore.__kill(); }
@@ -272,6 +272,6 @@ export default class SubStore {
   static __kill() { /* redefined by StoreCreator*/ }
 
   static couldBeParent(value) {
-    return value && value instanceof Object && !leafs[getPrototypeOf(value).constructor.name];
+    return value && value instanceof Object && !SubStore.invalidSubStores[getPrototypeOf(value).constructor.name];
   }
 }
