@@ -14,7 +14,7 @@ All changes are immutable.
 
 Shape of the state can be extended and modified at anytime.  
 
-All part of the state is it's own sub-store
+All regular Object and Arrays of the state is it's own sub-store
 
 Direction of the data flow is reversed compared to React.Component: 
 
@@ -40,23 +40,23 @@ during development, when shape breaks specification.
 const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 const shape = {
-  todosByUser: { [spec]:{ type: object, isRequired, }, 
-    [any]: { [spec]: { type: object},                   // byUserIds 
-        [any]: { [spec]: { type: object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
-          userId: {[spec]: { type: string, isRequired, }, },  // 'isRequired' console errors when userId is not spesified in todo object
-          id: { [spec]: { type: string, isRequired}, },
-          description: { [spec]: { type: string, isRequired, }, },
-          done: { [spec]: { type: bool, }, },
+  todosByUser: { [spec]:{ object, isRequired, }, 
+    [any]: { [spec]: { object},                   // byUserIds 
+        [any]: { [spec]: { object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
+          userId: {[spec]: { string, isRequired, }, },  // 'isRequired' console errors when userId is not spesified in todo object
+          id: { [spec]: { string, isRequired}, },
+          description: { [spec]: { string, isRequired, }, },
+          done: { [spec]: { bool, }, },
     },
   },
-  users: { [spec]: { type: object, }, // by id
+  users: { [spec]: { object, }, // by id
      [any]: {
-      id: { [spec]: {type: string, }, },
-      firstName: { [spec]: { type: string, },
-      lastName: { [spec]: {type: string, },     
+      id: { [spec]: { string, }, },
+      firstName: { [spec]: { string, },
+      lastName: { [spec]: { string, },     
     },
   },
-  request: {[spec]: {type: object, isRequired}}
+  request: {[spec]: { object, isRequired}}
 };
 
 /*
