@@ -69,12 +69,10 @@ export function fetchUsers() {
       users.setState({ pending: true, });
       todosByUser.setState({ pending: true, });
       setTimeout(() => {
-        console.log(localStorage.getItem('users'));
         const userData = JSON.parse(localStorage.getItem('users')) || {};
         users.clearState({ ...userData, pending: false, });
         const todoData = JSON.parse(localStorage.getItem('todosByUser')) || {};
         todosByUser.setState({ ...todoData, pending: false, });
-        console.log({ userData, todosByUser, });
         resolve();
       }, 800);
     });

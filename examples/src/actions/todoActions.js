@@ -33,7 +33,6 @@ export function removeTodo(id, userId) {
     todo.setState({ pending: true, });
     return new Promise(res => setTimeout(() => {
       todo.removeSelf();
-      console.log(todosByUser.state)
       localStorage.setItem('todosByUser', JSON.stringify(todosByUser.state));
       res();
     }, 800));
