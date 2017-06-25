@@ -80,7 +80,6 @@ describe('immutability', () => {
     expect(() => initialState.b.c='').to.throw(Error);
     expect(() => initialState.b='').to.throw(Error);
     expect(() => initialState.a='').to.throw(Error);
-    console.log(JSON.stringify(initialState, null, 1));
     const store = createStore(initialState);
     const nextState = { a: 2, b: { c: { x: 1, }, d: 1, }, e: 3, };
     Object.defineProperty(nextState, 'a', {
