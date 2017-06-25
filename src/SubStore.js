@@ -180,23 +180,26 @@ export default class SubStore {
   }
 
   _merge(obj, prevState) {
-    const nextState = { ...prevState, ...obj, };
-    for (const k in nextState) {
+    const nextState = {};
+    for (const k in obj) {
       const child = this[k];
+      const next = obj[k];
       if (child) {
-        const next = obj[k];
-        if (obj.hasOwnProperty(k) && next!==prevState[k]) {
+        if (next!==prevState[k]) {
           if (SubStore.couldBeParent(next)) {
             nextState[k] = child._reset(next, prevState[k]).state;
-          } else {
+          } else if (this[k]) {
             this._removeChild(k);
+            nextState[k] = next;
           }
         }
-      } else if (SubStore.couldBeParent(obj[k])) {
-        nextState[k] = this._createSubStore(obj[k], k, this, this.__substore_depth__ + 1, this.__substore_shape__).state;
+      } else if (SubStore.couldBeParent(next)) {
+        nextState[k] = this._createSubStore(next, k, this, this.__substore_depth__ + 1, this.__substore_shape__).state;
+      }else{
+        nextState[k] = next;
       }
     }
-    this.state = nextState;
+    this.state = { ...prevState, ...nextState, };
     return this;
   }
 
