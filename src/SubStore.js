@@ -188,7 +188,7 @@ export default class SubStore {
         if (next!==prevState[k]) {
           if (SubStore.couldBeParent(next)) {
             nextState[k] = child._reset(next, prevState[k]).state;
-          } else if (this[k]) {
+          } else {
             this._removeChild(k);
             nextState[k] = next;
           }
