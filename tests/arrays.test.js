@@ -173,10 +173,12 @@ describe('arrays as state', () => {
     // This is unintuitive. Creating new stores every time store gets changed brings it's own challenges
   });
 
-  it('change identity when moved', () => {
+  it('prevState of SubStore remains the SubNodes own prevState when an index before gets removed', () => {
     const store = createStore([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+    store[2].setState({ c: 4, });
     store.remove(1);
-    expect(store[1].getIdentity()).to.deep.equal([ 'root', 1, ]);
+    expect(store[1].state).to.deep.equal({ c: 4, });
+    expect(store[1].prevState).to.deep.equal({ c: 3, });
     // This is unintuitive. Creating new stores every time store gets changed brings it's own challenges
   });
 });
