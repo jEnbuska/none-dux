@@ -200,25 +200,33 @@ export default class SubStore {
     return this;
   }
 
-  _reset(nextState, prevState) {
+  _reset(value, prevState) {
     this.prevState = prevState;
-    const merge = { ...prevState, ...nextState, };
+    const merge = { ...prevState, ...value, };
+    const nextState = {};
     for (const k in merge) {
       const child = this[k];
-      const next = nextState[k];
+      const next = value[k];
       if (child) {
-        if (nextState.hasOwnProperty(k)) {
-          if (next !== prevState[k] && SubStore.couldBeParent(next)) {
-            nextState[k] = child._reset(next, prevState[k]).state;
+        if (value.hasOwnProperty(k)) {
+          if (next !== prevState[k]) {
+            if (SubStore.couldBeParent(next)) {
+              nextState[k] = child._reset(next, prevState[k]).state;
+            } else {
+              this._removeChild(k);
+              nextState[k] = next;
+            }
           }
         } else {
           this._removeChild(k);
         }
       } else if (SubStore.couldBeParent(next)) {
         nextState[k] = this._createSubStore(next, k, this).state;
+      } else if (value.hasOwnProperty(k)) {
+        nextState[k] = next;
       }
     }
-    this.state = nextState instanceof Array ? values(nextState) : nextState;
+    this.state = value instanceof Array ? values(nextState) : nextState;
     return this;
   }
 
