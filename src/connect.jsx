@@ -36,7 +36,7 @@ const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps)
 
     componentWillMount() {
       const { props, context: { store, subscribe, }, } = this;
-      this.mapDispatchToProps = mapDispatchToProps ? mapDispatchToProps
+      this.mapDispatchToProps = mapDispatchToProps ? entries(mapDispatchToProps)
         .reduce(function (acc, [ key, value, ]) {
           acc[key] = (...params) => value(...params)(store);
           return acc;
