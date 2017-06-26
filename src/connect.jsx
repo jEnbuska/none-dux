@@ -14,15 +14,13 @@ function some(arr, predicate) {
 }
 
 const emptyMapStateToProps = () => ({});
-const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
+const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps) => {
   let mapStateToProps;
-  let mapDispatchToProps;
   if (param1!==emptyMapStateToProps && !(param1 instanceof Function)) {
     mapStateToProps = emptyMapStateToProps;
-    mapDispatchToProps = entries(param1);
+    mapDispatchToProps = param1;
   } else {
     mapStateToProps = param1;
-    mapDispatchToProps = entries(param2);
   }
   return class Connect extends React.Component {
 
@@ -38,8 +36,12 @@ const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
 
     componentWillMount() {
       const { props, context: { store, subscribe, }, } = this;
-      this.resetMapDispatchToProps(props);
-      const initialState = mapStateToProps(store.state, this.props);
+      this.mapDispatchToProps = mapDispatchToProps ? mapDispatchToProps
+        .reduce(function (acc, [ key, value, ]) {
+          acc[key] = (...params) => value(...params)(store);
+          return acc;
+        }, {}) : {};
+      const initialState = mapStateToProps(store.state, props);
       this.setState(initialState);
       this.lastChange = SubStore.lastChange;
       this.subscription = subscribe(() => {
@@ -76,15 +78,6 @@ const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
         this.setState(nextState);
         this.shouldUpdate = true;
       }
-    }
-
-    resetMapDispatchToProps(props) {
-      const { store, } = this.context;
-      this.mapDispatchToProps = mapDispatchToProps
-        .reduce(function (acc, [ key, value, ]) {
-          acc[key] = (...params) => value(...params)(store, props);
-          return acc;
-        }, {});
     }
 
     shouldComponentUpdate() {
