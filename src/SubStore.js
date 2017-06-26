@@ -96,8 +96,9 @@ export default class SubStore {
   }
 
   clearState(value) {
+    const { __substore_parent__, } = this;
     if (SubStore.couldBeParent(value)) {
-      if (!this.__substore_parent__) {
+      if (!__substore_parent__) {
         throw new Error('detached SubStore action: clearState',
           JSON.stringify(this.__substore_identity__));
       } else if (value instanceof SubStore) {
@@ -108,7 +109,7 @@ export default class SubStore {
       const prevState = this.state;
       SubStore.lastChange = { func: CLEAR_STATE, target: this.__substore_identity__, param: value, };
       this._reset(value, prevState);
-      this.__substore_parent__._notifyUp(this);
+      __substore_parent__._notifyUp(this);
       return this;
     }
     throw new Error(`${JSON.stringify(this.__substore_identity__)}. Expected clearState parameter to be an Object or Array, but got ${value}.`);
@@ -198,7 +199,7 @@ export default class SubStore {
         }
       } else if (SubStore.couldBeParent(next)) {
         nextState[k] = this._createSubStore(next, k, this, this.__substore_depth__ + 1, this.__substore_shape__).state;
-      }else{
+      } else {
         nextState[k] = next;
       }
     }
@@ -222,6 +223,8 @@ export default class SubStore {
               this._removeChild(k);
               nextState[k] = next;
             }
+          } else {
+            nextState[k] = next;
           }
         } else {
           this._removeChild(k);
