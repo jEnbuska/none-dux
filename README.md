@@ -204,7 +204,9 @@ import {Provider} from 'react-redux'
 if you have a big static data that will only be added, removed or replaced, for performance reasons you can skip creating unnecessary SubStore like so:
 ```
 import { createLeaf } from 'none-dux'
+
 ...
+
 function fetchCustomerData(){
   function({statistics}){
     fetchUserData()
