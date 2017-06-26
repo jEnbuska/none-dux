@@ -61,6 +61,9 @@ const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
         if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
           this.setState(nextState);
           this.shouldUpdate = true;
+        } else if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
+          this.setState(nextState);
+          this.shouldUpdate = true;
         }
       } else if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
         const nextState = mapStateToProps(store.state, nextProps);
