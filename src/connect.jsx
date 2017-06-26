@@ -1,35 +1,47 @@
 import React from 'react';
 import { object, func, } from 'prop-types';
+import SubStore from './SubStore';
 
 const { entries, keys, } = Object;
 
-const connector = (Component, mapStateToProps = store => store.state, mapDispatchToProps = {}) =>
-  class Connect extends React.Component {
+const emptyMapStateToProps = () => ({});
+const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
+  let mapStateToProps;
+  let mapDispatchToProps;
+  if (param1!==emptyMapStateToProps && !(param1 instanceof Function)) {
+    mapStateToProps = emptyMapStateToProps;
+    mapDispatchToProps = entries(param1);
+  } else {
+    mapStateToProps = param1;
+    mapDispatchToProps = entries(param2);
+  }
+  return class Connect extends React.Component {
 
     static contextTypes = {
       store: object,
       subscribe: func,
     };
 
+    displayName = `Connect.${Component.name}`;
     state = {};
+    lastChange = 0;
     shouldUpdate = false;
 
     componentWillMount() {
       const { props, context: { store, subscribe, }, } = this;
-      this.mapDispatchToProps = entries(mapDispatchToProps)
-        .reduce(function (acc, [ key, value, ]) {
-          acc[key] = (...params) => value(...params)(store, props);
-          return acc;
-        }, {});
+      this.resetMapDispatchToProps(props);
       const initialState = mapStateToProps(store.state, this.props);
       this.setState(initialState);
-
-      this.subscription = subscribe((store) => {
-        const nextState = mapStateToProps(store.state, this.props);
-        const { state, } = this;
-        if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
-          this.shouldUpdate = true;
-          this.setState(nextState);
+      this.lastChange = SubStore.lastChange;
+      this.subscription = subscribe(() => {
+        if (this.lastChange!==SubStore.lastChange) {
+          this.lastChange = SubStore.lastChange;
+          const nextState = mapStateToProps(store.state, this.props);
+          const { state, } = this;
+          if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
+            this.setState(nextState);
+            this.shouldUpdate = true;
+          }
         }
       });
     }
@@ -42,22 +54,33 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
     }
 
     componentWillReceiveProps(nextProps) {
-      const { props, context: { store, }, } = this;
-      if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
-        this.mapDispatchToProps = entries(mapDispatchToProps)
-          .reduce(function (acc, [ key, value, ]) {
-            acc[key] = (...params) => value(...params)(store, nextProps);
-            return acc;
-          }, {});
+      const { props, context: { store, }, lastChange, state, } = this;
+      if (SubStore.lastChange!==lastChange) {
+        this.lastChange = SubStore.lastChange;
         const nextState = mapStateToProps(store.state, nextProps);
-        this.shouldUpdate = true;
+        if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
+          this.setState(nextState);
+          this.shouldUpdate = true;
+        }
+      } else if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
+        const nextState = mapStateToProps(store.state, nextProps);
         this.setState(nextState);
+        this.shouldUpdate = true;
       }
+    }
+
+    resetMapDispatchToProps(props) {
+      const { store, } = this.context;
+      this.mapDispatchToProps = mapDispatchToProps
+        .reduce(function (acc, [ key, value, ]) {
+          acc[key] = (...params) => value(...params)(store, props);
+          return acc;
+        }, {});
     }
 
     shouldComponentUpdate() {
       if (this.shouldUpdate) {
-        this.shouldUpdate = false;
+        this.shouldUpdate=false;
         return true;
       }
       return false;
@@ -67,6 +90,7 @@ const connector = (Component, mapStateToProps = store => store.state, mapDispatc
       this.subscription();
     }
   };
+};
 
 export default (mapStateToProps, mapDispatchToProps) =>
   (target) => connector(target, mapStateToProps, mapDispatchToProps);

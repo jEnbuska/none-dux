@@ -9,12 +9,12 @@ import Users from './containers/Users.jsx';
 import App from './components/App';
 
 const initialState= {
-  users: {},
-  todosByUser: {},
+  users: { content: {}, status: {}, },
+  todosByUser: { content: {}, status: {}, },
   selections: { user: {}, },
 };
 
-const { spec, anyKey, array, object, number, string, exclusive, isRequired, bool, } = shapes;
+const { spec, anyKey, anyValue, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 // If you specify invalid shape to provider, console errors will try to provided information to fix the problem
 // Note that shape is not used when NODE_ENV==='production '
@@ -22,27 +22,43 @@ const { spec, anyKey, array, object, number, string, exclusive, isRequired, bool
 const shape = {
   [spec]: { object, exclusive, },
   users: { [spec]: { object, isRequired, },
-    pending: { [spec]: { bool, }, },
-    [anyKey]: { [spec]: { object, exclusive, }, // users [anyKey] means any key, in this case its userId uuid
-      id: { [spec]: { string, isRequired, }, },
-      firstName: { [spec]: { string, isRequired, }, },
-      lastName: { [spec]: { string, isRequired, }, },
-      email: { [spec]: { string, }, },
-      phone: { [spec]: { string, isRequired, }, },
-      age: { [spec]: { number, }, },
-      single: { [spec]: { bool, }, },
+    status: { [spec]: { object, isRequired, },
       pending: { [spec]: { bool, }, },
+      error: { [spec]: { anyValue, }, },
     },
-  },
-  todosByUser: { [spec]: { object, isRequired, },
-    pending: { [spec]: { bool, }, },
-    [anyKey]: { [spec]: { object, },
-      [anyKey]: { [spec]: { object, exclusive, },
+    content: { [spec]: { object, isRequired, },
+      [anyKey]: { [spec]: { object, exclusive, }, // users [anyKey] means any key, in this case its userId uuid
         id: { [spec]: { string, isRequired, }, },
-        userId: { [spec]: { string, isRequired, }, },
-        description: { [spec]: { string, isRequired, }, },
-        done: { [spec]: { bool, }, },
+        firstName: { [spec]: { string, isRequired, }, },
+        lastName: { [spec]: { string, isRequired, }, },
+        email: { [spec]: { string, }, },
+        phone: { [spec]: { string, isRequired, }, },
+        age: { [spec]: { number, }, },
+        single: { [spec]: { bool, }, },
         pending: { [spec]: { bool, }, },
+      },
+    },
+
+  },
+  todosByUser: {
+    [spec]: { object, isRequired, exclusive, },
+    status: {
+      [spec]: { object, isRequired, exclusive, },
+      pending: { [spec]: { bool, }, },
+      error: { [spec]: { anyValue, }, },
+    },
+    content: {
+      [spec]: { object, isRequired, },
+      [anyKey]: {
+        [spec]: { object, },
+        [anyKey]: {
+          [spec]: { object, exclusive, },
+          id: { [spec]: { string, isRequired, }, },
+          userId: { [spec]: { string, isRequired, }, },
+          description: { [spec]: { string, isRequired, }, },
+          done: { [spec]: { bool, }, },
+          pending: { [spec]: { bool, }, },
+        },
       },
     },
   },

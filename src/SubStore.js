@@ -81,13 +81,14 @@ export default class SubStore {
       } else if (!__substore_parent__) {
         throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
       }
+      SubStore.lastChange = { func: SET_STATE, target: this.__substore_identity__, param: value, };
       if (!(value instanceof Array || prevState instanceof Array)) {
         this._merge(value, prevState);
       } else {
         this._reset(value, prevState);
       }
       this.prevState = prevState;
-      SubStore.lastChange = { func: SET_STATE, target: this.__substore_identity__, param: value, };
+
       __substore_parent__._notifyUp(this);
       return this;
     }
@@ -105,9 +106,8 @@ export default class SubStore {
           JSON.stringify(this.__substore_identity__));
       }
       const prevState = this.state;
-      this._reset(value,
-        prevState);
       SubStore.lastChange = { func: CLEAR_STATE, target: this.__substore_identity__, param: value, };
+      this._reset(value, prevState);
       this.__substore_parent__._notifyUp(this);
       return this;
     }
@@ -118,6 +118,7 @@ export default class SubStore {
     if (!this.__substore_parent__) {
       throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
     }
+    SubStore.lastChange = { func: REMOVE, target: this.__substore_identity__, param: keys, };
     this._remove(keys);
     return this;
   }

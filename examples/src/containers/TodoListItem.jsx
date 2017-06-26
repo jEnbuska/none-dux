@@ -18,4 +18,4 @@ TodoListItem.propTypes = {
   todo: object.isRequired,
 };
 
-export default connect(undefined, { removeTodo, toggleTodo, })(TodoListItem);
+export default connect({ removeTodo, toggleTodo, })(TodoListItem);

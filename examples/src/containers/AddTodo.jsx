@@ -6,7 +6,7 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import { addTodo, } from '../actions/todoActions';
 
-@connect(undefined, { addTodo, })
+@connect({ addTodo, })
 export default class AddTodo extends React.Component {
 
   static propTypes = {

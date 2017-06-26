@@ -3,13 +3,13 @@ import { connect, } from '../../../src';
 import AddTodo from './AddTodo';
 import TodoList from './TodosList';
 
-@connect(({ todosByUser, }) => ({ pending: todosByUser.pending, }))
+@connect(({ todosByUser, }) => ({ status: todosByUser, }))
 export default class Todos extends React.Component {
 
   render() {
-    const { userId, pending, } = this.props;
+    const { userId, status, } = this.props;
     return (
-      <div className={pending ? 'disabled-view' : ''}>
+      <div className={status.pending ? 'disabled-view' : ''}>
         <AddTodo userId={userId} />
         <TodoList userId={userId} />
       </div>

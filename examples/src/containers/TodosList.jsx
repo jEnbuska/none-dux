@@ -2,7 +2,7 @@ import React from 'react';
 import { connect, } from '../../../src';
 import TodoListItem from './TodoListItem';
 
-const TodosList = ({ todos, pending, }) => (<div className={pending ? 'disabled-view' : ''}>
+const TodosList = ({ todos, status, }) => (<div className={status.pending ? 'disabled-view' : ''}>
   {Object.entries(todos).map(([ k, v, ]) => (
     <TodoListItem
       key={k}
@@ -10,9 +10,9 @@ const TodosList = ({ todos, pending, }) => (<div className={pending ? 'disabled-
     ))}</div>);
 
 export default connect(({ todosByUser, }, { userId, }) => {
-  if (todosByUser[userId]) {
-    const { pending, ...todos } = todosByUser[userId];
-    return { todos, pending, };
+  const { content, status, } = todosByUser;
+  if (content[userId]) {
+    return { todos: content[userId], status, };
   }
-  return {};
+  return { todos: {}, status, };
 })(TodosList);

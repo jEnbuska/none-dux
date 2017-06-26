@@ -7,16 +7,16 @@ import { removeUser, } from '../actions/userActions';
 
 const { values, } = Object;
 
-@connect(({ users, }) => ({ users, }), { removeUser, })
+@connect(({ users, }) => ({ ...users, }), { removeUser, })
 export default class BrowseUsers extends React.Component {
 
   render() {
-    const { users: { pending, ...rest }, removeUser, } = this.props;
+    const { content, status, removeUser, } = this.props;
     return (
-      <div className={pending ? 'disabled-view': ''}>
+      <div className={status.pending ? 'disabled-view': ''}>
         <AddUser />
         <div>
-          {values(rest).map(user => (
+          {values(content).map(user => (
             <UserListItem key={user.id} {...user} onSelectUser={this.onSelectUser} onRemoveUser={removeUser} />
       ))}
         </div>

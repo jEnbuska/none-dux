@@ -20,26 +20,7 @@ export default class Provider extends React.Component {
     subscribe: func,
   };
 
-  subscriptionCount=0;
-  subscribERS={};
-
-  componentWillMount() {
-    const { props, subscribERS, } = this;
-    const { initialState, shape, onChange, } = props;
-    const store = createStore({ ...initialState, }, shape);
-    this.subsriptION = store.subscribe(function (store) {
-      for (const key in this) {
-        this[key](store, SubStore.lastChange);
-      }
-    }.bind(subscribERS, store));
-    if (onChange) {
-      store.subscribe(function (onChange) {
-        onChange(this, SubStore.lastChange);
-      }.bind(store, onChange));
-    }
-    useReduxDevtools(store);
-    this.store = store;
-  }
+  store;
 
   getChildContext() {
     const { store, subscribe, } = this;
@@ -47,6 +28,23 @@ export default class Provider extends React.Component {
       store,
       subscribe,
     };
+  }
+
+  subscriptionCount=0;
+  subscribERS={};
+  state = { changes: null, }
+
+  componentWillMount() {
+    const { props, } = this;
+    const { initialState, shape, } = props;
+    const store = createStore({ ...initialState, }, shape);
+    useReduxDevtools(store);
+    this.setState({changes: SubStore.lastChange})
+    this.store = store;
+  }
+
+  render() {
+    return <span>{this.props.children}</span>;
   }
 
   subscribe = (callback) => {
@@ -58,8 +56,25 @@ export default class Provider extends React.Component {
     }.bind(subscribERS, subscriptionCount);
   };
 
-  render() {
-    return <span>{this.props.children}</span>;
+  componentDidMount() {
+    const { props, store, } = this;
+    const { onChange, } = props;
+    if (onChange) {
+      store.subscribe(function (onChange) {
+        onChange(this, SubStore.lastChange);
+      }.bind(store, onChange));
+    }
+
+    this.subsriptION = store.subscribe(() => {
+      this.setState({ changes: SubStore.lastChange, })
+    });
+  }
+
+  componentDidUpdate() {
+    const { subscribERS, } = this;
+    for (const key in subscribERS) {
+      subscribERS[key]();
+    }
   }
 
   componentWillUnmount() {

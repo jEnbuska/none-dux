@@ -3,7 +3,7 @@ import { browserHistory, } from 'react-router';
 import { connect, } from '../../../src';
 import * as userActions from '../actions/userActions';
 
-@connect(({ users, }) => ({ users, }), { ...userActions, })
+@connect(({ users, }) => ({ ...users, }), { ...userActions, })
 export default class Users extends React.Component {
 
   render() {
@@ -14,10 +14,10 @@ export default class Users extends React.Component {
     const { fetchUsers, selectUser, } = this.props;
     fetchUsers()
       .then(() => {
-        const { params, users, } = this.props;
+        const { params, content, } = this.props;
         const { userId, } = params;
         if (userId) {
-          if (users[userId]) {
+          if (content[userId]) {
             selectUser(userId);
           } else {
             browserHistory.replace('/');
@@ -26,8 +26,8 @@ export default class Users extends React.Component {
       });
   }
 
-  componentWillReceiveProps({ params: { userId, }, selectUser, users, }) {
-    if (userId && userId!==this.props.params.userId && users[userId]) {
+  componentWillReceiveProps({ params: { userId, }, selectUser, content, }) {
+    if (userId && userId!==this.props.params.userId && content[userId]) {
       selectUser(userId);
     }
   }
