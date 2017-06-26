@@ -1,4 +1,3 @@
-import SubStoreLeaf from './SubStoreLeaf';
 export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
@@ -15,7 +14,8 @@ export default class SubStore {
   prevState = {};
   __substore_parent__;
   static invalidSubStores = {
-    SubStoreLeaf: true,
+    SubStoreArrayLeaf: true,
+    SubStoreObjectLeaf: true,
     Number: true,
     String: true,
     RegExp: true,
