@@ -86,22 +86,23 @@ function useReduxDevtools(store) {
   if (process.env.NODE_ENV !== 'production' && window.__REDUX_DEVTOOLS_EXTENSION__) {
     try {
       const redux = require.resolve('redux') && require('redux');
-      const { createStore, combineReducers, } = redux;
-      const rootReducer = combineReducers({ root: () => store.state, });
-      const reduxStore = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__());
+      const { createStore, } = redux;
+
+      const reduxStore = createStore(() => store.state, window.__REDUX_DEVTOOLS_EXTENSION__());
       let emittedByOther = false;
       store.subscribe(() => {
         if (!emittedByOther) {
           const { func, target, param, } = SubStore.lastChange;
+          const [ _, ...rest ] = target;
           emittedByOther = true;
-          reduxStore.dispatch({ type: func.toString(), target, param, });
+          reduxStore.dispatch({ type: func.toString(), target: rest, param, });
           emittedByOther = false;
         }
       });
       reduxStore.subscribe(() => {
         if (!emittedByOther) {
           emittedByOther = true;
-          store.clearState(reduxStore.getState().root);
+          const { state, } = store.clearState(reduxStore.getState());
           emittedByOther = false;
         }
       });
