@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "easy react state handling with react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "5.0.3",
+  "version": "5.0.4",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -19,7 +19,8 @@
     "prepublish": "npm run build",
     "build": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
-    "test:watch": "npm run test -- --watch"
+    "test:watch": "npm run test -- --watch",
+    "update-readme": "npm publish --update-readme"
   },
   "dependencies": {
     "prop-types": "^15.5.10",
