@@ -32,14 +32,14 @@ export default class Provider extends React.Component {
 
   subscriptionCount=0;
   subscribERS={};
-  state = { changes: null, }
+  state = { changes: null, };
 
   componentWillMount() {
     const { props, } = this;
     const { initialState, shape, } = props;
     const store = createStore({ ...initialState, }, shape);
     useReduxDevtools(store);
-    this.setState({changes: SubStore.lastChange})
+    this.setState({ changes: SubStore.lastChange, });
     this.store = store;
   }
 
@@ -64,17 +64,17 @@ export default class Provider extends React.Component {
         onChange(this, SubStore.lastChange);
       }.bind(store, onChange));
     }
-
     this.subsriptION = store.subscribe(() => {
-      this.setState({ changes: SubStore.lastChange, })
+      this.setState({ changes: SubStore.lastChange, });
     });
   }
 
-  componentDidUpdate() {
+  shouldComponentUpdate() {
     const { subscribERS, } = this;
     for (const key in subscribERS) {
       subscribERS[key]();
     }
+    return false;
   }
 
   componentWillUnmount() {
