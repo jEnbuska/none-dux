@@ -37,4 +37,11 @@ describe('SubStoreLeaf', () => {
     store.a.remove('b');
     expect(store.a.state).to.deep.equal({})
   });
+
+  it('Add Error type', () => {
+    const err = new Error('some error');
+    const store = createStore({ a: { err, }, });
+    expect(store.a.err).to.be.equal(undefined);
+    expect(store.a.state.err).to.deep.equal(err)
+  });
 });

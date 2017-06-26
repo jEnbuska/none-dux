@@ -1,16 +1,15 @@
-const { freeze, seal, entries, } = Object;
+const { assign, freeze, seal, } = Object;
 
 // If you have an object that you be an SubStore
 /*
-* const startTime = moment().startOf('day');
-* const endTime = moment().add(1, 'day').startOf('day');
+* const judgeStaticData = {....}
 * */
-//target.setState({appointment: new SubStoreLeaf({startTime, endTime}})
+// target.setState({resources: new SubStoreLeaf(judgeStaticData)})
 
 export default class SubStoreLeaf {
 
   constructor(value) {
-    entries(value).forEach(([ k, v, ]) => { this[k]=v; });
+    assign(this, value);
     freeze(this);
     seal(this);
   }

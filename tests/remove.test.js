@@ -85,7 +85,6 @@ describe('remove', () => {
       b.removeSelf();
       expect(d.state).to.equal(undefined);
       expect(d.prevState).to.deep.equal({ x: 1, });
-      console.log(b.state)
       expect(b.state).to.equal(undefined);
       expect(b.prevState).to.deep.equal({ c: 'test', d: { x: 1, }, });
     });

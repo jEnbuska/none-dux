@@ -3,7 +3,7 @@ export const SET_STATE = 'SET_STATE';
 export const CLEAR_STATE = 'CLEAR_STATE';
 export const REMOVE = 'REMOVE';
 
-const { getPrototypeOf, assign, values, keys, } = Object;
+const { getPrototypeOf, assign, values, } = Object;
 
 export default class SubStore {
 
@@ -15,13 +15,14 @@ export default class SubStore {
   prevState = {};
   __substore_parent__;
   static invalidSubStores = {
-    [SubStoreLeaf.name]: true,
+    SubStoreLeaf: true,
     Number: true,
     String: true,
     RegExp: true,
     Boolean: true,
     Function: true,
     Date: true,
+    Error: true,
   };
 
   constructor(initialValue, id, parent, depth, shape) {
