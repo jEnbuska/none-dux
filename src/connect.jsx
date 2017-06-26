@@ -3,6 +3,15 @@ import { object, func, } from 'prop-types';
 import SubStore from './SubStore';
 
 const { entries, keys, } = Object;
+// ie friendly
+function some(arr, predicate) {
+  for (let i = 0; i<arr.length; i++) {
+    if (predicate(arr[i])) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const emptyMapStateToProps = () => ({});
 const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
@@ -58,7 +67,7 @@ const connector = (Component, param1 = emptyMapStateToProps, param2 = {}) => {
       if (SubStore.lastChange!==lastChange) {
         this.lastChange = SubStore.lastChange;
         const nextState = mapStateToProps(store.state, nextProps);
-        if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k]) || keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
+        if (some(keys({ ...state, ...nextState, }), k => state[k]!==nextState[k]) || some(keys({ ...props, ...nextProps, }), k => props[k] !== nextProps[k])) {
           this.setState(nextState);
           this.shouldUpdate = true;
         }
