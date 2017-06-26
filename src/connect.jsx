@@ -22,7 +22,7 @@ const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps)
   } else {
     mapStateToProps = param1;
   }
-  return class Connect extends React.Component {
+  const connect = class Connect extends React.Component {
 
     static contextTypes = {
       store: object,
@@ -92,6 +92,8 @@ const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps)
       this.subscription();
     }
   };
+  connect.displayName = `Connect(${Component.name})`;
+  return connect;
 };
 
 export default (mapStateToProps, mapDispatchToProps) =>
