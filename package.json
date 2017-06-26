@@ -19,7 +19,8 @@
     "prepublish": "npm run build",
     "build": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
-    "test:watch": "npm run test -- --watch"
+    "test:watch": "npm run test -- --watch",
+    "update-readme": "npm publish --update-readme"
   },
   "dependencies": {
     "prop-types": "^15.5.10",
