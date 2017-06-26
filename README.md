@@ -201,3 +201,22 @@ import {Provider} from 'react-redux'
  } 
 ```
 
+if you have a big static data that will only be added, removed or replaced, for performance reasons you can skip creating unnecessary SubStore like so:
+```
+import { createLeaf } from 'none-dux'
+...
+function fetchCustomerData(){
+  function({statistics}){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        transactions = createLeaf(transactions);
+        associations = createLeaf(associations);
+        statistics.setState({transactions, associations}).
+        //createLeaf works with both arrays and objects
+      })
+  }
+}
+```
+Currently when using 'shape' to evaluate state, values created using createLeaf are not evaluated.
+
