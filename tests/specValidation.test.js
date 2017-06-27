@@ -32,7 +32,7 @@ DevSubStore.onExclusiveViolation= err => {
 };
 
 describe('Validate shape', () => {
-  /* it('reformatShape', () => {
+  it('reformatShape', () => {
     const reformatted = StoreCreator.reformatShape({
       [spec]: { object, isRequired, },
       a: { [spec]: { array, isRequired, exclusive, },
@@ -608,7 +608,7 @@ describe('Validate shape', () => {
     expect(requiredFieldsErrors.length).to.equal(0);
     expect(invalidSpecTypesErrors.length).to.equal(0);
     expect(exclusiveFieldsErrors.length).to.equal(0);
-  });*/
+  });
 
   it('validate object created by createLeaf', () => {
     refreshLists();
