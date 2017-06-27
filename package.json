@@ -17,7 +17,8 @@
   "scripts": {
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
     "prepublish": "npm run build",
-    "build": "cross-env BABEL_ENV=commonjs babel src --out-dir lib",
+    "build": "cross-env NODE_ENV=production BABEL_ENV=commonjs babel src --out-dir lib",
+    "build-dev": "webpack",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch",
     "update-readme": "npm publish --update-readme"
@@ -31,10 +32,12 @@
     "babel-eslint": "^7.2.1",
     "babel-loader": "^6.2.10",
     "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.5.2",
     "babel-preset-latest": "^6.24.1",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.24.1",
     "chai": "^3.5.0",
+    "clean-webpack-plugin": "^0.1.16",
     "cross-env": "^5.0.1",
     "eslint": "^3.13.0",
     "eslint-config-airbnb": "^13.0.0",
@@ -42,6 +45,8 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
     "mocha": "^3.2.0",
-    "rollup": "^0.43.0"
+    "rollup": "^0.43.0",
+    "uglifyjs-webpack-plugin": "^0.4.6",
+    "webpack": "^3.0.0"
   }
 }
