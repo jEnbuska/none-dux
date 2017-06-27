@@ -1,34 +1,34 @@
-import { expect, } from 'chai';
+
 import createStore, { StoreCreator, } from '../src/createStore';
 
 function verifyErrorOnChange(...params) {
   params.forEach(next => {
-    expect(() => next.setState(1)).to.throw(Error);
-    expect(() => next.setState({ x: 100, })).to.throw(Error);
-    expect(() => next.clearState(1)).to.throw(Error);
-    expect(() => next.clearState({ x: 100, })).to.throw(Error);
-    expect(() => next.removeSelf()).to.throw(Error);
-    expect(() => next.remove('b')).to.throw(Error);
+    expect(() => next.setState(1)).toThrow(Error);
+    expect(() => next.setState({ x: 100, })).toThrow(Error);
+    expect(() => next.clearState(1)).toThrow(Error);
+    expect(() => next.clearState({ x: 100, })).toThrow(Error);
+    expect(() => next.removeSelf()).toThrow(Error);
+    expect(() => next.remove('b')).toThrow(Error);
   });
 }
 
 describe('killSwitch', () => {
   let store;
-  it('Kill switch should trigger when depth > 100 ',
+  test('Kill switch should trigger when depth > 100 ',
     () => {
       let killSwitchIsTriggered = false;
-      StoreCreator.killSwitch = () => killSwitchIsTriggered = true;
+      StoreCreator.killSwitch = () => { killSwitchIsTriggered = true; };
       store = createStore({});
       let ref = store;
       for (let i = 0; i<100; i++) {
         ref.setState({ a: {}, });
         ref = ref.a;
-        expect(!killSwitchIsTriggered).to.be.ok;
+        expect(!killSwitchIsTriggered).toBeTruthy();
       }
       ref.setState({ a: {}, });
-      expect(killSwitchIsTriggered).to.be.ok;
+      expect(killSwitchIsTriggered).toBeTruthy();
     });
-  it('changing removed sub store should throw an exception',
+  test('changing removed sub store should throw an exception',
     () => {
       store = createStore({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
       const { a, c, } = store;
@@ -38,7 +38,7 @@ describe('killSwitch', () => {
       verifyErrorOnChange(a, c, d);
     });
 
-  it('changing excluded sub store should throw an exception', () => {
+  test('changing excluded sub store should throw an exception', () => {
     store = createStore({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
     const { a, c, } = store;
     const { d, } = c;

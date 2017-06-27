@@ -1,27 +1,27 @@
-import { expect, } from 'chai';
+
 import createStore from '../src/createStore';
 
 describe('get children', () => {
   let root;
   // noinspection JSAnnotator
-  it('should return all immediate children', () => {
+  test('should return all immediate children', () => {
     root = createStore({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
     const { a, f, ..._ } = root;
     const [ first, second, ...rootNone ]= root.getChildren();
-    expect(rootNone.length).to.equal(0);
-    expect(a.getId()).to.equal(first.getId());
-    expect(a === first).to.be.ok;
-    expect(f.getId()).to.equal(second.getId());
-    expect(f=== second).to.be.ok;
+    expect(rootNone.length).toBe(0);
+    expect(a.getId()).toBe(first.getId());
+    expect(a === first).toBeTruthy();
+    expect(f.getId()).toBe(second.getId());
+    expect(f=== second).toBeTruthy();
     const [ b, ...aNone ] = a.getChildren();
-    expect(b).to.be.ok;
-    expect(aNone.length).to.equal(0);
+    expect(!!b).toBeTruthy();
+    expect(aNone.length).toBe(0);
     const [ d, ...bNone ] = b.getChildren();
-    expect(d).to.be.ok;
-    expect(bNone.length).to.equal(0);
+    expect(d).toBeTruthy();
+    expect(bNone.length).toBe(0);
   });
 
-  it('should return children recursively', () => {
+  test('should return children recursively', () => {
     root = createStore({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
     const [ a, f, ...rootNone ]= root.getChildren();
     const [ b, ...aNone ] = a.getChildren();
@@ -31,24 +31,24 @@ describe('get children', () => {
     const [ expectA, expectB, expectD, expectX, expectF, ...expectEmpty ]= root.getChildrenRecursively();
 
     [ rootNone, aNone, bNone, dNone, xNone, ].forEach(arr => {
-      expect(arr.length).to.equal(0);
+      expect(arr.length).toBe(0);
     });
 
-    expect(expectEmpty.length).to.equal(0);
+    expect(expectEmpty.length).toBe(0);
 
-    expect(a.getId()).to.equal(expectA.getId());
-    expect(a=== expectA).to.be.ok;
+    expect(a.getId()).toBe(expectA.getId());
+    expect(a=== expectA).toBeTruthy();
 
-    expect(b.getId()).to.equal(expectB.getId());
-    expect(b=== expectB).to.be.ok;
+    expect(b.getId()).toBe(expectB.getId());
+    expect(b=== expectB).toBeTruthy();
 
-    expect(d.getId()).to.equal(expectD.getId());
-    expect(d=== expectD).to.be.ok;
+    expect(d.getId()).toBe(expectD.getId());
+    expect(d=== expectD).toBeTruthy();
 
-    expect(f.getId()).to.equal(expectF.getId());
-    expect(f=== expectF).to.be.ok;
+    expect(f.getId()).toBe(expectF.getId());
+    expect(f=== expectF).toBeTruthy();
 
-    expect(x.getId()).to.equal(expectX.getId());
-    expect(x=== expectX).to.be.ok;
+    expect(x.getId()).toBe(expectX.getId());
+    expect(x=== expectX).toBeTruthy();
   });
 });
