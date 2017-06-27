@@ -136,7 +136,7 @@ export default class DevSubStore extends SubStore {
       'Expected '+ entries(rest).map(([ k, v, ]) => {
         const { types, } = v[spec];
         return k + ': ' + types.map(it => it.name).join(', ');
-      }).join(', '));
+      }).join('\n'));
   }
 
   static onValidationError({ expectedType, actualType, state, identity, isRequired, }) {
