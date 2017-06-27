@@ -1,7 +1,8 @@
 import { expect, } from 'chai';
 import createStore, { StoreCreator, } from '../src/createStore';
-import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue,} from '../src/shape';
+import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue, } from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
+import createLeaf from '../src/SubStoreLeaf';
 
 let validationErrors;
 let requiredFieldsErrors;
@@ -31,7 +32,7 @@ DevSubStore.onExclusiveViolation= err => {
 };
 
 describe('Validate shape', () => {
-  it('reformatShape', () => {
+  /* it('reformatShape', () => {
     const reformatted = StoreCreator.reformatShape({
       [spec]: { object, isRequired, },
       a: { [spec]: { array, isRequired, exclusive, },
@@ -602,6 +603,36 @@ describe('Validate shape', () => {
       { a: new Date(), },
       {
         a: { [spec]: { date, isRequired, }, },
+      });
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+  });*/
+
+  it('validate object created by createLeaf', () => {
+    refreshLists();
+    createStore(
+      { a: { b: createLeaf({ c: { d: 1, }, }), }, },
+      {
+        a: { [spec]: { object, },
+          b: { [spec]: { object, }, },
+        },
+      });
+    expect(validationErrors.length).to.equal(0);
+    expect(requiredFieldsErrors.length).to.equal(0);
+    expect(invalidSpecTypesErrors.length).to.equal(0);
+    expect(exclusiveFieldsErrors.length).to.equal(0);
+  });
+
+  it('validate array created by createLeaf', () => {
+    refreshLists();
+    createStore(
+      { a: { b: createLeaf([ { c: 1, }, 2, ]), }, },
+      {
+        a: { [spec]: { object, },
+          b: { [spec]: { array, }, },
+        },
       });
     expect(validationErrors.length).to.equal(0);
     expect(requiredFieldsErrors.length).to.equal(0);

@@ -1,10 +1,24 @@
 const { getPrototypeOf, keys, } = Object;
-
 export const spec = '__substore_spec__';
 export const anyKey = '__substore_target_any__'; // any object key like uuid or array index. Can not be isRequired
 
-export const object = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Object', name: 'object', };
-export const array = { check: (val) => val && getPrototypeOf(val).constructor.name === 'Array', name: 'array', };
+const naturalLeafTypes = {
+  Number: true, RegExp: true, Boolean: true, Function: true, Date: true, Error: true, String: true,
+};
+export const object = { check: (val) => {
+  if (val) {
+    const { name, } = getPrototypeOf(val).constructor;
+    return name === 'Object' || (name !== 'Array' && name !== 'SubStoreArrayLeaf' && !naturalLeafTypes[name]);
+  }
+  return false;
+}, name: 'object', };
+export const array = { check: (val) => {
+  if (val) {
+    const { name, } = getPrototypeOf(val).constructor;
+    return name === 'Array' || 'SubStoreArrayLeaf';
+  }
+  return false;
+}, name: 'array', };
 export const string = { check: (val) => val === '' || (val && getPrototypeOf(val).constructor.name === 'String'), name: 'string', };
 export const number = { check: (val) => val === 0 || (val && getPrototypeOf(val).constructor.name === 'Number'), name: 'number', };
 export const isRequired = (val) => val!==null && val !== undefined;
