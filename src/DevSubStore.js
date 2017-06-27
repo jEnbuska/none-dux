@@ -134,8 +134,8 @@ export default class DevSubStore extends SubStore {
       'Has no validation for key: ' + key + '\n' +
       'With value: '+JSON.stringify(value, null, 1)+'\n'+
       'Expected '+ entries(rest).map(([ k, v, ]) => {
-        const { type, } = v[spec];
-        return k + ': ' + JSON.stringify(type);
+        const { types, } = v[spec];
+        return k + ': ' + types.map(it => it.name).join(', ');
       }).join(', '));
   }
 
