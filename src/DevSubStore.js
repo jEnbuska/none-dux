@@ -133,7 +133,7 @@ export default class DevSubStore extends SubStore {
     console.error('Exclusive validation failed: '+JSON.stringify(target.getIdentity())+'\n'+
       'Has no validation for key: ' + key + '\n' +
       'With value: '+JSON.stringify(value, null, 1)+'\n'+
-      'Expected '+ entries(rest).map(([ k, v, ]) => {
+      'Expected\n'+ entries(rest).map(([ k, v, ]) => {
         const { types, } = v[spec];
         return k + ': ' + types.map(it => it.name).join(', ');
       }).join('\n'));
