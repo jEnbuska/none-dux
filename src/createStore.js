@@ -5,6 +5,9 @@ import { spec, object, array, anyLeaf, isRequired, number, none, symbol, string,
 const { entries, assign, } = Object;
 const parentTypes = { object, array, };
 const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, anyValue, date, };
+const typeLookup = {
+  [anyLeaf]: true, [number]: true, [symbol]: true, [string]: true, [bool]: true, [regex]: true, [func]: true, [anyValue]: true, [date]: true,
+};
 const types = { ...parentTypes, ...childTypes, none, };
 
 export default function createStore(initialState, shape) {
