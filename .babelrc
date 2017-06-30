@@ -6,7 +6,7 @@
       },
       "modules": "commonjs",
       "useBuiltIns": true,
-      "debug": true
+      "debug": false
     }
     ], "react", "stage-0"
     ]
