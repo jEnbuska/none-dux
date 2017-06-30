@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { strict, isRequired, type, leaf, many, } from '../src/shape/shapeTypes';
+import { strict, isRequired, type, leaf, many, } from './shape/shapeTypes';
 
 const { getPrototypeOf, keys, entries, } = Object;
 
