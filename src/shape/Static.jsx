@@ -16,7 +16,7 @@ class StaticShape extends React.Component {
   };
 
   static contextTypes = {
-    build: object,
+    build: any,
     shape: object,
     identity: array,
     parentIsArray: bool,
@@ -24,7 +24,7 @@ class StaticShape extends React.Component {
 
   static childContextTypes = {
     identity: array,
-    build: object,
+    build: any,
     shape: object,
     isStatic: bool,
     parentIsArray: bool,

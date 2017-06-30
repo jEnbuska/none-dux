@@ -10,11 +10,11 @@ class LeafShape extends React.Component {
     isRequired: bool,
     initial: any,
     name: string,
-    loose: bool
+    loose: bool,
   };
 
   static contextTypes = {
-    build: object,
+    build: any,
     shape: object,
     identity: array,
     parentIsArray: bool,
