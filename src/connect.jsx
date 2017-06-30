@@ -50,8 +50,8 @@ const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps)
           const nextState = mapStateToProps(store.state, this.props);
           const { state, } = this;
           if (keys({ ...state, ...nextState, }).some(k => state[k]!==nextState[k])) {
-            this.setState(nextState);
             this.shouldUpdate = true;
+            this.setState(nextState);
           }
         }
       });
@@ -70,13 +70,13 @@ const connector = (Component, param1 = emptyMapStateToProps, mapDispatchToProps)
         this.lastChange = SubStore.lastChange;
         const nextState = mapStateToProps(store.state, nextProps);
         if (some(keys({ ...state, ...nextState, }), k => state[k]!==nextState[k]) || some(keys({ ...props, ...nextProps, }), k => props[k] !== nextProps[k])) {
-          this.setState(nextState);
           this.shouldUpdate = true;
+          this.setState(nextState);
         }
       } else if (keys({ ...props, ...nextProps, }).some(k => props[k] !== nextProps[k])) {
         const nextState = mapStateToProps(store.state, nextProps);
-        this.setState(nextState);
         this.shouldUpdate = true;
+        this.setState(nextState);
       }
     }
 
