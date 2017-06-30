@@ -176,6 +176,6 @@ export default class DevSubStore extends SubStore {
   }
 
   static onInvalidSpecType(target) {
-    console.error(`invalid spec type '${JSON.stringify(target.__substore_shape__[spec].type)}\nTarget ${JSON.stringify(target.get)}`);
+    console.error(`invalid spec type '${JSON.stringify(target.__substore_shape__[type])}\nTarget ${JSON.stringify(target.get)}`);
   }
 }
