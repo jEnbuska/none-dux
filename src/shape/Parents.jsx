@@ -1,96 +1,98 @@
 import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
-import { getComponentType, NONE, } from './utils';
-import SubStore from '../SubStore';
-import { anyKey, } from '../shape';
-
-const { getPrototypeOf, } = Object;
+import { getComponentTypeOf, } from './utils';
+import Definition from './Definition';
+import { strict, type, leaf, isRequired as requiredShape, many as manyKey, } from './shapeTypes';
+import DisplayNone from './DisplayNone';
 
 class ParentShape extends React.Component {
 
   static propTypes = {
     isRequired: bool,
-    initialState: any,
-    strict: bool,
+    initial: any,
+    loose: bool,
     name: string,
+    many: bool,
   };
 
   static contextTypes = {
-    store: object,
+    build: object,
     shape: object,
     identity: array,
-    attached: bool,
-    predefinedState: bool,
+    isStatic: bool,
   };
 
   static childContextTypes = {
     identity: array,
     attached: bool,
-    store: object,
+    build: object,
     shape: object,
   };
 
   getChildContext() {
     return {
+      build: this.build,
       identity: this.identity,
       shape: this.shape,
-      attached: this.attached,
     };
   }
 
   componentWillMount() {
     const { context, props, } = this;
-    const { shape, identity, attached, store, predefinedState, } = context;
-    const { name, isRequired, strict, } = this.props;
+    const { shape, identity, build, isStatic, } = context;
+    const { name, isRequired, loose, initial, many, } = this.props;
+
     this.identity = [ ...identity, name, ];
-    if (name===null || name === undefined) {
-      throw new Error(getComponentType(getPrototypeOf(this))+' of' + identity.join(', ')+'\n is missing a name');
-    } else if (this.props.initialState && !attached) {
-      throw new Error(getComponentType(getPrototypeOf(this))+' of' + this.identity.join(' ,')+'\n is not attached in initialState, so it cannot be given initial state as prop');
-    } else if (name === anyKey && isRequired) {
-      throw new Error('anyKey cannot be isRequired. Fix: ' + this.identity.join(', '));
+    if (shape) {
+      Definition.checkPropsSanity(this, initial, build, name, many, loose);
+      if (initial!==undefined) {
+        if (initial instanceof String) {
+          throw new Error('Expected object or array as value but got string '+initial);
+        }
+        try {
+          Object.keys(initial);
+        } catch (Exception) {
+          throw new Error('Expected object or array as value but got'+initial);
+        }
+      }
+      const childIsMultiple = React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
+      const key = many ? manyKey : name;
+      this.shape = shape.setState({ [key]: {
+        [requiredShape]: !!isRequired,
+        [strict]: !loose && !childIsMultiple,
+        [leaf]: false,
+        [type]: getComponentTypeOf(this), }, })[key];
     }
-    this.shape = shape.setState({ [name]: { isRequired, strict, }, })[name];
-    if (!predefinedState && attached && name!==anyKey) {
-      this.store = store.setState({ [name]: props.initialState === true ? this.defaultInitialState : props.initialState, })[name];
+    if (build && initial!==undefined && !build.state.hasOwnProperty(name) && !many) {
+      const initialState = props.initial === true ? this.defaultInitialState : initial;
+      if (isStatic) {
+        build[name] = initialState;
+        this.build = build[name];
+      } else {
+        this.build = build.setState({ [name]: initialState, })[name];
+      }
     }
   }
 
   render() {
-    return this.props.children || null;
+    return <DisplayNone>{this.props.children}</DisplayNone>;
   }
-
 }
 
 export class Arr extends ParentShape {
-
-  defaultInitialState = {};
-
-  componentWillMount() {
-    super.componentWillMount();
-    if (this.store) {
-      if (this.store.state instanceof Array && this.context.initialState) {
-        this.attached = true;
-      } else {
-        throw new Error('Expected initial state of Array. But a invalid initial was state given: '+ JSON.stringify(this.store.state, null, 1)+ ' given to '+this.identity.join(', '));
-      }
-    }
-  }
-}
-
-export class Obj extends ParentShape {
 
   defaultInitialState = [];
 
   componentWillMount() {
     super.componentWillMount();
-    if (this.store) {
-      const { state, } = this.store;
-      if (!state || SubStore.invalidSubStores(state) || state instanceof Array) {
-        throw new Error('Expected initial state of Object. But invalid initial state given: '+ JSON.stringify(state, null, 1)+ ' given to '+this.identity.join(', '));
-      } else {
-        this.attached = true;
-      }
-    }
+  }
+}
+
+export class Obj extends ParentShape {
+
+  defaultInitialState = {};
+
+  componentWillMount() {
+    super.componentWillMount();
   }
 }

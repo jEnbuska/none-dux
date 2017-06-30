@@ -1,49 +1,75 @@
 import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
-import { getComponentType, } from './utils';
-import createLeaf, { SubStoreArrayLeaf, SubStoreObjectLeaf, } from '../SubStoreLeaf';
-import { anyKey, } from '../shape';
-
-const { getPrototypeOf, } = Object;
+import { getComponentTypeOf, } from './utils';
+import Definition from './Definition';
+import createLeaf from '../SubStoreLeaf';
+import { strict, type, leaf, isRequired as requiredShape, many as manyKey, } from './shapeTypes';
 
 class StaticShape extends React.Component {
 
   static propTypes = {
     isRequired: bool,
-    initialState: any,
+    initial: any,
     name: string,
+    loose: bool,
   };
 
   static contextTypes = {
-    store: object,
+    build: object,
     shape: object,
     identity: array,
-    attached: bool,
-    predefinedState: bool,
   };
+
+  static childContextTypes = {
+    identity: array,
+    build: object,
+    shape: object,
+    isStatic: bool,
+  };
+
+  getChildContext() {
+    return {
+      build: this.build,
+      identity: this.identity,
+      shape: this.shape,
+      attached: this.attached,
+      isStatic: true,
+    };
+  }
 
   componentWillMount() {
     const { context, props, } = this;
-    const { shape, identity, attached, store, predefinedState, } = context;
-    const { name, isRequired, strict, } = this.props;
+    const { shape, identity, build, isStatic, } = context;
+    const { name, isRequired, loose, initial, many, } = this.props;
     this.identity = [ ...identity, name, ];
-    if (name===null || name === undefined) {
-      throw new Error(getComponentType(getPrototypeOf(this))+' of' + identity.join(', ')+'\n is missing a name');
-    } else if (this.props.initialState && !attached) {
-      throw new Error(getComponentType(getPrototypeOf(this))+' of' + this.identity.join(' ,')+'\n is not attached in initialState, so it cannot be given initial state as prop');
-    } else if (name === anyKey && isRequired) {
-      throw new Error('anyKey cannot be isRequired. Fix: ' + this.identity.join(', '));
-    } else if (!store) {
-      throw new Error('StaticArray & StaticObject cannot have static children because already static: ' + this.identity.join(', '));
-    } else if()
-    this.shape = shape.setState({ [name]: { isRequired, strict, }, })[name];
-    if (!predefinedState && attached && name!==anyKey) {
-      store.setState({ [name]: createLeaf(props.initialState === true ? this.defaultInitialState : props.initialState), });
+    if (isStatic) {
+      throw new Error('Cannot have static values inside already static structure: '+this.identity.join(', '));
+    }
+    if (shape) {
+      Definition.checkPropsSanity(this, initial, build, name, many, loose);
+      if (initial instanceof String) {
+        throw new Error('Expected object or array as value but got string '+initial);
+      }
+      try {
+        Object.keys(initial);
+      } catch (Exception) {
+        throw new Error('Expected object or array as value but got string '+initial);
+      }
+      const childIsMultiple = React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
+      const key = many ? manyKey : name;
+      this.shape = shape.setState({ [key]: {
+        [requiredShape]: !!isRequired,
+        [strict]: !loose && !childIsMultiple,
+        [leaf]: false,
+        [type]: getComponentTypeOf(this), }, })[key];
+    }
+    if (initial!==undefined && !many) {
+      this.build = build.setState({ [name]: createLeaf(props.initial === true ? this.defaultInitialState : props.initial), }).state[name];
     }
   }
 
   render() {
-    return null;
+    return this.props.children || null;
   }
 }
 

@@ -1,84 +1,86 @@
 import React from 'react';
-import { func, object, } from 'prop-types';
+import { func, object, node, } from 'prop-types';
 import createStore from './createStore';
 import SubStore from './SubStore';
 
 export default class Provider extends React.Component {
 
   static propTypes = {
+    definition: node,
     initialState: object,
     shape: object,
     onChange: func,
   };
 
-  static defaultProps = {
-    initialState: {},
-  };
-
   static childContextTypes = {
     store: object,
     subscribe: func,
+    onStoreReady: func,
   };
 
   store;
 
   getChildContext() {
-    const { store, subscribe, } = this;
+    const { store, subscribe, onStoreReady, } = this;
     return {
       store,
       subscribe,
+      onStoreReady,
     };
   }
 
   subscriptionCount=0;
-  subscribERS={};
-  state = { changes: null, };
+  subscribers={};
 
   componentWillMount() {
-    const { props, } = this;
-    const { initialState, shape, } = props;
-    const store = createStore({ ...initialState, }, shape);
-    useReduxDevtools(store);
-    this.setState({ changes: SubStore.lastChange, });
-    this.store = store;
+    const { initialState, shape, definition, } = this.props;
+    if (initialState) {
+      this.onStoreReady(initialState, shape, true);
+    } else if (!definition) {
+      throw new Error('No definition nor initialState given to Provider');
+    }
   }
 
+  onStoreReady = (stateStore, shapeStore, initial) => {
+    if (!shapeStore) {
+      this.store = stateStore;
+    } else {
+      this.store = createStore({ ...stateStore.state, }, shapeStore.state);
+    }
+    const { subscribers, store, } = this;
+    useReduxDevtools(store);
+    const { onChange, } = this.props;
+    if (onChange) {
+      store.subscribe(() => onChange(store, SubStore.lastChange));
+    }
+    this.subsription = store.subscribe(() => {
+      for (const key in subscribers) {
+        subscribers[key]();
+      }
+    });
+    if (!initial) {
+      this.forceUpdate();
+    }
+  };
+
   render() {
-    return <span>{this.props.children}</span>;
+    if (this.store) {
+      return this.props.children;
+    }
+    return this.props.definition;
   }
 
   subscribe = (callback) => {
-    const { subscriptionCount, subscribERS, } = this;
-    subscribERS[subscriptionCount] = callback;
+    const { subscriptionCount, subscribers, } = this;
+    subscribers[subscriptionCount] = callback;
     this.subscriptionCount++;
     return function (subscriptionCount) {
       delete this[subscriptionCount];
-    }.bind(subscribERS, subscriptionCount);
+    }.bind(subscribers, subscriptionCount);
   };
 
-  componentDidMount() {
-    const { props, store, } = this;
-    const { onChange, } = props;
-    if (onChange) {
-      store.subscribe(function (onChange) {
-        onChange(this, SubStore.lastChange);
-      }.bind(store, onChange));
-    }
-    this.subsriptION = store.subscribe(() => {
-      this.setState({ changes: SubStore.lastChange, });
-    });
-  }
-
-  shouldComponentUpdate() {
-    const { subscribERS, } = this;
-    for (const key in subscribERS) {
-      subscribERS[key]();
-    }
-    return false;
-  }
-
   componentWillUnmount() {
-    this.subsriptION();
+    this.subsription();
   }
 }
 

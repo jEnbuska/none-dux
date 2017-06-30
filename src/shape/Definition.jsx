@@ -2,19 +2,17 @@ import React from 'react';
 import { string, object, array, func, bool, } from 'prop-types';
 import createStore from '../createStore';
 import { getComponentTypeOf, } from './utils';
+import { strict, type, } from './shapeTypes';
+import DisplayNone from './DisplayNone';
 
-export default class Store extends React.Component {
+export default class Definition extends React.Component {
 
   static propTypes = {
     initial: object,
   };
 
   static contextTypes = {
-    onStoreCreated: func,
-  };
-
-  static defaultProps= {
-    onStoreCreated: () => {},
+    onStoreReady: func,
   };
 
   static childContextTypes = {
@@ -36,33 +34,33 @@ export default class Store extends React.Component {
   }
 
   componentWillMount() {
-    this.build = createStore(this.props.initial || {});
+    this.build = createStore(this.props.initial);
     if (process.env.NODE_ENV!=='production') {
-      this.shape = createStore({});
+      this.shape = createStore({ [strict]: !this.props.loose, [type]: 'Object', });
     }
   }
 
   render() {
-    return this.props.children;
+    return <DisplayNone>{this.props.children}</DisplayNone>;
   }
 
   componentDidMount() {
-    const { shape, build, } = this;
-    this.props.onStoreCreated(build, Object.keys(shape.state).length && shape.state);
+    const { build, shape, } = this;
+    this.context.onStoreReady(build, shape);
   }
 
-  static checkPropsSanity(identity, initial, build, isRequired, name, many) {
+  static checkPropsSanity(component, initial, build, name, many) {
     if ((name === null || name === undefined) && !many) {
-      throw new Error(getComponentTypeOf(this) + ' of' + identity.join(', ') + '\n is missing a name');
+      throw new Error('Type: "'+ getComponentTypeOf(component) + '" of "' + component.identity.join(', ') + '" is missing a name');
     } else if (initial && !build) {
-      Store.onInitializeWarn(getComponentTypeOf(this) + ' of' + this.identity.join(' ,') + '\n is not attached in initial, so it cannot be given initial state');
+      Definition.onInitializeWarn('Type: "'+ getComponentTypeOf(component) + '" of "' + component.identity.join(', ') + '" is not attached in initial, so it cannot be given initial state');
     } else if (many && name) {
-      Store.onInitializeWarn('Type: '+getComponentTypeOf(this) + '\nTarget:'+this.identity.join(' ,') + '\n Got both "name" and "many" using "many" instead');
+      Definition.onInitializeWarn('Type: "'+getComponentTypeOf(component) + '"\nTarget:'+component.identity.join(',') + '"\n Got both "name" and "many" using "many" instead');
     }
   }
 
   static onInitializeWarn(msg) {
-    console.error(msg)
+    console.error(msg);
   }
 
 }

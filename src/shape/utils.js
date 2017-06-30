@@ -1,9 +1,19 @@
 import { Str, Bool, Dt, Func, Rgx, Numb, Err, Symb, } from './Leafs';
 import { Arr, Obj, } from './Parents';
+import { StaticArray, StaticObject, } from './Static';
 
-export const NONE = '__SubStore_none__';
+export const isChildValue = {
+  Number: true,
+  String: true,
+  RegExp: true,
+  Boolean: true,
+  Function: true,
+  Date: true,
+  Error: true,
+};
+
 export const Wrap = ({ children, }) => children;
-export function getComponentType(comp) {
+export function getComponentTypeOf(obj) {
   return {
     [Str]: 'String',
     [Bool]: 'Boolean',
@@ -15,5 +25,7 @@ export function getComponentType(comp) {
     [Err]: 'Error',
     [Obj]: 'Object',
     [Arr]: 'Array',
-  }[comp];
+    [StaticArray]: 'Array',
+    [StaticObject]: 'Array',
+  }[Object.getPrototypeOf(obj).constructor];
 }

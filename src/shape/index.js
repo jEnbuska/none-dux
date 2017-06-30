@@ -1,6 +1,6 @@
 import { Dt, Func, Rgx, Bool, Numb, Err, Symb, Str, } from './Leafs';
 import { Arr, Obj, } from './Parents';
 import { anyKey, } from '../shape';
-import Store from './Store';
+import Definition from './Definition';
 
-export { Dt, Func, Rgx, Bool, Numb, Err, Symb, Str, Arr, Obj, Store, anyKey, };
+export { Dt, Func, Rgx, Bool, Numb, Err, Symb, Str, Arr, Obj, Definition, anyKey, };
