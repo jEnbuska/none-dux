@@ -70,20 +70,12 @@ export function fetchUsers() {
       users.status.setState({ pending: true, });
       todosByUser.status.setState({ pending: true, });
       setTimeout(() => {
-        store.singleUpdate(() => {
-          users.singleUpdate(({ content, status, }) => {
-            const userData = JSON.parse(localStorage.getItem('users')) || {};
-            content.clearState(userData);
-            status.setState({ pending: false, });
-          });
-          todosByUser.singleUpdate(({ content, status, }) => {
-            const todoData = JSON.parse(localStorage.getItem('todosContent')) || {};
-            content.clearState(todoData);
-            status.setState({ pending: false, });
-          });
-        });
+        const userData = JSON.parse(localStorage.getItem('users')) || {};
+        users.setState({ content: userData, status: { pending: false, }, });
+        const todoData = JSON.parse(localStorage.getItem('todosContent')) || {};
+        todosByUser.setState({ content: todoData, status: { pending: false, }, });
         resolve();
-      }, 800);
-    });
+      });
+    }, 800);
   };
 }
