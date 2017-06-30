@@ -12,7 +12,6 @@ export const isChildValue = {
   Error: true,
 };
 
-export const Wrap = ({ children, }) => children;
 export function getComponentTypeOf(obj) {
   return {
     [Str]: 'String',
@@ -26,6 +25,6 @@ export function getComponentTypeOf(obj) {
     [Obj]: 'Object',
     [Arr]: 'Array',
     [StaticArray]: 'Array',
-    [StaticObject]: 'Array',
+    [StaticObject]: 'Object',
   }[Object.getPrototypeOf(obj).constructor];
 }

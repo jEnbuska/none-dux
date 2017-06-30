@@ -2,7 +2,7 @@ import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
 import { getComponentTypeOf, } from './utils';
 import Definition from './Definition';
-import { type, isRequired as requiredShape, leaf, many as manyKey, } from './shapeTypes';
+import { type, isRequired as requiredShape, leaf, many as manyKey, isStatic, strict, } from './shapeTypes';
 
 class LeafShape extends React.Component {
 
@@ -10,37 +10,35 @@ class LeafShape extends React.Component {
     isRequired: bool,
     initial: any,
     name: string,
+    loose: bool
   };
 
   static contextTypes = {
     build: object,
     shape: object,
     identity: array,
+    parentIsArray: bool,
   };
 
   componentWillMount() {
-    const { shape, identity, build, isStatic, } = this.context;
-    const { name, isRequired, initial, many, } = this.props;
+    const { shape, identity, build, parentIsArray, } = this.context;
+    const { name, isRequired, initial, many, loose, } = this.props;
     this.identity = [ ...identity, name, ];
-
     if (shape) {
-      Definition.checkPropsSanity(this, initial, build, name, many);
-      this.shape = shape.setState({ [many ? manyKey : name]: {
+      Definition.checkPropsSanity(this, initial, build, name, many, parentIsArray);
+      this.shape = shape[many ? manyKey : name] = {
         [requiredShape]: !!isRequired,
         [type]: getComponentTypeOf(this),
-        [leaf]: true, },
-      })[name];
+        [strict]: !loose,
+        [leaf]: true,
+        [isStatic]: false,
+      };
       if (this.props.children) {
         throw new Error('Target: "'+this.identity.join(',')+'" of type: "'+ getComponentTypeOf(this)+'", cannot have any children');
       }
     }
-    if (build && initial!==undefined && !build.state.hasOwnProperty(name) && !many) {
-      if (isStatic) {
-        build[name] = initial;
-        this.build = build[name];
-      } else {
-        build.setState({ [name]: initial, });
-      }
+    if (build && initial!==undefined && !build.hasOwnProperty(name) && !many) {
+      build[name] = initial;
     }
   }
 
@@ -55,50 +53,10 @@ export class Numb extends LeafShape {
   }
 }
 
-export class Str extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount();
-    super.componentWillMount(value => !(value instanceof String));
-  }
-}
-
-export class Err extends LeafShape {
-
-  componentWillMount() {
-    super.componentWillMount();
-    super.componentWillMount(value => !(value instanceof Error));
-  }
-}
-
-export class Rgx extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount();
-    super.componentWillMount(value => !(value instanceof RegExp));
-  }
-}
-export class Func extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount();
-    super.componentWillMount(value => !(value instanceof Function));
-  }
-}
-
-export class Dt extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount();
-    super.componentWillMount(value => !(value instanceof Date));
-  }
-}
-
-export class Symb extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount(value => !(value instanceof Symbol));
-  }
-
-}
-
-export class Bool extends LeafShape {
-  componentWillMount() {
-    super.componentWillMount(value => !(value instanceof Boolean));
-  }
-}
+export class Str extends LeafShape {}
+export class Err extends LeafShape {}
+export class Rgx extends LeafShape {}
+export class Func extends LeafShape {}
+export class Dt extends LeafShape {}
+export class Symb extends LeafShape {}
+export class Bool extends LeafShape {}

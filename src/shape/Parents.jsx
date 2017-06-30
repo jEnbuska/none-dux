@@ -2,7 +2,7 @@ import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
 import { getComponentTypeOf, } from './utils';
 import Definition from './Definition';
-import { strict, type, leaf, isRequired as requiredShape, many as manyKey, } from './shapeTypes';
+import { strict, type, leaf, isRequired as requiredShape, many as manyKey, isStatic, } from './shapeTypes';
 import DisplayNone from './DisplayNone';
 
 class ParentShape extends React.Component {
@@ -20,6 +20,7 @@ class ParentShape extends React.Component {
     shape: object,
     identity: array,
     isStatic: bool,
+    parentIsArray: bool,
   };
 
   static childContextTypes = {
@@ -27,10 +28,12 @@ class ParentShape extends React.Component {
     attached: bool,
     build: object,
     shape: object,
+    parentIsArray: bool,
   };
 
   getChildContext() {
     return {
+      parentIsArray: this instanceof Arr,
       build: this.build,
       identity: this.identity,
       shape: this.shape,
@@ -38,13 +41,11 @@ class ParentShape extends React.Component {
   }
 
   componentWillMount() {
-    const { context, props, } = this;
-    const { shape, identity, build, isStatic, } = context;
+    const { shape, identity, build, parentIsArray, } = this.context;
     const { name, isRequired, loose, initial, many, } = this.props;
-
     this.identity = [ ...identity, name, ];
     if (shape) {
-      Definition.checkPropsSanity(this, initial, build, name, many, loose);
+      Definition.checkPropsSanity(this, initial, build, name, many, parentIsArray);
       if (initial!==undefined) {
         if (initial instanceof String) {
           throw new Error('Expected object or array as value but got string '+initial);
@@ -55,22 +56,17 @@ class ParentShape extends React.Component {
           throw new Error('Expected object or array as value but got'+initial);
         }
       }
-      const childIsMultiple = React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
-      const key = many ? manyKey : name;
-      this.shape = shape.setState({ [key]: {
+      const childIsMultiple = this.props.children && React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
+      this.shape = shape[many ? manyKey : name] = {
         [requiredShape]: !!isRequired,
-        [strict]: !loose && !childIsMultiple,
+        [strict]: (!loose && !childIsMultiple) && !(this instanceof Arr),
         [leaf]: false,
-        [type]: getComponentTypeOf(this), }, })[key];
+        [type]: getComponentTypeOf(this),
+        [isStatic]: false,
+      };
     }
-    if (build && initial!==undefined && !build.state.hasOwnProperty(name) && !many) {
-      const initialState = props.initial === true ? this.defaultInitialState : initial;
-      if (isStatic) {
-        build[name] = initialState;
-        this.build = build[name];
-      } else {
-        this.build = build.setState({ [name]: initialState, })[name];
-      }
+    if (!many && build && initial!==undefined && !build.hasOwnProperty(name)) {
+      this.build = build[name] = initial === true ? this.defaultInitialState : initial;
     }
   }
 
@@ -80,19 +76,9 @@ class ParentShape extends React.Component {
 }
 
 export class Arr extends ParentShape {
-
   defaultInitialState = [];
-
-  componentWillMount() {
-    super.componentWillMount();
-  }
 }
 
 export class Obj extends ParentShape {
-
   defaultInitialState = {};
-
-  componentWillMount() {
-    super.componentWillMount();
-  }
 }

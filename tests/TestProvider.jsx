@@ -18,6 +18,6 @@ export default class TestProvider extends React.Component {
   }
 
   render() {
-    return this.props.children;
+    return <span>{this.props.children}</span>
   }
 }

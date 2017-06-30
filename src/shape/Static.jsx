@@ -3,7 +3,8 @@ import { any, string, object, array, bool, } from 'prop-types';
 import { getComponentTypeOf, } from './utils';
 import Definition from './Definition';
 import createLeaf from '../SubStoreLeaf';
-import { strict, type, leaf, isRequired as requiredShape, many as manyKey, } from './shapeTypes';
+import { strict, type, leaf, isRequired as requiredShape, isStatic as staticShape, } from './shapeTypes';
+import DisplayNone from './DisplayNone';
 
 class StaticShape extends React.Component {
 
@@ -18,6 +19,7 @@ class StaticShape extends React.Component {
     build: object,
     shape: object,
     identity: array,
+    parentIsArray: bool,
   };
 
   static childContextTypes = {
@@ -25,6 +27,7 @@ class StaticShape extends React.Component {
     build: object,
     shape: object,
     isStatic: bool,
+    parentIsArray: bool,
   };
 
   getChildContext() {
@@ -32,61 +35,61 @@ class StaticShape extends React.Component {
       build: this.build,
       identity: this.identity,
       shape: this.shape,
-      attached: this.attached,
       isStatic: true,
+      parentIsArray: this instanceof StaticArray,
     };
   }
 
   componentWillMount() {
-    const { context, props, } = this;
-    const { shape, identity, build, isStatic, } = context;
+    const { shape, identity, build, isStatic, parentIsArray, } = this.context;
+
     const { name, isRequired, loose, initial, many, } = this.props;
+
     this.identity = [ ...identity, name, ];
     if (isStatic) {
       throw new Error('Cannot have static values inside already static structure: '+this.identity.join(', '));
     }
     if (shape) {
-      Definition.checkPropsSanity(this, initial, build, name, many, loose);
-      if (initial instanceof String) {
-        throw new Error('Expected object or array as value but got string '+initial);
+      Definition.checkPropsSanity(this, initial, build, name, many, parentIsArray, true);
+      if (initial) {
+        if (initial instanceof String) {
+          throw new Error('Expected object or array as value but got string '+initial);
+        }
+        try {
+          Object.keys(initial);
+        } catch (Exception) {
+          throw new Error('Expected object or array as value but got string '+initial);
+        }
       }
-      try {
-        Object.keys(initial);
-      } catch (Exception) {
-        throw new Error('Expected object or array as value but got string '+initial);
-      }
-      const childIsMultiple = React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
-      const key = many ? manyKey : name;
-      this.shape = shape.setState({ [key]: {
+      const childIsMultiple = this.props.children && React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
+      this.shape = shape[name] = {
         [requiredShape]: !!isRequired,
-        [strict]: !loose && !childIsMultiple,
+        [strict]: (!loose && !childIsMultiple) && !(this instanceof StaticArray),
         [leaf]: false,
-        [type]: getComponentTypeOf(this), }, })[key];
+        [type]: getComponentTypeOf(this),
+        [staticShape]: true,
+      };
     }
-    if (initial!==undefined && !many) {
-      this.build = build.setState({ [name]: createLeaf(props.initial === true ? this.defaultInitialState : props.initial), }).state[name];
+    if (build && initial && !initial.hasOwnProperty(name)) {
+      this.build = build[name]= (initial === true ? this.defaultInitialState : initial)[name];
     }
   }
 
   render() {
-    return this.props.children || null;
+    return <DisplayNone>{this.props.children}</DisplayNone>;
+  }
+
+  componentDidMount() {
+    if (this.build) {
+      this.context.build[this.props.name] = createLeaf(this.build);
+    }
   }
 }
 
 export class StaticArray extends StaticShape {
-
   defaultInitialState = [];
-
-  componentWillMount() {
-    super.componentWillMount();
-  }
 }
 
 export class StaticObject extends StaticShape {
-
   defaultInitialState = [];
-
-  componentWillMount() {
-    super.componentWillMount();
-  }
 }

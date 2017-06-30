@@ -1,5 +1,5 @@
-import { Definition, Obj, Numb, Err, Symb, Rgx, Str, Bool, Func, Dt, Arr, } from '../src/shape/index.js';
-import { isRequired, strict, type, leaf, } from '../src/shape/shapeTypes.js';
+import { Definition, Obj, Numb, Err, Symb, Rgx, Str, Bool, Func, Dt, Arr, StaticArray, StaticObject, } from '../src/shape/index.js';
+import { isRequired, strict, type, leaf, isStatic, } from '../src/shape/shapeTypes.js';
 import TestProvider from './TestProvider';
 
 let React;
@@ -8,12 +8,9 @@ let ReactTestRenderer;
 
 Definition.onInitializeWarn = () => {};
 
-const { assign, } = Object;
-
 describe('jsx shape', () => {
-  let values;
+  let store;
   beforeEach(() => {
-    values = {};
     jest.resetModules();
     ReactTestRenderer = require('react-test-renderer');
     React = require('react');
@@ -51,15 +48,17 @@ describe('jsx shape', () => {
       { comp: <Dt isRequired name='val' />, valType: 'Date', },
       { comp: <Dt name='val' />, valType: 'Date', },
     ].forEach(({ comp, valType, }, i) => {
-      values = {};
+      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
+        <TestProvider onStoreReady={it => store = it}>
           <Definition>
             {comp}
           </Definition>
         </TestProvider>);
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, }, });
-      expect(values.store.state).toEqual({ val: undefined, });
+      expect(store.getShape()).toEqual({
+        [isRequired]: true, [leaf]: false, [type]: 'Object', [isStatic]: false, [strict]: true,
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+      expect(store.state).toEqual({ val: undefined, });
     });
   });
 
@@ -87,15 +86,17 @@ describe('jsx shape', () => {
       { comp: <Dt isRequired name='val' initial={dt} />, valType: 'Date', value: dt, },
       { comp: <Dt name='val' initial={dt} />, valType: 'Date', value: dt, },
     ].forEach(({ comp, valType, value, }, i) => {
-      values = {};
+      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
+        <TestProvider onStoreReady={it => store = it}>
           <Definition>
             {comp}
           </Definition>
         </TestProvider>);
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, }, });
-      expect(values.store.state).toEqual({ val: value, });
+      expect(store.getShape()).toEqual({
+        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+      expect(store.state).toEqual({ val: value, });
     });
   });
 
@@ -128,37 +129,57 @@ describe('jsx shape', () => {
       { comp: <Dt isRequired name='val' initial={dt} />, valType: 'Date', value: dt, overrider: dt2, },
       { comp: <Dt name='val' initial={dt} />, valType: 'Date', value: dt, override: undefined, },
     ].forEach(({ comp, valType, override, }, i) => {
-      values = {};
+      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
+        <TestProvider onStoreReady={it => store = it}>
           <Definition initial={{ val: override, }}>
             {comp}
           </Definition>
         </TestProvider>);
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, }, });
-      expect(values.store.state).toEqual({ val: override, });
+      expect(store.getShape()).toEqual({
+        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+      expect(store.state).toEqual({ val: override, });
     });
   });
 
   test('override objects initial state by context', () => {
     [
-      { comp: <Obj name='val' initial={undefined} />, valType: 'Object', value: undefined, override: {}, },
-      { comp: <Obj name='val' initial />, valType: 'Object', value: {}, override: { a: 1, }, },
-      { comp: <Obj name='val' initial={{ a: 1, }} />, valType: 'Object', value: { a: 2, }, override: {}, },
-      { comp: <Arr name='val' initial={[]} />, valType: 'Array', value: [], override: [ 1, 2, 3, ], },
-      { comp: <Arr name='val' initial={[ { a: 1, }, 1, 2, ]} />, valType: 'Array', value: [ { a: 1, }, 1, 2, ], overrider: [], },
-
-    ].forEach(({ comp, valType, override, }, i) => {
-      values = {};
+      { comp: <Obj name='val' initial={undefined} loose />, value: undefined, override: {}, },
+      { comp: <Obj name='val' initial loose />, value: {}, override: { a: 1, }, },
+      { comp: <Obj name='val' initial={{ a: 1, }} loose />, value: { a: 2, }, override: {}, },
+    ].forEach(({ comp, override, }, i) => {
+      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
+        <TestProvider onStoreReady={it => store = it}>
           <Definition initial={{ val: override, }}>
             {comp}
           </Definition>
         </TestProvider>
       );
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: valType, [isRequired]: false, [leaf]: false, [strict]: true, }, });
-      expect(values.store.state).toEqual({ val: override, });
+      expect(store.getShape()).toEqual({ [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [strict]: false, [isStatic]: false, }, });
+      expect(store.state).toEqual({ val: override, });
+    });
+  });
+
+  test('overrider array initial state by context', () => {
+    [
+      { comp: <Arr name='val' initial={[]} />, value: [], override: [ 1, 2, 3, ], },
+      { comp: <Arr name='val' initial={[ { a: 1, }, 1, 2, ]} />, value: [ { a: 1, }, 1, 2, ], overrider: [], },
+    ].forEach(({ comp, override, }, i) => {
+      store = {};
+      ReactTestRenderer.create(
+        <TestProvider onStoreReady={it => store = it}>
+          <Definition initial={{ val: override, }}>
+            {comp}
+          </Definition>
+        </TestProvider>
+      );
+      expect(store.getShape()).toEqual({
+        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Array', [isRequired]: false, [leaf]: false, [strict]: false, [isStatic]: false, }, });
+      expect(store.state).toEqual({ val: override, });
     });
   });
 
@@ -170,35 +191,68 @@ describe('jsx shape', () => {
       { comp: <Obj name='val' initial={undefined}><Numb name='leafValue' /></Obj>, valType: 'Number', value: { a: 2, }, override: { val: { leafValue: undefined, }, }, },
       { comp: <Obj name='val' initial={{ leafValue: 1, }}><Numb name='leafValue' /></Obj>, valType: 'Number', value: { a: 2, }, override: { val: undefined, }, },
     ].forEach(({ comp, valType, override, }) => {
-      values = {};
+      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
+        <TestProvider onStoreReady={it => store = it}>
           <Definition initial={override}>
             {comp}
           </Definition>
         </TestProvider>);
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [strict]: true, leafValue: { [type]: valType, [isRequired]: false, [leaf]: true, }, }, });
-      expect(values.store.state).toEqual(override);
+      expect(store.getShape()).toEqual({
+        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
+          leafValue: { [type]: valType, [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+          },
+        },
+      });
+      expect(store.state).toEqual(override);
     });
   });
 
-  test('override leafs initial state by objects and objects, then by initial state by context', () => {
-    [
-      { comp: <Obj name='val' initial={{ leafValue: 2, }}><Numb name='leafValue' initial={1} /></Obj>, valType: 'Number', value: undefined, override: { val: { leafValue: 3, }, }, },
-      { comp: <Obj name='val' initial={{ leafValue: 'something', }}><Str name='leafValue' initial={''} /></Obj>, valType: 'String', value: {}, override: { val: { leafValue: 'something else', }, }, },
-      { comp: <Obj name='val' initial={undefined}><Numb name='leafValue' /></Obj>, valType: 'Number', value: { a: 2, }, override: { val: { leafValue: 3, }, }, },
-      { comp: <Obj name='val' initial={undefined}><Numb name='leafValue' /></Obj>, valType: 'Number', value: { a: 2, }, override: { val: { leafValue: undefined, }, }, },
-      { comp: <Obj name='val' initial={{ leafValue: 1, }}><Numb name='leafValue' /></Obj>, valType: 'Number', value: { a: 2, }, override: { val: undefined, }, },
-    ].forEach(({ comp, valType, override, }) => {
-      values = {};
-      ReactTestRenderer.create(
-        <TestProvider onStoreReady={(store, shape) => assign(values, { store, shape, })}>
-          <Definition initial={override}>
-            {comp}
-          </Definition>
-        </TestProvider>);
-      expect(values.shape.state).toEqual({ [strict]: true, [type]: 'Object', val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [strict]: true, leafValue: { [type]: valType, [isRequired]: false, [leaf]: true, }, }, });
-      expect(values.store.state).toEqual(override);
-    });
+  test('static values', () => {
+    const errors = [];
+    Definition.onInitializeWarn = (msg) => errors.push(msg);
+    ReactTestRenderer.create(
+      <TestProvider onStoreReady={it => store = it}>
+        <Definition initial={{ staticValue: { b: 1, c: 2, d: { e: 3, }, }, nonStatic: { staticArray: [ 1, 2, 3, { a: 1, b: { c: 1, }, }, ], }, }}>
+          <StaticObject name='staticValue'>
+            <Numb name='b' />
+            <Numb name='c' />
+            <Obj name='d'>
+              <Numb name='e' />
+            </Obj>
+          </StaticObject>
+          <Obj name='nonStatic'>
+            <StaticArray name='staticArray' />
+          </Obj>
+        </Definition>
+      </TestProvider>);
+    expect(errors.length).toBe(0);
+    expect(store.state).toEqual({ staticValue: { b: 1, c: 2, d: { e: 3, }, }, nonStatic: { staticArray: [ 1, 2, 3, { a: 1, b: { c: 1, }, }, ], }, });
+    expect(store.staticValue.b).toBeUndefined();
+    expect(store.nonStatic.staticArray[0]).toBeUndefined();
+    expect(store.getShape()).toEqual({
+      [leaf]: false, [type]: 'Object', [isRequired]: true, [isStatic]: false, [strict]: true,
+      staticValue: {
+        [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: true, [strict]: true,
+        b: {
+          [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+        },
+        c: {
+          [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+        },
+        d: {
+          [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
+          e: {
+            [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+          },
+        },
+      },
+      nonStatic: {
+        [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
+        staticArray: {
+          [type]: 'Array', [isRequired]: false, [leaf]: false, [isStatic]: true, [strict]: false,
+        },
+      }, });
   });
 });

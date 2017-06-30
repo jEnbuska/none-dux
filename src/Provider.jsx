@@ -1,5 +1,5 @@
 import React from 'react';
-import { func, object, node, } from 'prop-types';
+import { func, object, node, bool, } from 'prop-types';
 import createStore from './createStore';
 import SubStore from './SubStore';
 
@@ -10,6 +10,11 @@ export default class Provider extends React.Component {
     initialState: object,
     shape: object,
     onChange: func,
+    eager: bool,
+  };
+
+  static defaultProps = {
+    eager: false,
   };
 
   static childContextTypes = {
@@ -31,6 +36,7 @@ export default class Provider extends React.Component {
 
   subscriptionCount=0;
   subscribers={};
+  state = { lastChange: null, };
 
   componentWillMount() {
     const { initialState, shape, definition, } = this.props;
@@ -49,19 +55,35 @@ export default class Provider extends React.Component {
     }
     const { subscribers, store, } = this;
     useReduxDevtools(store);
-    const { onChange, } = this.props;
+    const { onChange, eager, } = this.props;
     if (onChange) {
       store.subscribe(() => onChange(store, SubStore.lastChange));
     }
-    this.subsription = store.subscribe(() => {
-      for (const key in subscribers) {
-        subscribers[key]();
-      }
-    });
+    if (eager) {
+      this.subsription = store.subscribe(() => {
+        for (const key in subscribers) {
+          subscribers[key]();
+        }
+      });
+    } else {
+      this.subsription = store.subscribe(() => {
+        const { lastChange, } = SubStore;
+        this.setState({ lastChange, });
+      });
+    }
     if (!initial) {
       this.forceUpdate();
     }
   };
+
+  componentWillUpdate({ eager, }) {
+    const { subscribers, } = this;
+    if (!eager) {
+      for (const key in subscribers) {
+        subscribers[key]();
+      }
+    }
+  }
 
   render() {
     if (this.store) {
