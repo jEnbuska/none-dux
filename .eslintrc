@@ -87,6 +87,7 @@
     "guard-for-in": "off",
     "valid-typeof": "off",
     "prefer-template": "off",
-    "react/self-closing-comp": "warn"
+    "react/self-closing-comp": "warn",
+    "no-return-assign": "warn"
   }
 }
