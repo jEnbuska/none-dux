@@ -26,6 +26,7 @@ export class StoreCreator {
       subject.subscriptionCount++;
       return () => delete subscribers[subscriptionCount];
     }.bind(subject);
+    subject.getShape = () => subject.__substore_shape__;
     SubStore.lastChange = { target: [ 'root', ], action: CLEAR_STATE, param: state, };
   }
 
