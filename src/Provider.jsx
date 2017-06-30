@@ -39,22 +39,21 @@ export default class Provider extends React.Component {
   state = { lastChange: null, };
 
   componentWillMount() {
-    const { initialState, shape, definition, } = this.props;
+    const { initialState, definition, } = this.props;
     if (initialState) {
-      this.onStoreReady(initialState, shape, true);
+      this.onStoreReady(createStore(initialState), true);
     } else if (!definition) {
       throw new Error('No definition nor initialState given to Provider');
     }
   }
 
-  onStoreReady = (stateStore, shapeStore, initial) => {
-    if (!shapeStore) {
-      this.store = stateStore;
-    } else {
-      this.store = createStore({ ...stateStore.state, }, shapeStore.state);
+  onStoreReady = (store, beforeMount) => {
+    this.store = store;
+    console.log(store)
+    const { subscribers, } = this;
+    if (process.env.NODE_ENV!=='production') {
+      useReduxDevtools(store);
     }
-    const { subscribers, store, } = this;
-    useReduxDevtools(store);
     const { onChange, eager, } = this.props;
     if (onChange) {
       store.subscribe(() => onChange(store, SubStore.lastChange));
@@ -71,7 +70,7 @@ export default class Provider extends React.Component {
         this.setState({ lastChange, });
       });
     }
-    if (!initial) {
+    if (!beforeMount) {
       this.forceUpdate();
     }
   };
