@@ -76,6 +76,7 @@
     "semi": ["warn", "always"],
     "object-shorthand": "warn",
     "jsx-a11y/no-static-element-interactions":"warn",
+    "react/jsx-filename-extension": "warn",
     "array-callback-return": "warn",
     "import/first": "warn",
     "radix": 0,
