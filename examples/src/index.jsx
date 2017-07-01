@@ -21,8 +21,8 @@ const User = ({ name, many, ...rest }) => (
     <Bool name='pending' />
   </Obj>);
 
-const Status = ({ initial, }) => (
-  <Obj name='status' initial={initial} isRequired>
+const Status = () => (
+  <Obj name='status' isRequired>
     <Bool name='pending' />
     <Err name='error' />
   </Obj>
@@ -30,15 +30,15 @@ const Status = ({ initial, }) => (
 
 const definition = (
   <Definition>
-    <Obj name='users' initial isRequired>
-      <Status initial />
-      <Obj name='content' initial isRequired>
+    <Obj name='users' isRequired>
+      <Status />
+      <Obj name='content' isRequired>
         <User many />
       </Obj>
     </Obj>
-    <Obj name='todosByUser' initial isRequired>
-      <Status initial />
-      <Obj name='content' initial isRequired>
+    <Obj name='todosByUser' isRequired>
+      <Status />
+      <Obj name='content' isRequired>
         <Obj many> {/* by user id*/}
           <Obj many> {/* by todo id*/ }
             {[ 'id', 'userId', 'description', ]
@@ -49,8 +49,8 @@ const definition = (
         </Obj>
       </Obj>
     </Obj>
-    <Obj name='selections' initial isRequired>
-      <Obj name='user' initial />
+    <Obj name='selections' isRequired>
+      <User name='user' />
     </Obj>
   </Definition>
 );
