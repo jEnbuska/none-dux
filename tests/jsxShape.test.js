@@ -1,5 +1,5 @@
-import { Definition, Obj, Numb, Err, Symb, Rgx, Str, Bool, Func, Dt, Arr, StaticArray, StaticObject, } from '../src/shape/index.js';
-import { isRequired, strict, type, leaf, isStatic, } from '../src/shape/shapeTypes.js';
+import { Definition, Obj, Numb, Err, Symb, Rgx, Str, Bool, Func, Dt, Arr, } from '../src/shape/index.js';
+import { isRequired, strict, type, leaf, stateOnly, } from '../src/shape/shapeTypes.js';
 import TestProvider from './TestProvider';
 
 let React;
@@ -56,8 +56,8 @@ describe('jsx shape', () => {
           </Definition>
         </TestProvider>);
       expect(store.getShape()).toEqual({
-        [isRequired]: true, [leaf]: false, [type]: 'Object', [isStatic]: false, [strict]: true,
-        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+        [isRequired]: true, [leaf]: false, [type]: 'Object', [stateOnly]: false, [strict]: true,
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [stateOnly]: true, [strict]: true, }, });
       expect(store.state).toEqual({ val: undefined, });
     });
   });
@@ -94,8 +94,8 @@ describe('jsx shape', () => {
           </Definition>
         </TestProvider>);
       expect(store.getShape()).toEqual({
-        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
-        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+        [strict]: true, [isRequired]: true, [stateOnly]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [stateOnly]: true, [strict]: true, }, });
       expect(store.state).toEqual({ val: value, });
     });
   });
@@ -137,8 +137,8 @@ describe('jsx shape', () => {
           </Definition>
         </TestProvider>);
       expect(store.getShape()).toEqual({
-        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
-        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [isStatic]: false, [strict]: true, }, });
+        [strict]: true, [isRequired]: true, [stateOnly]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: valType, [isRequired]: i % 2 === 0, [leaf]: true, [stateOnly]: true, [strict]: true, }, });
       expect(store.state).toEqual({ val: override, });
     });
   });
@@ -157,8 +157,8 @@ describe('jsx shape', () => {
           </Definition>
         </TestProvider>
       );
-      expect(store.getShape()).toEqual({ [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
-        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [strict]: false, [isStatic]: false, }, });
+      expect(store.getShape()).toEqual({ [strict]: true, [isRequired]: true, [stateOnly]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [strict]: false, [stateOnly]: false, }, });
       expect(store.state).toEqual({ val: override, });
     });
   });
@@ -177,8 +177,8 @@ describe('jsx shape', () => {
         </TestProvider>
       );
       expect(store.getShape()).toEqual({
-        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
-        val: { [type]: 'Array', [isRequired]: false, [leaf]: false, [strict]: false, [isStatic]: false, }, });
+        [strict]: true, [isRequired]: true, [stateOnly]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Array', [isRequired]: false, [leaf]: false, [strict]: false, [stateOnly]: false, }, });
       expect(store.state).toEqual({ val: override, });
     });
   });
@@ -199,9 +199,9 @@ describe('jsx shape', () => {
           </Definition>
         </TestProvider>);
       expect(store.getShape()).toEqual({
-        [strict]: true, [isRequired]: true, [isStatic]: false, [leaf]: false, [type]: 'Object',
-        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
-          leafValue: { [type]: valType, [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+        [strict]: true, [isRequired]: true, [stateOnly]: false, [leaf]: false, [type]: 'Object',
+        val: { [type]: 'Object', [isRequired]: false, [leaf]: false, [stateOnly]: false, [strict]: true,
+          leafValue: { [type]: valType, [isRequired]: false, [leaf]: true, [stateOnly]: true, [strict]: true,
           },
         },
       });
@@ -215,15 +215,15 @@ describe('jsx shape', () => {
     ReactTestRenderer.create(
       <TestProvider onStoreReady={it => store = it}>
         <Definition initial={{ staticValue: { b: 1, c: 2, d: { e: 3, }, }, nonStatic: { staticArray: [ 1, 2, 3, { a: 1, b: { c: 1, }, }, ], }, }}>
-          <StaticObject name='staticValue'>
+          <Obj stateOnly name='staticValue'>
             <Numb name='b' />
             <Numb name='c' />
             <Obj name='d'>
               <Numb name='e' />
             </Obj>
-          </StaticObject>
+          </Obj>
           <Obj name='nonStatic'>
-            <StaticArray name='staticArray' />
+            <Arr stateOnly name='staticArray' />
           </Obj>
         </Definition>
       </TestProvider>);
@@ -232,26 +232,26 @@ describe('jsx shape', () => {
     expect(store.staticValue.b).toBeUndefined();
     expect(store.nonStatic.staticArray[0]).toBeUndefined();
     expect(store.getShape()).toEqual({
-      [leaf]: false, [type]: 'Object', [isRequired]: true, [isStatic]: false, [strict]: true,
+      [leaf]: false, [type]: 'Object', [isRequired]: true, [stateOnly]: false, [strict]: true,
       staticValue: {
-        [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: true, [strict]: true,
+        [type]: 'Object', [isRequired]: false, [leaf]: false, [stateOnly]: true, [strict]: true,
         b: {
-          [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+          [type]: 'Number', [isRequired]: false, [leaf]: true, [stateOnly]: true, [strict]: true,
         },
         c: {
-          [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+          [type]: 'Number', [isRequired]: false, [leaf]: true, [stateOnly]: true, [strict]: true,
         },
         d: {
-          [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
+          [type]: 'Object', [isRequired]: false, [leaf]: false, [stateOnly]: true, [strict]: true,
           e: {
-            [type]: 'Number', [isRequired]: false, [leaf]: true, [isStatic]: false, [strict]: true,
+            [type]: 'Number', [isRequired]: false, [leaf]: true, [stateOnly]: true, [strict]: true,
           },
         },
       },
       nonStatic: {
-        [type]: 'Object', [isRequired]: false, [leaf]: false, [isStatic]: false, [strict]: true,
+        [type]: 'Object', [isRequired]: false, [leaf]: false, [stateOnly]: false, [strict]: true,
         staticArray: {
-          [type]: 'Array', [isRequired]: false, [leaf]: false, [isStatic]: true, [strict]: false,
+          [type]: 'Array', [isRequired]: false, [leaf]: false, [stateOnly]: true, [strict]: false,
         },
       }, });
   });

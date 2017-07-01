@@ -2,7 +2,7 @@ import React from 'react';
 import { string, object, array, func, bool, } from 'prop-types';
 import createStore from '../createStore';
 import { getComponentTypeOf, } from './utils';
-import { strict, type, leaf, isStatic, isRequired, } from './shapeTypes';
+import { strict, type, leaf, stateOnly, isRequired, } from './shapeTypes';
 import DisplayNone from './DisplayNone';
 
 export default class Definition extends React.Component {
@@ -38,7 +38,7 @@ export default class Definition extends React.Component {
   componentWillMount() {
     this.build = this.props.initial || {};
     if (process.env.NODE_ENV!=='production') {
-      this.shape = { [strict]: !this.props.loose, [leaf]: false, [type]: 'Object', [isStatic]: false, [isRequired]: true, };
+      this.shape = { [strict]: !this.props.loose, [leaf]: false, [type]: 'Object', [stateOnly]: false, [isRequired]: true, };
     }
   }
 
@@ -51,7 +51,7 @@ export default class Definition extends React.Component {
     this.context.onStoreReady(createStore(build, shape));
   }
 
-  static checkPropsSanity(component, initial, build, name, many, parentIsArray, isStatic) {
+  static checkPropsSanity(component, initial, build, name, many, parentIsArray) {
     if ((name === null || name === undefined) && !many) {
       throw new Error('Type: "'+ getComponentTypeOf(component) + '" of "' + component.identity.join(', ') + '" is missing a name');
     } else if (initial && !build) {
@@ -60,8 +60,6 @@ export default class Definition extends React.Component {
       Definition.onInitializeWarn('Type: "'+getComponentTypeOf(component) + '"\nTarget:'+component.identity.join(', ') + '"\nGot both "name" and "many" using "many" instead');
     } else if (!many && parentIsArray) {
       Definition.onInitializeWarn('Type: "'+getComponentTypeOf(component) + '"\nTarget:'+component.identity.join(', ') + '"\nType "many" is inserted because parent is Array\'t');
-    } else if (many && isStatic) {
-      throw new Error('Type: "'+getComponentTypeOf(component) + '"\nTarget:'+component.identity.join(', ') + '"\n Is static so it cannot be type "many"');
     }
   }
 

@@ -2,7 +2,8 @@ import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
 import { getComponentTypeOf, } from './utils';
 import Definition from './Definition';
-import { strict, type, leaf, isRequired as requiredShape, many as manyKey, isStatic, } from './shapeTypes';
+import { strict, type, leaf, isRequired as requiredShape, many as manyKey, stateOnly as stateOnlyShape, } from './shapeTypes';
+import createLeaf from '../SubStoreLeaf';
 import DisplayNone from './DisplayNone';
 
 class ParentShape extends React.Component {
@@ -13,22 +14,27 @@ class ParentShape extends React.Component {
     loose: bool,
     name: string,
     many: bool,
+    stateOnly: bool,
+  };
+
+  static defaultProps = {
+    stateOnly: false,
   };
 
   static contextTypes = {
     build: any,
     shape: object,
     identity: array,
-    isStatic: bool,
     parentIsArray: bool,
+    stateOnly: bool,
   };
 
   static childContextTypes = {
     identity: array,
-    attached: bool,
     build: any,
     shape: object,
     parentIsArray: bool,
+    stateOnly: bool,
   };
 
   getChildContext() {
@@ -37,6 +43,7 @@ class ParentShape extends React.Component {
       build: this.build,
       identity: this.identity,
       shape: this.shape,
+      stateOnly: this.context.stateOnly || this.props.stateOnly,
     };
   }
 
@@ -46,7 +53,7 @@ class ParentShape extends React.Component {
     this.identity = [ ...identity, name, ];
     if (shape) {
       Definition.checkPropsSanity(this, initial, build, name, many, parentIsArray);
-      if (initial!==undefined) {
+      if (initial) {
         if (initial instanceof String) {
           throw new Error('Expected object or array as value but got string '+initial);
         }
@@ -62,7 +69,7 @@ class ParentShape extends React.Component {
         [strict]: (!loose && !childIsMultiple) && !(this instanceof Arr),
         [leaf]: false,
         [type]: getComponentTypeOf(this),
-        [isStatic]: false,
+        [stateOnlyShape]: this.context.stateOnly || this.props.stateOnly,
       };
     }
     if (!many && build && initial!==undefined && !build.hasOwnProperty(name)) {
@@ -73,6 +80,13 @@ class ParentShape extends React.Component {
   render() {
     return <DisplayNone>{this.props.children}</DisplayNone>;
   }
+
+  componentDidMount() {
+    if (this.build && this.props.stateOnly && !this.context.stateOnly) {
+      this.context.build[this.props.name] = createLeaf(this.build);
+    }
+  }
+
 }
 
 export class Arr extends ParentShape {

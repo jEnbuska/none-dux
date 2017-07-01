@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-import { strict, isRequired, type, leaf, many, } from './shape/shapeTypes';
+import { strict, isRequired, type, leaf, many, stateOnly, } from './shape/shapeTypes';
 
 const { getPrototypeOf, keys, entries, } = Object;
 
@@ -7,7 +7,7 @@ const naturalLeafTypes = {
   Number: true, RegExp: true, Boolean: true, Function: true, Date: true, Error: true, String: true, Symbol: true,
 };
 const checkers = {
-  string: { check: (val) => val === '' || (val && getPrototypeOf(val).constructor.name === 'String'), name: 'string', },
+  String: { check: (val) => val === '' || (val && getPrototypeOf(val).constructor.name === 'String'), name: 'string', },
   Number: { check: (val) => val === 0 || (val && getPrototypeOf(val).constructor.name === 'Number'), name: 'number', },
   Boolean: { check: (val) => val===false || (val && getPrototypeOf(val).constructor.name === 'Boolean'), name: 'bool', },
   RegExp: { check: (val) => val && getPrototypeOf(val).constructor.name === 'RegExp', name: 'regex', },
@@ -52,6 +52,9 @@ export default class DevSubStore extends SubStore {
     const subShape = shape[key] || shape[many];
     if (subShape) {
       this[key] = new DevSubStore(initialState, key, parent, depth + 1, subShape);
+      if (shape[stateOnly]) {
+
+      }
     } else {
       this[key] = new SubStore(initialState, key, parent, depth + 1, subShape);
       if (shape[strict]) {
@@ -162,20 +165,21 @@ export default class DevSubStore extends SubStore {
     console.error('Exclusive validation failed: '+JSON.stringify(target.getIdentity())+'\n'+
       'Has no validation for key: ' + key + '\n' +
       'With value: '+JSON.stringify(value, null, 1)+'\n'+
-      'Expected\n'+ entries(children).map(([ k, v, ]) => {
-        return k + ': ' + v.type;
-      }).join('\n'));
+      'Expected\n'+ entries(children).map(([ k, v, ]) => k + ': ' + v[type]).join('\n'));
   }
 
   static onValidationError({ expected, actual, state, identity, isRequired, }) {
-    console.error(`Validations failed\nExpected type ${JSON.stringify(expected, null, 1)}\nBut got ${actual}\nisRequired: ${!!isRequired}\nTarget: ${JSON.stringify(identity)}\nState: ${JSON.stringify(state, null, 1)}`);
+    console.error(`Validations failed\n
+    Expected type: ${JSON.stringify(expected, null, 1)}\n
+    But got: ${actual}\n
+    Target: ${JSON.stringify(identity)}\n
+    Required: ${isRequired}\n
+    State: ${JSON.stringify(state, null, 1)}`);
   }
 
   static onMissingRequiredFields({ identity, missingRequiredFields, }) {
-    console.error(`Validation failed\nMissing fields: ${JSON.stringify(missingRequiredFields)}\nTarget ${JSON.stringify(identity)}`);
-  }
-
-  static onInvalidSpecType(target) {
-    console.error(`invalid spec type '${JSON.stringify(target.__substore_shape__[type])}\nTarget ${JSON.stringify(target.get)}`);
+    console.error(`Validation failed\n
+    Missing fields: ${JSON.stringify(missingRequiredFields)}\n
+    Target: ${JSON.stringify(identity)}`);
   }
 }

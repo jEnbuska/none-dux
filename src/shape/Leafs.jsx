@@ -2,7 +2,7 @@ import React from 'react';
 import { any, string, object, array, bool, } from 'prop-types';
 import { getComponentTypeOf, } from './utils';
 import Definition from './Definition';
-import { type, isRequired as requiredShape, leaf, many as manyKey, isStatic, strict, } from './shapeTypes';
+import { type, isRequired as requiredShape, leaf, many as manyKey, stateOnly, strict, } from './shapeTypes';
 
 class LeafShape extends React.Component {
 
@@ -31,7 +31,7 @@ class LeafShape extends React.Component {
         [type]: getComponentTypeOf(this),
         [strict]: !loose,
         [leaf]: true,
-        [isStatic]: false,
+        [stateOnly]: true,
       };
       if (this.props.children) {
         throw new Error('Target: "'+this.identity.join(',')+'" of type: "'+ getComponentTypeOf(this)+'", cannot have any children');

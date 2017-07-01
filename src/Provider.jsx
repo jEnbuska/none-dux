@@ -49,7 +49,6 @@ export default class Provider extends React.Component {
 
   onStoreReady = (store, beforeMount) => {
     this.store = store;
-    console.log(store)
     const { subscribers, } = this;
     if (process.env.NODE_ENV!=='production') {
       useReduxDevtools(store);

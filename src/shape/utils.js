@@ -1,6 +1,5 @@
 import { Str, Bool, Dt, Func, Rgx, Numb, Err, Symb, } from './Leafs';
 import { Arr, Obj, } from './Parents';
-import { StaticArray, StaticObject, } from './Static';
 
 export const isChildValue = {
   Number: true,
@@ -24,7 +23,5 @@ export function getComponentTypeOf(obj) {
     [Err]: 'Error',
     [Obj]: 'Object',
     [Arr]: 'Array',
-    [StaticArray]: 'Array',
-    [StaticObject]: 'Object',
   }[Object.getPrototypeOf(obj).constructor];
 }
