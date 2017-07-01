@@ -11,6 +11,7 @@ Definition.onInitializeWarn = () => {};
 describe('jsx shape', () => {
   let store;
   beforeEach(() => {
+    store = undefined;
     jest.resetModules();
     ReactTestRenderer = require('react-test-renderer');
     React = require('react');
@@ -18,15 +19,15 @@ describe('jsx shape', () => {
   });
 
   test('create jsx shape without crashing', () => {
-    let store;
+    let definition;
     ReactTestRenderer.create(
       <TestProvider onStoreReady={() => {}}>
-        <Definition ref={(ref) => { store = ref; }}>
-          <Obj isRequired name='myObj' />
+        <Definition ref={(ref) => { definition = ref; }}>
+          <Obj isRequired name='jsxObj' />
         </Definition>
       </TestProvider>
         );
-    expect(store).toBeDefined();
+    expect(definition).toBeDefined();
   });
 
   test('create required Leaf type without initialState', () => {
@@ -48,9 +49,8 @@ describe('jsx shape', () => {
       { comp: <Dt isRequired name='val' />, valType: 'Date', },
       { comp: <Dt name='val' />, valType: 'Date', },
     ].forEach(({ comp, valType, }, i) => {
-      store = {};
       ReactTestRenderer.create(
-        <TestProvider onStoreReady={it => store = it}>
+        <TestProvider onStoreReady={it => { store = it; }}>
           <Definition>
             {comp}
           </Definition>
@@ -146,7 +146,7 @@ describe('jsx shape', () => {
   test('override objects initial state by context', () => {
     [
       { comp: <Obj name='val' initial={undefined} loose />, value: undefined, override: {}, },
-      { comp: <Obj name='val' initial loose />, value: {}, override: { a: 1, }, },
+      { comp: <Obj name='val' loose />, value: {}, override: { a: 1, }, },
       { comp: <Obj name='val' initial={{ a: 1, }} loose />, value: { a: 2, }, override: {}, },
     ].forEach(({ comp, override, }, i) => {
       store = {};
@@ -254,5 +254,114 @@ describe('jsx shape', () => {
           [type]: 'Array', [isRequired]: false, [leaf]: false, [stateOnly]: true, [strict]: false,
         },
       }, });
+  });
+
+  test('build initial state by jsx', () => {
+    const errors = [];
+    Definition.onInitializeWarn = (msg) => errors.push(msg);
+    ReactTestRenderer.create(
+      <TestProvider onStoreReady={it => store = it}>
+        <Definition>
+          <Obj name='a'>
+            <Obj name='b'>
+              <Obj name='c'>
+                <Numb name='d' />
+                <Numb name='e' initial={1} />
+              </Obj>
+              <Obj name='f' loose>
+                <Numb name='g' />
+                <Str name='h' initial={'test'} />
+              </Obj>
+              <Obj many>
+                <Obj name='x'>
+                  <Numb name='y' />
+                </Obj>
+                <Obj name='z' loose />
+              </Obj>
+            </Obj>
+            <Obj name='i'>
+              <Str name='j' initial='' />
+              <Arr name='k'>
+                <Obj name='l'>
+                  <Numb name='m' />
+                </Obj>
+              </Arr>
+              <Obj name='n' loose />
+            </Obj>
+          </Obj>
+
+        </Definition>
+      </TestProvider>);
+    // expect(errors.length).toBe(0);
+    expect(store.state).toEqual({
+      a: {
+        b: {
+          c: {
+            e: 1,
+          },
+          f: {
+            h: 'test',
+          },
+        },
+        i: {
+          j: '',
+          k: [],
+          n: {},
+        },
+      },
+    });
+  });
+
+  test('build initial state by jsx, prevent certain parts', () => {
+    const errors = [];
+    Definition.onInitializeWarn = (msg) => errors.push(msg);
+    ReactTestRenderer.create(
+      <TestProvider onStoreReady={it => store = it}>
+        <Definition>
+          <Obj name='a'>
+            <Obj name='b'>
+              <Obj name='c' initial={false}>
+                <Numb name='d' />
+                <Numb name='e' initial={1} />
+              </Obj>
+              <Obj name='f' loose>
+                <Numb name='g' />
+                <Str name='h' initial={'test'} />
+              </Obj>
+              <Obj many>
+                <Obj name='x'>
+                  <Numb name='y' />
+                </Obj>
+                <Obj name='z' loose />
+              </Obj>
+            </Obj>
+            <Obj name='i'>
+              <Str name='j' initial='' />
+              <Arr name='k'>
+                <Obj name='l'>
+                  <Numb name='m' />
+                </Obj>
+              </Arr>
+              <Obj name='n' loose initial={false} />
+            </Obj>
+          </Obj>
+        </Definition>
+      </TestProvider>);
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBe('Type: "Number"\n'+
+      'Target: "_application_state_, a, b, c, e" is not attached in initial state, so it cannot be given own initial state');
+    expect(store.state).toEqual({
+      a: {
+        b: {
+          f: {
+            h: 'test',
+          },
+        },
+        i: {
+          j: '',
+          k: [],
+        },
+      },
+    });
   });
 });
