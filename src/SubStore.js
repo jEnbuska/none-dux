@@ -1,6 +1,6 @@
-import { SET_STATE, CLEAR_STATE, REMOVE, NON_PARENT_VALUES, exists, valueCouldBeSubStore, } from './common';
+import { SET_STATE, CLEAR_STATE, REMOVE, stringify, exists, valueCouldBeSubStore, } from './common';
 
-const { getPrototypeOf, assign, values, keys, } = Object;
+const { assign, values, keys, } = Object;
 
 export default class SubStore {
 
@@ -144,7 +144,7 @@ export default class SubStore {
       SubStore.lastChange = { func: REMOVE, target: this.__substore_identity__, param: keys, };
       this.__substore_parent__._notifyUp(this);
     } else {
-      console.error('Remove error:', `${JSON.stringify(this.__substore_identity__)}. Has no children, was given,${JSON.stringify(keys)} when state: ${state}`);
+      console.error('Remove error:', `${JSON.stringify(this.__substore_identity__)}. Has no children, was given,${JSON.stringify(keys)} when state: ${stringify(state)}`);
     }
   }
 

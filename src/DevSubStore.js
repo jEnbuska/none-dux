@@ -1,7 +1,7 @@
 import SubStore from './SubStore';
 import { strict, isRequired, type, leaf, many, stateOnly, } from './shape/shapeTypes';
 import { checkers, getShapesChildren, getValueTypeName, } from './shape/utils';
-import { valueCouldBeSubStore, NATURAL_LEAF_TYPES, } from './common';
+import { valueCouldBeSubStore, stringify} from './common';
 
 const { entries, } = Object;
 
@@ -94,7 +94,7 @@ export default class DevSubStore extends SubStore {
     }
     DevSubStore.ensureRequiredFields(target);
     entries(getShapesChildren(shape))
-      .filter(([ _, { [stateOnly]: sOnly, }, ]) => sOnly)
+      .filter(([ _, { [stateOnly]: sOnly, [leaf]: l, }, ]) => sOnly && !l)
       .filter(([ k, ]) => state[k])
       .forEach(([ k, v, ]) => {
         try {
@@ -108,7 +108,9 @@ export default class DevSubStore extends SubStore {
       entries(state)
         .filter(([ k, ]) => !shape[k])
         .filter(([ k, ]) => !prevState || state[k] !== prevState[k])
-        .forEach(([ key, value, ]) => DevSubStore.onExclusiveViolation({ key, value, identity, shape, }));
+        .forEach(([ key, value, ]) => {
+          DevSubStore.onExclusiveViolation({ key, value, identity, shape, });
+        });
     }
   }
 
@@ -127,9 +129,9 @@ export default class DevSubStore extends SubStore {
 
   static onExclusiveViolation({ key, identity, shape, value, }) {
     const children = getShapesChildren(shape);
-    console.error('Validation prompt: '+JSON.stringify(identity.join(', '))+'\n'+
+    console.error('Validation prompt: '+identity.join(', ')+'\n'+
       'Has no validation for key: ' + key + '\n' +
-      'With value: '+JSON.stringify(value, null, 1)+'\n'+
+      'With value: '+stringify(value)+'\n'+
       'Expected\n'+ entries(children).map(([ k, v, ]) => k + ': ' + v[type]).join('\n')+
       'Add the necessary validations, or add prop "loose" to the target, to avoid further prompts.'
     );
@@ -141,7 +143,7 @@ export default class DevSubStore extends SubStore {
     'But got: '+actual+'\n'+
     'Target: '+identity.join(' ,')+'\n'+
     'isRequired: '+isRequired+'\n'+
-    'State: '+JSON.stringify(state, null, 2));
+    'State: '+stringify(state));
   }
 
   static onMissingRequiredFields({ identity, missingRequiredFields, }) {
@@ -170,7 +172,7 @@ export default class DevSubStore extends SubStore {
         if (state.hasOwnProperty(key)) {
           const subType = subShape[type];
           if (checkers[subType](subState)) {
-            if (!NATURAL_LEAF_TYPES[subType]) {
+            if (!subType[leaf]) {
               DevSubStore.checkStorelessStateRecursively(subState, subShape, subIdentity);
             }
           } else if (subShape[isRequired] || !checkers.none(subState)) {
