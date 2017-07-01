@@ -1,44 +1,20 @@
 import SubStore from './SubStore';
 import { strict, isRequired, type, leaf, many, stateOnly, } from './shape/shapeTypes';
+import { checkers, getShapesChildren, getValueTypeName, } from './shape/utils';
+import { valueCouldBeSubStore, NATURAL_LEAF_TYPES, } from './common';
 
-const { getPrototypeOf, keys, entries, } = Object;
-
-const naturalLeafTypes = {
-  Number: true, RegExp: true, Boolean: true, Function: true, Date: true, Error: true, String: true, Symbol: true,
-};
-const checkers = {
-  String: { check: (val) => val === '' || (val && getPrototypeOf(val).constructor.name === 'String'), name: 'string', },
-  Number: { check: (val) => val === 0 || (val && getPrototypeOf(val).constructor.name === 'Number'), name: 'number', },
-  Boolean: { check: (val) => val===false || (val && getPrototypeOf(val).constructor.name === 'Boolean'), name: 'bool', },
-  RegExp: { check: (val) => val && getPrototypeOf(val).constructor.name === 'RegExp', name: 'regex', },
-  Symbol: { check: (val) => val && getPrototypeOf(val).constructor.name === 'Symbol', name: 'symbol', },
-  Function: { check: (val) => val && getPrototypeOf(val).constructor.name === 'Function', name: 'func', },
-  Date: { check: (val) => val && getPrototypeOf(val).constructor.name === 'Date', name: 'date', },
-  strict: { check: (state, shape) => keys(state).every(key => shape[key]), name: 'strict', },
-  Object: { check: (val) => {
-    if (val) {
-      const { name, } = getPrototypeOf(val).constructor;
-      return name === 'Object' || (name !== 'Array' && name !== 'SubStoreArrayLeaf' && !naturalLeafTypes[name]);
-    }
-    return false;
-  }, name: 'object', },
-  Array: { check: (val) => {
-    if (val) {
-      const { name, } = getPrototypeOf(val).constructor;
-      return name === 'Array' || name === 'SubStoreArrayLeaf';
-    }
-    return false;
-  }, name: 'array', },
-  none: { check: (val) => val === null || val === undefined, name: 'null or undefined', },
-};
+const { entries, } = Object;
 
 export default class DevSubStore extends SubStore {
 
   static verbose = true;
 
-  constructor(initialValue, key, parent, depth, __substore_shape__) {
-    super(initialValue, key, parent, depth, __substore_shape__);
+  constructor(initialValue, key, parent, depth, shape) {
+    super(initialValue, key, parent, depth, shape);
     DevSubStore.afterChanged(this);
+    if (shape[stateOnly]) {
+      DevSubStore.onStateOnlyViolation(this.getIdentity());
+    }
   }
 
   remove(...ids) {
@@ -52,9 +28,6 @@ export default class DevSubStore extends SubStore {
     const subShape = shape[key] || shape[many];
     if (subShape) {
       this[key] = new DevSubStore(initialState, key, parent, depth + 1, subShape);
-      if (shape[stateOnly]) {
-
-      }
     } else {
       this[key] = new SubStore(initialState, key, parent, depth + 1, subShape);
       if (shape[strict]) {
@@ -88,70 +61,62 @@ export default class DevSubStore extends SubStore {
   }
 
   static afterChanged(target) {
-    const { state, __substore_shape__: shape, __substore_identity__, prevState, } = target;
+    const { state, __substore_shape__: shape, __substore_identity__: identity, prevState, } = target;
     const { [strict]: s, [type]: t, [isRequired]: r, [leaf]: l, } = shape;
     if (s) {
-      entries(state)
-          .filter(([ k, ]) => !shape[k])
-          .filter(([ k, ]) => !prevState || state[k] !== prevState[k])
-          .forEach(([ key, value, ]) => DevSubStore.onExclusiveViolation({ key, value, target, shape, }));
+      DevSubStore.checkExclusiveValidations(s, state, prevState, shape, identity);
     }
-    if (!checkers[t].check(state) && (r || (!r && !checkers.none(state)))) {
+    if (!checkers[t](state) && (r || (!r && !checkers.none(state)))) {
       DevSubStore.onValidationError({
         state,
         expected: t,
-        actual: DevSubStore.getSpecificType(state),
-        identity: [ ...__substore_identity__, ],
+        actual: getValueTypeName(state),
         isRequired: r,
         strict: s,
       });
       entries(state)
-        .filter(([ _, v, ]) => !SubStore.couldBeParent(v))
+        .filter(([ _, v, ]) => !valueCouldBeSubStore(v))
         .filter(([ k, ]) => !prevState || state[k]!==prevState[k])
         .filter(([ k, ]) => shape[k])
-        .filter(([ k, v, ]) => !checkers[shape[k].type].check(v))
-        .forEach(([ key, state, ]) => {
+        .filter(([ k, v, ]) => !checkers[shape[k].type](v))
+        .filter(([ _, v, ]) => v[isRequired] || (!v[isRequired] && !checkers.none(state)))
+        .forEach(([ key, childState, ]) => {
+          const { [type]: cT, [isRequired]: cR, [strict]: cS, } = shape[key];
           DevSubStore.onValidationError({
-            state,
-            expected: t,
-            actual: DevSubStore.getSpecificType(state),
-            identity: [ ...__substore_identity__, key, ],
-            isRequired: r,
-            strict: s,
+            state: childState,
+            expected: cT,
+            actual: getValueTypeName(childState),
+            identity: [ ...identity, key, ],
+            isRequired: cR,
+            strict: cS,
           });
         });
     }
     DevSubStore.ensureRequiredFields(target);
+    entries(getShapesChildren(shape))
+      .filter(([ _, { [stateOnly]: sOnly, }, ]) => sOnly)
+      .filter(([ k, ]) => state[k])
+      .forEach(([ k, v, ]) => {
+        try {
+          DevSubStore.checkStorelessStateRecursively(state[k], v, [ ...identity, k, ]);
+        } catch (_) { /* ignore*/ }
+      });
   }
 
-  static getSpecificType(state) {
-    const type = typeof state;
-    if (state instanceof Object) {
-      if (type === 'function') {
-        return 'Function';
-      } else if (state instanceof Array) {
-        return 'Array';
-      } else if (state instanceof RegExp) {
-        return 'RegExp';
-      } else if (state instanceof Date) {
-        return 'Date';
-      }
-      return 'Object';
+  static checkExclusiveValidations(strict, state, prevState, shape, identity) {
+    if (strict) {
+      entries(state)
+        .filter(([ k, ]) => !shape[k])
+        .filter(([ k, ]) => !prevState || state[k] !== prevState[k])
+        .forEach(([ key, value, ]) => DevSubStore.onExclusiveViolation({ key, value, identity, shape, }));
     }
-    if (state === null) {
-      return 'null';
-    } else if (type === 'boolean') {
-      return 'Boolean';
-    }
-    const [ first, ...rest ] = type;
-    return first.toUpperCase() + String(rest);
   }
 
   static ensureRequiredFields(target) {
-    const { __substore_shape__, __substore_identity__: identity, state, prevState, } = target;
-    const { [isRequired]: _0, [many]: _1, [strict]: _2, [type]: _3, [leaf]: _4, ...children } = __substore_shape__;
+    const { __substore_shape__: shape, __substore_identity__: identity, state, prevState, } = target;
+    const children = getShapesChildren(shape);
     const missingRequiredFields = entries(children)
-      .filter(([ k, v, ]) => !prevState || state[k]!==prevState[k])
+      .filter(([ k, v, ]) => state[k]===undefined || !prevState || state[k]!==prevState[k])
       .filter(([ _, v, ]) => v[isRequired])
       .filter(([ k, ]) => !state.hasOwnProperty(k))
       .map(([ k, ]) => k);
@@ -160,26 +125,69 @@ export default class DevSubStore extends SubStore {
     }
   }
 
-  static onExclusiveViolation({ key, target, shape, value, }) {
-    const { [isRequired]: _0, [many]: _1, [strict]: _2, [type]: _3, [leaf]: _4, ...children } = shape;
-    console.error('Exclusive validation failed: '+JSON.stringify(target.getIdentity())+'\n'+
+  static onExclusiveViolation({ key, identity, shape, value, }) {
+    const children = getShapesChildren(shape);
+    console.error('Validation prompt: '+JSON.stringify(identity.join(', '))+'\n'+
       'Has no validation for key: ' + key + '\n' +
       'With value: '+JSON.stringify(value, null, 1)+'\n'+
-      'Expected\n'+ entries(children).map(([ k, v, ]) => k + ': ' + v[type]).join('\n'));
+      'Expected\n'+ entries(children).map(([ k, v, ]) => k + ': ' + v[type]).join('\n')+
+      'Add the necessary validations, or add prop "loose" to the target, to avoid further prompts.'
+    );
   }
 
   static onValidationError({ expected, actual, state, identity, isRequired, }) {
-    console.error(`Validations failed\n
-    Expected type: ${JSON.stringify(expected, null, 1)}\n
-    But got: ${actual}\n
-    Target: ${JSON.stringify(identity)}\n
-    Required: ${isRequired}\n
-    State: ${JSON.stringify(state, null, 1)}`);
+    console.error('Validation prompt:\n'+
+    'Expected type: '+expected+'\n'+
+    'But got: '+actual+'\n'+
+    'Target: '+identity.join(' ,')+'\n'+
+    'isRequired: '+isRequired+'\n'+
+    'State: '+JSON.stringify(state, null, 2));
   }
 
   static onMissingRequiredFields({ identity, missingRequiredFields, }) {
-    console.error(`Validation failed\n
-    Missing fields: ${JSON.stringify(missingRequiredFields)}\n
-    Target: ${JSON.stringify(identity)}`);
+    console.error('Validation prompt:\n'+
+    'Missing required fields: '+missingRequiredFields+'\n'+
+    'Target: "'+identity.join(', ')+'"');
+  }
+  static onStateOnlyViolation(identity) {
+    console.error('Validation prompt\n'+
+    'Expected '+identity.join(', ')+' to be "stateOnly"\n'+
+    'Use "createLeaf" to avoid creating unnecessary SubStores');
+  }
+
+  static checkStorelessStateRecursively(state, shape, identity) {
+    const childShapes = getShapesChildren(shape);
+    const merge = { ...state, ...childShapes, };
+    for (const key in merge) {
+      let subShape = childShapes[key];
+      const subState = state[key];
+      const subIdentity = [ ...identity, key, ];
+      const actualType = getValueTypeName(subState);
+      if (!subShape && shape[many]) {
+        subShape = shape[many];
+      }
+      if (subShape) {
+        if (state.hasOwnProperty(key)) {
+          const subType = subShape[type];
+          if (checkers[subType](subState)) {
+            if (!NATURAL_LEAF_TYPES[subType]) {
+              DevSubStore.checkStorelessStateRecursively(subState, subShape, subIdentity);
+            }
+          } else if (subShape[isRequired] || !checkers.none(subState)) {
+            DevSubStore.onValidationError({
+              expected: subType,
+              actual: actualType,
+              state: subState,
+              identity: subIdentity,
+              isRequired: subShape[isRequired],
+            });
+          }
+        } else if (subShape[isRequired]) {
+          DevSubStore.onMissingRequiredFields({ identity, missingRequiredFields: [ key, ], });
+        }
+      } else if (shape[strict]) {
+        DevSubStore.onExclusiveViolation({ key, identity, shape, value: state[key], });
+      }
+    }
   }
 }

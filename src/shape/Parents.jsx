@@ -6,6 +6,8 @@ import { strict, type, leaf, isRequired as requiredShape, many as manyKey, state
 import createLeaf from '../SubStoreLeaf';
 import DisplayNone from './DisplayNone';
 
+export const defaultValue = '__parent_default__';
+
 class ParentShape extends React.Component {
 
   static propTypes = {
@@ -19,6 +21,7 @@ class ParentShape extends React.Component {
 
   static defaultProps = {
     stateOnly: false,
+    initial: defaultValue,
   };
 
   static contextTypes = {
@@ -53,16 +56,6 @@ class ParentShape extends React.Component {
     this.identity = [ ...identity, name, ];
     if (shape) {
       Definition.checkPropsSanity(this, initial, build, name, many, parentIsArray);
-      if (initial) {
-        if (initial instanceof String) {
-          throw new Error('Expected object or array as value but got string '+initial);
-        }
-        try {
-          Object.keys(initial);
-        } catch (Exception) {
-          throw new Error('Expected object or array as value but got'+initial);
-        }
-      }
       const childIsMultiple = this.props.children && React.Children.toArray(this.props.children).some(({ props, }) => props && props.many);
       this.shape = shape[many ? manyKey : name] = {
         [requiredShape]: !!isRequired,
@@ -72,8 +65,8 @@ class ParentShape extends React.Component {
         [stateOnlyShape]: this.context.stateOnly || this.props.stateOnly,
       };
     }
-    if (!many && build && initial!==undefined && !build.hasOwnProperty(name)) {
-      this.build = build[name] = initial === true ? this.defaultInitialState : initial;
+    if (!many && build && initial && !build.hasOwnProperty(name)) {
+      this.build = build[name] = initial === defaultValue ? this.defaultInitialState : initial;
     }
   }
 
