@@ -12,38 +12,37 @@ import App from './components/App';
 // If you specify invalid shape to provider, console errors will try to provided information to fix the problem
 // Note that shape is not used when NODE_ENV==='production '
 
+const User = ({ name, many, ...rest }) => (
+  <Obj name={name} many={many} {...rest}>
+    {[ 'id', 'firstName', 'lastName', 'email', 'phone', ]
+      .map(name => <Str name={name} key={name} />)}
+    <Numb name='age' />
+    <Bool name='single' />
+    <Bool name='pending' />
+  </Obj>);
+
+const Status = ({ initial, }) => (
+  <Obj name='status' initial={initial} isRequired>
+    <Bool name='pending' />
+    <Err name='error' />
+  </Obj>
+);
+
 const definition = (
   <Definition>
     <Obj name='users' initial isRequired>
-      <Obj name='status' initial isRequired>
-        <Bool name='pending' />
-        <Err name='error' />
-      </Obj>
+      <Status initial />
       <Obj name='content' initial isRequired>
-        <Obj many>
-          <Str name='id' />
-          <Str name='firstName' />
-          <Str name='lastName' />
-          <Str name='email' />
-          <Str name='phone' />
-          <Str name='phone' />
-          <Numb name='age' />
-          <Bool name='single' />
-          <Bool name='pending' />
-        </Obj>
+        <User many />
       </Obj>
     </Obj>
     <Obj name='todosByUser' initial isRequired>
-      <Obj name='status' initial isRequired>
-        <Bool name='pending' />
-        <Err name='error' />
-      </Obj>
+      <Status initial />
       <Obj name='content' initial isRequired>
         <Obj many> {/* by user id*/}
           <Obj many> {/* by todo id*/ }
-            <Str name='id' />
-            <Str name='userId' />
-            <Str name='description' />
+            {[ 'id', 'userId', 'description', ]
+              .map(name => <Str name={name} key={name} />)}
             <Bool name='done' />
             <Bool name='pending' />
           </Obj>
@@ -51,16 +50,7 @@ const definition = (
       </Obj>
     </Obj>
     <Obj name='selections' initial isRequired>
-      <Obj name='user' initial isRequired>
-        <Str name='id' />
-        <Str name='firstName' />
-        <Str name='lastName' />
-        <Str name='email' />
-        <Str name='phone' />
-        <Numb name='age' />
-        <Bool name='single' />
-        <Bool name='pending' />
-      </Obj>
+      <Obj name='user' initial />
     </Obj>
   </Definition>
 );
