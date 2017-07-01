@@ -1,7 +1,7 @@
 import SubStore from './SubStore';
 import { strict, isRequired, type, leaf, many, stateOnly, } from './shape/shapeTypes';
 import { checkers, getShapesChildren, getValueTypeName, } from './shape/utils';
-import { valueCouldBeSubStore, stringify} from './common';
+import { valueCouldBeSubStore, stringify, } from './common';
 
 const { entries, } = Object;
 
@@ -94,8 +94,7 @@ export default class DevSubStore extends SubStore {
     }
     DevSubStore.ensureRequiredFields(target);
     entries(getShapesChildren(shape))
-      .filter(([ _, { [stateOnly]: sOnly, [leaf]: l, }, ]) => sOnly && !l)
-      .filter(([ k, ]) => state[k])
+      .filter(([ k, v, ]) => !v[leaf] && v[stateOnly] && !target[k])
       .forEach(([ k, v, ]) => {
         try {
           DevSubStore.checkStorelessStateRecursively(state[k], v, [ ...identity, k, ]);
