@@ -1,4 +1,5 @@
 import SubStore from './SubStore';
+
 import { spec, object, array, anyKey, regex, func, date, } from './shape';
 
 const { entries, } = Object;
@@ -6,8 +7,8 @@ export default class DevSubStore extends SubStore {
 
   static verbose = true;
 
-  constructor(initialValue, key, parent, depth, __substore_shape__) {
-    super(initialValue, key, parent, depth, __substore_shape__);
+  constructor(initialValue, key, parent, depth, shape, identity) {
+    super(initialValue, key, parent, depth, shape, identity);
     DevSubStore.afterChanged(this);
   }
 
@@ -21,9 +22,9 @@ export default class DevSubStore extends SubStore {
     const { __substore_depth__: depth, __substore_shape__: shape = {}, } = this;
     const subShape = shape[key] || shape[anyKey];
     if (subShape) {
-      this[key] = new DevSubStore(initialState, key, parent, depth + 1, subShape);
+      this[key] = new DevSubStore(initialState, key, parent, depth + 1, subShape, [ ...this.__substore_identity__, key, ]);
     } else {
-      this[key] = new SubStore(initialState, key, parent, depth + 1, subShape);
+      this[key] = new SubStore(initialState, key, parent, depth + 1, subShape, [ ...this.__substore_identity__, key, ]);
       if (shape[spec].exclusive) {
         DevSubStore.onExclusiveViolation({ key, target: this, shape, value: this[key].state, });
       }

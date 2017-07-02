@@ -1,9 +1,9 @@
 
-import createStore, { StoreCreator, } from '../src/createStore';
+import nonedux, { StoreParent, } from '../src/createNoneDux';
 import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue, } from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
 import createLeaf from '../src/SubStoreLeaf';
-StoreCreator.onDevSubStoreCreationError = () => {};
+StoreParent.onDevSubStoreCreationError = () => {};
 
 let validationErrors;
 let requiredFieldsErrors;
@@ -33,8 +33,15 @@ DevSubStore.onExclusiveViolation= err => {
 };
 
 describe('Validate shape', () => {
+  beforeEach(() => {
+    validationErrors = [];
+    requiredFieldsErrors = [];
+    invalidSpecTypesErrors = []; // beforeEach not working for some reason
+    exclusiveFieldsErrors = [];
+  });
+
   test('reformatShape', () => {
-    const reformatted = StoreCreator.reformatShape({
+    const reformatted = StoreParent.reformatShape({
       [spec]: { object, isRequired, },
       a: { [spec]: { array, isRequired, exclusive, },
         [anyKey]: { [spec]: { object, },
@@ -59,7 +66,7 @@ describe('Validate shape', () => {
 
   test('Valid array', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { arr1: [], arr2: [ [], ], },
       {
         arr1: { [spec]: { array, }, },
@@ -68,7 +75,6 @@ describe('Validate shape', () => {
         },
       });
     expect(validationErrors.length).toEqual(0);
-
     expect(invalidSpecTypesErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
     expect(exclusiveFieldsErrors.length).toEqual(0);
@@ -76,7 +82,7 @@ describe('Validate shape', () => {
 
   test('Valid bool', () => {
     refreshLists(); // beforeEach not working for some reason
-    createStore(
+    nonedux(
       { a: false, b: true, },
       {
         a: { [spec]: { bool, }, },
@@ -90,7 +96,7 @@ describe('Validate shape', () => {
 
   test('Valid number', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 1, b: 2, c: 3, },
       {
         a: { [spec]: { number, }, },
@@ -105,7 +111,7 @@ describe('Validate shape', () => {
 
   test('Valid string', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: '', b: 'abc', },
       {
         a: { [spec]: { string, }, },
@@ -119,7 +125,7 @@ describe('Validate shape', () => {
 
   test('Valid object', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: {}, b: {}, },
       {
         a: { [spec]: { object, }, },
@@ -132,7 +138,7 @@ describe('Validate shape', () => {
   });
   test('Valid regex', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: /hello/, b: /world/, },
       {
         a: { [spec]: { regex, }, },
@@ -146,7 +152,7 @@ describe('Validate shape', () => {
 
   test('Valid symbol', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: Symbol('hello'), b: Symbol('world'), },
       {
         a: { [spec]: { symbol, }, },
@@ -160,7 +166,7 @@ describe('Validate shape', () => {
 
   test('Valid func', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: () => {}, b() {}, },
       {
         a: { [spec]: { func, }, },
@@ -174,7 +180,7 @@ describe('Validate shape', () => {
 
   test('Valid anyLeaf', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: '', b: 2, c: false, },
       {
         a: { [spec]: { anyLeaf, }, },
@@ -189,7 +195,7 @@ describe('Validate shape', () => {
 
   test('invalid bools', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 123, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         a: { [spec]: { bool, }, },
@@ -204,15 +210,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: number.name, state: 123, }, { identity: [ 'root', 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'root', 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'a', ], actualType: number.name, state: 123, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ bool.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
     expect(requiredFieldsErrors.length).toBe(0);
@@ -222,7 +228,7 @@ describe('Validate shape', () => {
 
   test('invalid numbers', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         b: { [spec]: { number, }, },
@@ -236,15 +242,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'root', 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'root', 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ number.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -255,7 +261,7 @@ describe('Validate shape', () => {
 
   test('invalid strings', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: true, b: 123, c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
       {
         b: { [spec]: { string, }, },
@@ -269,15 +275,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'root', 'b', ], actualType: number.name, state: 123, },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'root', 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: number.name, state: 123, },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ string.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
     expect(requiredFieldsErrors.length).toBe(0);
@@ -287,7 +293,7 @@ describe('Validate shape', () => {
 
   test('invalid regex', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: 123, g: emptyArr, },
       {
         b: { [spec]: { regex, }, },
@@ -302,15 +308,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'root', 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'root', 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ regex.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -321,7 +327,7 @@ describe('Validate shape', () => {
 
   test('invalid object', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyArr, },
       {
         a: { [spec]: { object, }, },
@@ -335,15 +341,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'root', 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'root', 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ object.name, none.name, ], exclusive: false, isRequired: false, ...expected, });
     }
 
@@ -354,7 +360,7 @@ describe('Validate shape', () => {
 
   test('invalid array', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyObj, },
       {
         a: { [spec]: { array, }, },
@@ -368,15 +374,15 @@ describe('Validate shape', () => {
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'root', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'root', 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'root', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'root', 'd', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'root', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'root', 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'root', 'g', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'g', ], actualType: object.name, state: emptyObj, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
+      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
       expect(next).toEqual({ expectedType: [ array.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -387,15 +393,15 @@ describe('Validate shape', () => {
 
   test('invalid anyLeafs', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: emptyObj, b: emptyArr, },
       {
         a: { [spec]: { anyLeaf, }, },
         b: { [spec]: { anyLeaf, }, },
       });
     expect(validationErrors.length).toBe(2);
-    expect(validationErrors[0]).toEqual({ expectedType: [ anyLeaf.name, none.name, ], actualType: object.name, state: emptyObj, identity: [ 'root', 'a', ], isRequired: false, exclusive: false, });
-    expect(validationErrors[1]).toEqual({ expectedType: [ anyLeaf.name, none.name, ], actualType: array.name, state: emptyArr, identity: [ 'root', 'b', ], isRequired: false, exclusive: false, });
+    expect(validationErrors[0]).toEqual({ expectedType: [ anyLeaf.name, none.name, ], actualType: object.name, state: emptyObj, identity: [ 'a', ], isRequired: false, exclusive: false, });
+    expect(validationErrors[1]).toEqual({ expectedType: [ anyLeaf.name, none.name, ], actualType: array.name, state: emptyArr, identity: [ 'b', ], isRequired: false, exclusive: false, });
 
     expect(requiredFieldsErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
@@ -404,7 +410,7 @@ describe('Validate shape', () => {
 
   test('Valid anyLeaf with any target', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 123, 1: 'abc', gdsabafda: false, },
       {
         [anyKey]: { [spec]: { anyLeaf, }, },
@@ -417,7 +423,7 @@ describe('Validate shape', () => {
 
   test('Missing required field error', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 123, },
       {
         [anyKey]: { [spec]: { anyLeaf, }, },
@@ -426,14 +432,14 @@ describe('Validate shape', () => {
       });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(1);
-    expect(requiredFieldsErrors[0]).toEqual({ identity: [ 'root', ], missingRequiredFields: [ 'b', 'c', ], });
+    expect(requiredFieldsErrors[0]).toEqual({ identity: [ ], missingRequiredFields: [ 'b', 'c', ], });
     expect(invalidSpecTypesErrors.length).toBe(0);
     expect(exclusiveFieldsErrors.length).toBe(0);
   });
 
   test('Redudant fields error', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 123, b: 'abc', },
       { [spec]: { object, exclusive, },
         a: { [spec]: { anyLeaf, }, },
@@ -448,7 +454,7 @@ describe('Validate shape', () => {
 
   test('Non specified fields', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: 123, b: 'abc', },
       { [spec]: { object, },
         a: { [spec]: { anyLeaf, }, },
@@ -460,7 +466,7 @@ describe('Validate shape', () => {
   });
 
   test('Invalid spec, missing spec.type', () => {
-    const missingTypeStore = createStore(
+    const missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: {}, },
@@ -469,7 +475,7 @@ describe('Validate shape', () => {
   });
 
   test('Invalid spec, missing spec', () => {
-    const missingSpecStore = createStore(
+    const missingSpecStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: {},
@@ -478,7 +484,7 @@ describe('Validate shape', () => {
   });
 
   test('Invalid spec, leaf value has children', () => {
-    let missingTypeStore = createStore(
+    let missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { number, },
@@ -486,7 +492,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { number, },
@@ -494,7 +500,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { string, },
@@ -502,7 +508,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { bool, },
@@ -510,7 +516,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { regex, },
@@ -518,7 +524,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { anyLeaf, },
@@ -526,7 +532,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { symbol, },
@@ -534,7 +540,7 @@ describe('Validate shape', () => {
         },
       });
     expect(!(missingTypeStore instanceof DevSubStore)).toBeTruthy();
-    missingTypeStore = createStore(
+    missingTypeStore = nonedux(
       { b: {}, },
       { [spec]: { object, },
         b: { [spec]: { func, },
@@ -546,7 +552,7 @@ describe('Validate shape', () => {
 
   test('Valid anyValue', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: emptyObj, b: emptyArr, c: null, d: undefined, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
       {
         a: { [spec]: { anyValue, }, },
@@ -569,7 +575,7 @@ describe('Validate shape', () => {
 
   test('required anyValue', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: emptyObj, b: emptyArr, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
       {
         a: { [spec]: { anyValue, isRequired, }, },
@@ -585,7 +591,7 @@ describe('Validate shape', () => {
     expect(requiredFieldsErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
     expect(exclusiveFieldsErrors.length).toBe(0);
-    createStore({ c: null, d: undefined, },
+    nonedux({ c: null, d: undefined, },
       {
         c: { [spec]: { anyValue, isRequired, }, },
         d: { [spec]: { anyValue, isRequired, }, },
@@ -599,7 +605,7 @@ describe('Validate shape', () => {
 
   test('valid date', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: new Date(), },
       {
         a: { [spec]: { date, isRequired, }, },
@@ -612,7 +618,7 @@ describe('Validate shape', () => {
 
   test('validate object created by createLeaf', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: { b: createLeaf({ c: { d: 1, }, }), }, },
       {
         a: { [spec]: { object, },
@@ -627,7 +633,7 @@ describe('Validate shape', () => {
 
   test('validate array created by createLeaf', () => {
     refreshLists();
-    createStore(
+    nonedux(
       { a: { b: createLeaf([ { c: 1, }, 2, ]), }, },
       {
         a: { [spec]: { object, },

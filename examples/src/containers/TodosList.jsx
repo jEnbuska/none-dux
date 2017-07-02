@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from '../../../src';
+import { connect, } from 'react-redux';
 import TodoListItem from './TodoListItem';
 
 const TodosList = ({ todos, status, }) => (<div className={status.pending ? 'disabled-view' : ''}>

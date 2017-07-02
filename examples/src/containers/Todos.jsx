@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from '../../../src';
+import { connect, } from 'react-redux';
 import AddTodo from './AddTodo';
 import TodoList from './TodosList';
 

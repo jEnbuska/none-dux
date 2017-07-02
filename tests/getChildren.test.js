@@ -1,13 +1,13 @@
 
-import createStore from '../src/createStore';
+import nonedux from '../src/createNoneDux';
 
 describe('get children', () => {
-  let root;
+  let subject;
   // noinspection JSAnnotator
   test('should return all immediate children', () => {
-    root = createStore({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
-    const { a, f, ..._ } = root;
-    const [ first, second, ...rootNone ]= root.getChildren();
+    subject = nonedux({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, }).subject;
+    const { a, f, ..._ } = subject;
+    const [ first, second, ...rootNone ]= subject.getChildren();
     expect(rootNone.length).toBe(0);
     expect(a.getId()).toBe(first.getId());
     expect(a === first).toBeTruthy();
@@ -22,13 +22,13 @@ describe('get children', () => {
   });
 
   test('should return children recursively', () => {
-    root = createStore({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
-    const [ a, f, ...rootNone ]= root.getChildren();
+    subject = nonedux({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, }).subject;
+    const [ a, f, ...rootNone ]= subject.getChildren();
     const [ b, ...aNone ] = a.getChildren();
     const [ d, ...bNone ]= b.getChildren();
     const [ x, ...dNone ]= d.getChildren();
     const [ ...xNone ] = x.getChildren();
-    const [ expectA, expectB, expectD, expectX, expectF, ...expectEmpty ]= root.getChildrenRecursively();
+    const [ expectA, expectB, expectD, expectX, expectF, ...expectEmpty ]= subject.getChildrenRecursively();
 
     [ rootNone, aNone, bNone, dNone, xNone, ].forEach(arr => {
       expect(arr.length).toBe(0);

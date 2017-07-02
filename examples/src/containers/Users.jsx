@@ -1,6 +1,6 @@
 import React from 'react';
 import { browserHistory, } from 'react-router';
-import { connect, } from '../../../src';
+import { connect, } from 'react-redux';
 import * as userActions from '../actions/userActions';
 
 @connect(({ users, }) => ({ ...users, }), { ...userActions, })

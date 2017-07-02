@@ -1,8 +1,6 @@
-import Provider from './Provider';
-import connect from './connect';
-import SubStore from './SubStore';
-import createStore from './createStore';
+import createNoneDux from './createNonedux';
 import createLeaf from './SubStoreLeaf';
 import * as shapes from './shape';
 
-export { Provider, connect, shapes, SubStore, createStore, createLeaf, };
+export default createNoneDux;
+export { shapes, createLeaf, };

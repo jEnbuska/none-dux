@@ -1,59 +1,59 @@
 
-import createStore from '../src/createStore';
+import nonedux from '../src/createNoneDux';
 
 describe('immutability', () => {
-  let store;
+  let subject;
   test('previous states should not be changed',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      const { state: initialState, } = store;
-      const { state: bInitialState, } = store.b;
-      store.setState({ a: 2, });
-      expect(initialState).not.toEqual(store.state);
-      expect(bInitialState).toEqual(store.b.state);
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      const { state: initialState, } = subject;
+      const { state: bInitialState, } = subject.b;
+      subject._onSetState({ a: 2, });
+      expect(initialState).not.toEqual(subject.state);
+      expect(bInitialState).toEqual(subject.b.state);
     });
 
-  test('stores other children should remain unchanged',
+  test('subjects other children should remain unchanged',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      const { state: bInitialState, } = store.b;
-      store.setState({ a: 2, });
-      expect(bInitialState).toEqual(store.b.state);
-      expect(bInitialState===store.state.b);
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      const { state: bInitialState, } = subject.b;
+      subject._onSetState({ a: 2, });
+      expect(bInitialState).toEqual(subject.b.state);
+      expect(bInitialState===subject.state.b);
     });
 
   test('changing deep state',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      const bOrg = store.b.state;
-      const dOrg = store.b.d.state;
-      const eOrg = store.b.e.state;
-      const hOrg = store.b.e.h.state;
-      store.setState({ b: { c: 3, d: {}, e: { f: 4, g: 7, h: { i: 101, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      expect(store.b.state!==bOrg, 'b').toBeTruthy();
-      expect(store.b.d.state!==dOrg, 'd').toBeTruthy();
-      expect(store.b.e.state!==eOrg, 'e').toBeTruthy();
-      expect(store.b.e.h.state!==hOrg, 'h').toBeTruthy();
+      subject = nonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      const bOrg = subject.b.state;
+      const dOrg = subject.b.d.state;
+      const eOrg = subject.b.e.state;
+      const hOrg = subject.b.e.h.state;
+      subject._onSetState({ b: { c: 3, d: {}, e: { f: 4, g: 7, h: { i: 101, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      expect(subject.b.state!==bOrg, 'b').toBeTruthy();
+      expect(subject.b.d.state!==dOrg, 'd').toBeTruthy();
+      expect(subject.b.e.state!==eOrg, 'e').toBeTruthy();
+      expect(subject.b.e.h.state!==hOrg, 'h').toBeTruthy();
     });
 
   test('changing deep state by children', () => {
-    store = createStore({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-    const bOrg = store.b.state;
-    const dOrg = store.b.d.state;
-    const eOrg = store.b.e.state;
-    const hOrg = store.b.e.h.state;
+    subject = nonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+    const bOrg = subject.b.state;
+    const dOrg = subject.b.d.state;
+    const eOrg = subject.b.e.state;
+    const hOrg = subject.b.e.h.state;
 
-    const { b, } = store;
-    b.setState({ c: 3, });
-    b.e.h.setState({ i: 101, });
+    const { b, } = subject;
+    b._onSetState({ c: 3, });
+    b.e.h._onSetState({ i: 101, });
 
-    expect(store.b.state!==bOrg, 'b').toBeTruthy();
-    expect(store.b.d.state===dOrg, 'd').toBeTruthy();
-    expect(store.b.e.state!==eOrg, 'e').toBeTruthy();
-    expect(store.b.e.h.state!==hOrg, 'h').toBeTruthy();
+    expect(subject.b.state!==bOrg, 'b').toBeTruthy();
+    expect(subject.b.d.state===dOrg, 'd').toBeTruthy();
+    expect(subject.b.e.state!==eOrg, 'e').toBeTruthy();
+    expect(subject.b.e.h.state!==hOrg, 'h').toBeTruthy();
   });
 
-  test('parameters passed to store should never mutate any values', () => {
+  test('parameters passed to subject should never mutate any values', () => {
     const initialState = { a: 1, b: { c: 2, d: { e: 3, }, }, };
     Object.defineProperty(initialState.b.d, 'e', {
       writable: false,
@@ -80,7 +80,7 @@ describe('immutability', () => {
     expect(() => initialState.b.c='').toThrow(Error);
     expect(() => initialState.b='').toThrow(Error);
     expect(() => initialState.a='').toThrow(Error);
-    const store = createStore(initialState);
+    const {subject} = nonedux(initialState);
     const nextState = { a: 2, b: { c: { x: 1, }, d: 1, }, e: 3, };
     Object.defineProperty(nextState, 'a', {
       writable: false,
@@ -111,44 +111,44 @@ describe('immutability', () => {
     expect(() => nextState.b.c.x='').toThrow(Error);
     expect(() => nextState.b.d='').toThrow(Error);
     expect(() => nextState.b='').toThrow(Error);
-    store.setState(nextState);
+    subject._onSetState(nextState);
 
-    Object.defineProperty(store.state.b.c, 'x', {
+    Object.defineProperty(subject.state.b.c, 'x', {
       writable: false,
-      value: store.state.b.c.x,
+      value: subject.state.b.c.x,
     });
-    Object.defineProperty(store.state.b, 'c', {
+    Object.defineProperty(subject.state.b, 'c', {
       writable: false,
-      value: store.state.b.c,
+      value: subject.state.b.c,
     });
-    Object.defineProperty(store.state, 'b', {
+    Object.defineProperty(subject.state, 'b', {
       writable: false,
-      value: store.state.b,
+      value: subject.state.b,
     });
-    store.b.c.remove('x');
+    subject.b.c._onRemove('x');
 
-    Object.defineProperty(store.state, 'e', {
+    Object.defineProperty(subject.state, 'e', {
       writable: false,
-      value: store.state.e,
+      value: subject.state.e,
     });
-    store.remove('e');
+    subject._onRemove('e');
 
-    Object.defineProperty(store.state.b.c, 'x', {
+    Object.defineProperty(subject.state.b.c, 'x', {
       writable: false,
-      value: store.state.b.c.x,
+      value: subject.state.b.c.x,
     });
-    Object.defineProperty(store.state.b, 'd', {
+    Object.defineProperty(subject.state.b, 'd', {
       writable: false,
-      value: store.state.b.d,
+      value: subject.state.b.d,
     });
-    Object.defineProperty(store.state.b, 'c', {
+    Object.defineProperty(subject.state.b, 'c', {
       writable: false,
-      value: store.state.b.c,
+      value: subject.state.b.c,
     });
-    Object.defineProperty(store.state, 'b', {
+    Object.defineProperty(subject.state, 'b', {
       writable: false,
-      value: store.state.b,
+      value: subject.state.b,
     });
-    store.setState({ b: { c: 1, }, });
+    subject._onSetState({ b: { c: 1, }, });
   });
 });

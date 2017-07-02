@@ -1,8 +1,10 @@
 import 'styles';
 import React from 'react';
+import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
-import { Provider, shapes, } from '../../src';
+import { applyMiddleware, createStore, } from 'redux';
+import nonedux, { shapes, } from '../../src';
 import UserProfile from './containers/UserProfile.jsx';
 import BrowseUsers from './containers/BrowseUsers.jsx';
 import Users from './containers/Users.jsx';
@@ -74,11 +76,13 @@ const shape = {
   },
 };
 
+const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
+const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
+const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+dispatcher(store);
+
 const Root = () => (
-  <Provider
-    initialState={initialState}
-    onChange={(store, lastChange) => {}}
-    shape={shape}>
+  <Provider store={store}>
     <Router history={browserHistory}>
       <Route path='/' component={App}>
         <IndexRedirect to='users' />

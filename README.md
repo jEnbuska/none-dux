@@ -1,33 +1,31 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-Syntax much like react-redux, with thunk.
-No reducers no action types needed.
+Application state can be changed directly from actions
+No reducer implementations needed nor action types needed.
 
-Application state can be changed directly from actions 
+Creates an immutable data structure.
 
-Works partially with redux devtools (time travel state, displays diff, events and state):
+Works with redux devtools
+
+Has it's own redux-thunk like implementation
+Recommended to use be used with react-redux:
 
 Easy to work with deep structured state.
 
 All changes are immutable.
+Shape of the state can be extended and modified at anytime, ones root object of the data structure is defined at the at the start.
 
-Shape of the state can be extended and modified at anytime.  
-
-All regular Object and Arrays of the state is it's own sub-store
-
-Direction of the data flow is reversed compared to React.Component: 
-
-When ever a child generates a new state, it's parent and grand parents... will generated to new state, upto until Provider gets notified.
-
-if you are using react-redux and redux thunk:
+All regular Object and Arrays of the state is quite like it's own sub reducers.
 
 imports
 ```
-import { Provider, connect, shapes, } from 'none-dux';
+import { Provider, connect, } from 'react-redux';
+import { createStore, applyMiddleware, } from 'redux';
+import nonedux from 'none-dux';
 ```
 
-init Provider:
+init:
 ```
 const initialState = {
   request: {},
@@ -35,10 +33,197 @@ const initialState = {
   users: {},
 };
 
+const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
+const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
+const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+
+dispatcher(store); // don't for get this one
+
+const root = (
+  <Provider store={store}>
+    <Router history={browserHistory}>
+      <Route path='/' component={App}>
+        ...
+
+```
+action creators:
+```
+//userActions
+
+function createUser(userData){
+  return function({users}){
+     const id = uuid()
+     const {[id]: newUser} = users.setState({[id]: {...userData, id}})
+     // an action was created {type: 'SET_STATE', target: ['users'], param: {id, /*and reset of userData*/...}}
+     // The the action was performed by the users reducer
+     api.postUser(newUser.state)
+      .then(...)
+  }
+}
+
+function verifyUser(id)
+  return function(store){
+  const { state } = store.users[id].setState({verified: true});
+  console.log(state.verified) // 'true'
+  // action {type: 'SET_STATE', target: ['users', $id], param: {verified: true'} }
+}
+
+export function removeUser(userId) {
+   return function ({users, todosByUser, }) {
+    const user = users[userId];
+    const usersTodos = todosByUser[userId]
+    user.setState({ verified: false, });
+    // an action was created {type: 'SET_STATE', target: ['users', $id], param: {verified: false'} }
+    deleteUser(userId)
+      .then(()=> {
+        users.remove(userId);
+        // action  {type: 'REMOVE', target: ['users'], param: [userId] }
+        userTodos.removeSelf();
+        // action  {type: 'REMOVE', target: ['todosByUser'], param: [userId] }        
+      }); 
+  }
+}
+
+
+//todoActions
+export function toggleTodo(id,userId){
+  return function(store){
+    const todo = store.todosByUser[userId][id];
+    const { state: {done}, } = todo;
+    const { state, prevState, } = todo.setState({pending: true, done: !done});
+    // action  {type: 'SET_STATE', target: ['todosByUser', userId, id ], param: {pending: true, done: !done}}
+    updateTodo(id, state)
+      .then(...)
+  }
+}
+
+
+```
+
+Other methods:
+```
+const ids = [1,2,3 ];
+target.remove(...ids); //removes all children with matching ids
+//same as target.remove(1,2,3);
+target.removeSelf(); //remove self
+```
+
+State of the store is can be reformed at any time, but the top level objects have to be defined at start:
+```
+//in action creators action
+
+const {parent} = store;
+console.log(parent.state); // {}
+parent.setState({
+      child: {
+        firstSubChild: {
+          role: 'first', children: false
+        },
+        secondSubChild: {
+          role: 'second'
+        }
+     }
+   });
+const {firstSubChild, secondSubChild} = parent.child;
+firstSubChild.removeSelf(); 
+
+```
+
+```
+Behavior of state can be misleading when using arrays because array state is not merged
+
+const {misc} = store;
+console.log(misc.state)              // [1, 2, 3]
+misc.setState({a: 4, b: 5})          // state = {a: 4, b: 5}
+misc.setState({b: 6, c: 7})          // state = {a: 4, b: 6, c: 7}
+misc.setState([1, 2, 3]);            // state = [1, 2, 3]
+misc.setState([4, 5]);               // state = [4, 5]
+```
+All parts of the store is its own substore. But only root store can be subscribed
+<img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
+
+Adding new root level reducers to store after init it not supported yet.
+
+If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux
+```
+Initialization:
+  replace:
+   
+  import {createStore, applyMiddleware} from 'redux'
+  import thunk from 'redux-thunk'
+  
+  const middleware = [ thunk, ];
+  const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore);
+  const store = createStoreWithMiddleware(
+    reducers, 
+    process.env.NODE_ENV !=='production' && window.devToolsExtension && window.devToolsExtension()
+  );
+  
+  <Provider ....
+  
+  by:  
+  //Take the current initial state of from your reducers and use it as initialState
+  import {createStore, applyMiddleware} from 'redux'
+  import nonedux from 'none-dux'
+  
+  const { reducer, thunk, dispatcher, } = nonedux(initialState);
+  const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
+  const store = createStoreWithMiddleware(
+    reducer, 
+    process.env.NODE_ENV !=='production' && window.devToolsExtension && window.devToolsExtension()
+  );
+  dispatcher(store);
+  
+  <Provider ....
+  
+********************’
+  
+Actions
+ replace: 
+ //actions redux-thunk
+ function changeUserName(id, name){
+    function(dispatch){
+      dispatch({type: SET_USER_NAME, payload: {id, name}}) 
+    }
+ }
+ 
+ 
+ 
+ 
+ //actions none-dux
+ function changeUserName(id, name){
+    function({users}){
+      users[id].setState({name});
+    }
+ } 
+```
+
+if you have a big static data that will only be added, removed or replaced, for performance reasons you can boot performance like so:
+```
+import { createLeaf } from 'none-dux'
+
+...
+
+function fetchCustomerData(){
+  function({statistics}){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        transactions = createLeaf(transactions);
+        associations = createLeaf(associations);
+        statistics.setState({transactions, associations}).
+        //createLeaf works with both arrays and objects
+      })
+  }
+}
+```
+
+if you want to add type checking add 'shape' as second argument for nonedux function call':
+```
 /*
-shape is optional. The only effect is that you will get console warnings 
-during development, when shape breaks specification.
+The only effect is that you will get console warnings during development, when shape breaks specification.
 */
+import nonedux, {shapes} from 'none-dux
 const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 const shape = {
@@ -60,165 +245,18 @@ const shape = {
   },
   request: {[spec]: { object, isRequired}}
 };
+const initialState = {todosByUser: {}, users: {}, request: {}}};
+const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
 
+//... and the rest is the same
 /*
 using shape makes the performance significantly slower in dev environment
 shape is ignored when NODE_ENV === 'production'
-*/
 
-const root = (
-  <Provider 
-  initialState={initialState} 
-  shape={shape} 
-  onChange={(store, lastChange) => {/* ... */}}>
-    <Router history={browserHistory}>
-      <Route path='/' component={App}>
-        ...
+Shape validation should be moved to it's own package as a redux middleware later on
 
-```
-
-action creators / actions:
-```
-export function removeUser(userId) {
-   return function ({users, todosByUser, }) {
-    const user = users[userId];
-    const usersTodos = todosByUser[userId]
-    user.setState({ pending: true, });
-    deleteUser(userId)
-      .then(()=> {
-        users.remove(userId);
-        userTodos.removeSelf();
-      }); 
-  }
-}
-
-
-export function toggleTodo(id,userId){
-  return function(store){
-    const todo = store.todosByUser[id];
-    const { state: {done}, } = todo;
-    const { state, prevState, } = todo.setState({pending: true, done: !done});
-    updateTodo(id, state)
-      .then(({data: nextState}) => todo.clearState(nextState))
-      .catch(() => todo.clearState(prevState))
-      /* clear state works like setState, but it remove all the non specified values from next state*/
-  }
-}
-```
-
-connect with class decorators:
-```
-@connect(
-  ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
-  ({ changeUserName, fetchUsers, addUser, removeUser, })
-)
-export default class MyComponent extends React.Component {
-   render(){
-      return (<div>...</div>)
-   }
-}
-```
-or without decorators:
-```
-const MyComponent = (props) => {
-   return (<div>...</div>) 
-}
-
-export default connect(
-   ({ request, users, }, props) => ({ request, user: users[props.params.userId], }),
-   ({ changeUserName, fetchUsers, addUser, removeUser, }))(User)
-```
-
-Other methods:
-```
-target.remove(...ids); //removes all children with matching ids
-target.removeSelf(); //remove self
-```
-
-State of the store is can be reformed at any time:
-
-```
-const store = createStore({parent:{}})
-
-const {parent} = store;
-parent.setState({
-      child: {
-        firstSubChild: {
-          role: 'first', children: false
-        },
-        secondSubChild: {
-          role: 'second'
-        }
-     }
-   });
-const {firstSubChild, secondSubChild} = parent.child;
-firstSubChild.removeSelf(); 
-
-parent.setState('no children'); // ends up removing child and secondSubChild
-```
-
-```
-Behavior of state can be misleading when using arrays because array state is not merged
-
-cosnt store = createStore([1, 2, 3]); // state = [1, 2, 3]
-store.setState({a: 4, b: 5})          // state = {a: 4, b: 5}
-store.setState({b: 6, c: 7})          // state = {a: 4, b: 6, c: 7}
-store.setState([1, 2, 3]);            // state = [1, 2, 3]
-store.setState([4, 5]);               // state = [4, 5]
-```
-All parts of the store is its own substore. But only root store can be subscribed
-<img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
-
-
-If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux by replacing Provider and connect with none-dux implementations, and re-implementing actions
-```
-//Redux
-import {Provider} from 'react-redux'
-...
-<Provider store={store}
- ....
- </Provider>
- 
- //none-dux
- import {Provider} from 'none-dux'
- ...
- <Provider initialState={initialState}
- ...
- </Provider>
- 
- //actions redux
- function changeUserName(id, name){
-    function(dispatch){
-      dispatch({type: SET_USER_NAME, payload: {id, name}}) 
-    }
- }
- 
- //actions none-dux
- function changeUserName(id, name){
-    function({users}){
-      users[id].setState({name});
-    }
- } 
-```
-
-if you have a big static data that will only be added, removed or replaced, for performance reasons you can skip creating unnecessary SubStore like so:
-```
-import { createLeaf } from 'none-dux'
-
-...
-
-function fetchCustomerData(){
-  function({statistics}){
-    fetchUserData()
-      .then(({data}) => {
-        let { transactions, associations } = data;
-        transactions = createLeaf(transactions);
-        associations = createLeaf(associations);
-        statistics.setState({transactions, associations}).
-        //createLeaf works with both arrays and objects
-      })
-  }
-}
-```
 Currently when using 'shape' to evaluate state, values created using createLeaf are not evaluated.
+*/
+```
+
 

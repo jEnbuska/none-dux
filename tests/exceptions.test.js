@@ -1,48 +1,49 @@
-
-import createStore, { StoreCreator, } from '../src/createStore';
+import nonedux from '../src/createNoneDux';
+import SubStore from '../src/SubStore';
 
 function verifyErrorOnChange(...params) {
   params.forEach(next => {
-    expect(() => next.setState(1)).toThrow(Error);
-    expect(() => next.setState({ x: 100, })).toThrow(Error);
-    expect(() => next.clearState(1)).toThrow(Error);
-    expect(() => next.clearState({ x: 100, })).toThrow(Error);
-    expect(() => next.removeSelf()).toThrow(Error);
-    expect(() => next.remove('b')).toThrow(Error);
+    expect(() => next._onSetState(1)).toThrow(Error);
+    expect(() => next._onSetState({ x: 100, })).toThrow(Error);
+    expect(() => next._onClearState(1)).toThrow(Error);
+    expect(() => next._onClearState({ x: 100, })).toThrow(Error);
+    expect(() => next._onRemove('b')).toThrow(Error);
   });
 }
 
 describe('killSwitch', () => {
-  let store;
+  let subject;
   test('Kill switch should trigger when depth > 100 ',
     () => {
       let killSwitchIsTriggered = false;
-      StoreCreator.killSwitch = () => { killSwitchIsTriggered = true; };
-      store = createStore({});
-      let ref = store;
-      for (let i = 0; i<100; i++) {
-        ref.setState({ a: {}, });
+
+      subject = nonedux({}).subject;
+      SubStore.__kill = () => { killSwitchIsTriggered = true; };
+      let ref = subject;
+      for (let i = 0; i<45; i++) {
+        ref._onSetState({ a: {}, });
         ref = ref.a;
         expect(!killSwitchIsTriggered).toBeTruthy();
       }
-      ref.setState({ a: {}, });
+      ref._onSetState({ a: {}, });
+      console.log('--------------');
       expect(killSwitchIsTriggered).toBeTruthy();
     });
-  test('changing removed sub store should throw an exception',
+  test('changing _onRemoved sub subject should throw an exception',
     () => {
-      store = createStore({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
-      const { a, c, } = store;
+      subject = nonedux({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }).subject;
+      const { a, c, } = subject;
       const { d, } = c;
-      store.remove('a');
-      store.c.removeSelf();
+      subject._onRemove('a');
+      subject._onRemove([ 'c', ]);
       verifyErrorOnChange(a, c, d);
     });
 
-  test('changing excluded sub store should throw an exception', () => {
-    store = createStore({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
-    const { a, c, } = store;
+  test('changing excluded sub subject should throw an exception', () => {
+    subject = nonedux({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }).subject;
+    const { a, c, } = subject;
     const { d, } = c;
-    store.clearState({ b: 2, });
+    subject._onClearState({ b: 2, });
     verifyErrorOnChange(a, c, d);
   });
 });

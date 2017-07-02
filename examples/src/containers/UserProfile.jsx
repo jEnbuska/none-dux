@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, } from '../../../src';
+import { connect, } from 'react-redux';
 import Todos from './Todos';
 import Input from '../components/Input';
 import Button from '../components/Button';

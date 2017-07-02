@@ -1,88 +1,88 @@
 
-import createStore from '../src/createStore';
+import nonedux from '../src/createNoneDux';
 
-describe('remove', () => {
-  let store;
-  test('removing the root store should be ok',
+describe('_onRemove', () => {
+  let subject;
+  test('removing the root subject should be ok',
     () => {
-      store = createStore({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.remove('b');
-      expect(store.state).toEqual({ a: {}, });
+      subject = nonedux({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject._onRemove([ 'b', ]);
+      expect(subject.state).toEqual({ a: {}, });
     });
 
   test('removing leaf from object',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.remove('d');
-      expect(store.state).toEqual({ a: 1, b: { c: 2, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject.b._onRemove([ 'd', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
     });
 
-  test('the number of children should match the non removed children',
+  test('the number of children should match the non _onRemoved children',
     () => {
-      store = createStore({});
-      store.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      let children = store.getChildrenRecursively();
+      subject = nonedux({}).subject;
+      subject._onSetState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, }).subject;
+      let children = subject.getChildrenRecursively();
       expect(children.length).toEqual(5);
-      store.b.e.h.removeSelf();
-      children = store.getChildrenRecursively();
+      subject.b.e._onRemove([ 'h', ]);
+      children = subject.getChildrenRecursively();
       expect(children.length).toEqual(2);
     });
 
-  test('remove sub object',
+  test('_onRemove sub object',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.e.h.remove('x');
-      expect(store.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      store.b.remove('d');
-      store.remove('b');
-      expect(store.state).toEqual({ a: 1, });
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject.b.e.h._onRemove([ 'x', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
+      subject.b._onRemove([ 'd', ]);
+      subject._onRemove([ 'b', ]);
+      expect(subject.state).toEqual({ a: 1, });
     });
 
-  test('should be able to remove an empty child',
+  test('should be able to _onRemove an empty child',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      store.b.e.h.remove('x');
-      expect(store.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, }).subject;
+      subject.b.e.h._onRemove([ 'x', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
     });
 
-  test('should be able to remove undefined value',
+  test('should be able to _onRemove undefined value',
     () => {
-      store = createStore({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, });
-      store.b.remove('d');
-      expect(store.state).toEqual({ a: 1, b: { c: undefined, e: { f: 4, g: 7, }, }, });
+      subject = nonedux({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, }).subject;
+      subject.b._onRemove([ 'd', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: undefined, e: { f: 4, g: 7, }, }, });
     });
 
-  test('should be able to remove multiple children at ones',
+  test('should be able to _onRemove multiple children at ones',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      store.b.e.h.remove('x', 'j');
-      expect(store.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, }, }, }, });
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, }).subject;
+      subject.b.e.h._onRemove([ 'x', 'j', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, }, }, }, });
     });
 
   test('should be able to remove multiple children little by little',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.e.h.x.removeSelf();
-      expect(store.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      store.b.e.h.removeSelf();
-      store.b.e.removeSelf();
-      expect(store.state).toEqual({ a: 1, b: { c: 2, d: 3, }, });
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject.b.e.h._onRemove([ 'x', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
+      subject.b.e._onRemove([ 'h', ]);
+      subject.b._onRemove([ 'e', ]);
+      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, }, });
     });
 
-  test('sub store should be removed',
+  test('sub subject should be _onRemoved',
     () => {
-      store = createStore({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      store.b.removeSelf();
-      expect(store.b).toEqual(undefined);
-      expect(store.state.b).toEqual(undefined);
+      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject._onRemove([ 'b', ]);
+      expect(subject.b).toEqual(undefined);
+      expect(subject.state.b).toEqual(undefined);
     });
 
   test('state should be shift after removal',
     () => {
-      store = createStore({ a: 1, b: { c: 'test', d: { x: 1, }, }, });
-      const { b, } = store;
-      const { d, } = store.b;
-      b.removeSelf();
+      subject = nonedux({ a: 1, b: { c: 'test', d: { x: 1, }, }, }).subject;
+      const { b, } = subject;
+      const { d, } = subject.b;
+      subject._onRemove([ 'b', ]);
       expect(d.state).toBe(undefined);
       expect(d.prevState).toEqual({ x: 1, });
       expect(b.state).toBe(undefined);

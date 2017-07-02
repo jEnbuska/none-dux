@@ -57,7 +57,7 @@ const base = (env) => ({
       },
       {
         test: /\.json$/,
-        loader: 'json',
+        loader: 'json-loader',
       },
     ],
   },

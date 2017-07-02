@@ -1,6 +1,6 @@
 import React from 'react';
 import { object, } from 'prop-types';
-import { connect, } from '../../../src';
+import { connect, } from 'react-redux';
 import Div from '../components/Div';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -18,4 +18,4 @@ TodoListItem.propTypes = {
   todo: object.isRequired,
 };
 
-export default connect({ removeTodo, toggleTodo, })(TodoListItem);
+export default connect(undefined, { removeTodo, toggleTodo, })(TodoListItem);
