@@ -148,7 +148,7 @@ In the example image there is 2 root level reducers/sub-stores (Todos & somethin
 Limitations:
  Every reducer needs to return an object:
   If string, number boolean, null etc. is returned that reducer will not work from that onward
- Every setState remove clearState must be called to a child of root reducer:
+ Every 'setState' 'remove', 'clearState' must be called to a child of root in actions:
   store.setState({something:{...}); will not cause any change
 
 
