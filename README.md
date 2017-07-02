@@ -156,6 +156,10 @@ Limitations:
   console.log(data.state.thisWill); // 'soonFail'
  -setState and clearState only objects as parameter:
   store.data.setState('text'); //Error({message: '['data'] Expected setState parameter to be an Object or Array, but got 'text''})
+ -no support for having multiple nonedux instances per application: 
+   Meaning that the application cannot have multiple react-redux Providers that both use none-dux at the same time
+   
+ 
 
 
 If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux
