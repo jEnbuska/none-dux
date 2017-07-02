@@ -47,17 +47,6 @@ export default class SubStore {
     this.state = initialState;
   }
 
-  singleUpdate(callBack) {
-    const { __substore_parent__, state, __substore_identity__, } = this;
-    this.__substore_parent__ = { _notifyUp() {}, };
-    callBack(this);
-    this.__substore_parent__ = __substore_parent__;
-    if (this.state!==state) {
-      this.__substore_parent__._notifyUp(this);
-    }
-    return this;
-  }
-
   getParent() {
     return this.__substore_parent__;
   }
