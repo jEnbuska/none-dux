@@ -142,7 +142,8 @@ misc.setState([4, 5]);               // state = [4, 5]
 All parts of the store is its own substore. But only root store can be subscribed
 <img width="1025" alt="screenshot" src="https://cloud.githubusercontent.com/assets/11061511/26591980/0a8fe422-4568-11e7-93cc-1d083640a6ca.png">
 
-Adding new root level reducers to store after init it not supported yet.
+Adding new root level reducers to store after init it not supported yet. 
+In the example image there is 2 root level reducers/sub-stores (Todos & something). How the change in their data structure is not limited.
 
 If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux
 ```
