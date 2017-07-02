@@ -157,7 +157,7 @@ Limitations:
  -setState and clearState only objects as parameter:
   store.data.setState('text'); //Error({message: '['data'] Expected setState parameter to be an Object or Array, but got 'text''})
  -no support for having multiple nonedux instances per application: 
-   Meaning that the application cannot have multiple react-redux Providers that both use none-dux at the same time
+   Meaning that the application cannot have multiple react-redux Providers that both use different none-dux reducer at the same time
    
  
 
