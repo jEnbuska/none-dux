@@ -1,6 +1,6 @@
 {
   "name": "none-dux",
-  "description": "easy react state handling with react-redux & redux-thunk like syntax",
+  "description": "less verbose react handling with redux react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
   "version": "6.1.5",
   "author": "jEnbuska <joonaenb@gmail.com>",
