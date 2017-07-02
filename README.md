@@ -145,6 +145,13 @@ All parts of the store is its own substore. But only root store can be subscribe
 Adding new root level reducers to store after init it not supported yet. 
 In the example image there is 2 root level reducers/sub-stores (Todos & something). How the change in their data structure is not limited.
 
+Limitations:
+ Every reducer needs to return an object:
+  If string, number boolean, null etc. is returned that reducer will not work from that onward
+ Every setState remove clearState must be called to a child of root reducer:
+  store.setState({something:{...}); will not cause any change
+
+
 If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux
 ```
 Initialization:

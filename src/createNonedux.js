@@ -14,8 +14,11 @@ export default function createNoneDux(initialState = {}, shape) {
   const thunk = () => next => action => {
     if (typeof action === 'function') {
       return action(subject);
+    } else if (action.target && !action.target.length) {
+      console.error(JSON.stringify(action, null, 1)+'\nWas called to ROOT. This will not cause any changes');
+    } else {
+      return next(action);
     }
-    return next(action);
   };
   const dispatcher = store => {
     SubStore.onAction = action => store.dispatch(action);
@@ -56,7 +59,7 @@ function createReducer(initialState, subject) {
   return combineReducers(reducerTemplate);
 }
 
-export class StoreParent{
+export class StoreParent {
   __substore_id__ = '__ground__';
   __substore_identity__ = [];
 
@@ -75,7 +78,7 @@ export class StoreParent{
       }
     } else {
       this.subject = new SubStore(state, 'root', this, 0, undefined, []);
-      SubStore.killSwitch = () => this.subject.remove(...this.subject.getChildren().map(child => child.getId()))
+      SubStore.killSwitch = () => this.subject.remove(...this.subject.getChildren().map(child => child.getId()));
     }
   }
 
