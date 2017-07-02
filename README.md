@@ -146,10 +146,16 @@ Adding new root level reducers to store after init it not supported yet.
 In the example image there is 2 root level reducers/sub-stores (Todos & something). How the change in their data structure is not limited.
 
 Limitations:
- Every reducer needs to return an object:
+ -Every reducer needs to return an object:
   If string, number boolean, null etc. is returned that reducer will not work from that onward
- Every 'setState' 'remove', 'clearState' must be called to a child of root in actions:
-  store.setState({something:{...}); will not cause any change
+ -Every 'setState' 'remove', 'clearState' must be called to a child of root in actions:
+  store.setState({something:{...}); will not cause any changes
+ -Only objects and arrays can be referenced directly:
+  const {data} = store.data.setState({thisWill:'soonFail'});
+  console.log(data.thisWill); // undefined
+  console.log(data.state.thisWill); // 'soonFail'
+ -setState and clearState only objects as parameter:
+  store.data.setState('text'); //Error({message: '['data'] Expected setState parameter to be an Object or Array, but got 'text''})
 
 
 If you redux stack consists of redux, react-redux and redux-thunk (without custom middlewares) you can try out none-dux
