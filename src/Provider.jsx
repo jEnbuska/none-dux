@@ -57,7 +57,7 @@ export default class Provider extends React.Component {
   };
 
   componentDidMount() {
-    const { props, store, } = this;
+    const { props, store, subscribERS, } = this;
     const { onChange, } = props;
     if (onChange) {
       store.subscribe(function (onChange) {
@@ -65,16 +65,10 @@ export default class Provider extends React.Component {
       }.bind(store, onChange));
     }
     this.subsriptION = store.subscribe(() => {
-      this.setState({ changes: SubStore.lastChange, });
+      for (const key in subscribERS) {
+        subscribERS[key]();
+      }
     });
-  }
-
-  shouldComponentUpdate() {
-    const { subscribERS, } = this;
-    for (const key in subscribERS) {
-      subscribERS[key]();
-    }
-    return false;
   }
 
   componentWillUnmount() {
