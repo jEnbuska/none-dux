@@ -17,7 +17,7 @@ Recommended to use be used with react-redux:
 
 All changes are immutable.
 
-Shape of the state can be extended and modified at anytime, ones root object of the data structure is defined at the at the beginning.
+Shape of the state can be extended and modified at anytime, ones root object of the data structure is defined at the beginning.
 
 ##Getting started
 
