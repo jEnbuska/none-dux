@@ -5,7 +5,7 @@ Application state can be changed directly from actions.
 
 All regular Object and Arrays of the nonedux state are quite like their own Component.
 
-Action are auto generated and dispatched when functions 'setState', 'clearState', and 'remove' are invoked.
+Action are auto generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
 
 Makes immutability easy and saves you the time of implementing maintaining and testing reducers.
 
@@ -17,7 +17,7 @@ Recommended to use be used with react-redux:
 
 All changes are immutable.
 
-Shape of the state can be extended and modified at anytime, ones root object of the data structure is defined at the beginning.
+Shape of the nonedux state can be extended and modified change dynamically.
 
 ##Getting started
 
@@ -28,9 +28,9 @@ import nonedux from 'none-dux';
 
 
 const initialState = {
-  request: {},      // root object
-  todosByUser: {},  // root object
-  users: {},        // root object
+  request: {},
+  todosByUser: {},  
+  users: {},
 };
 
 const { reducer, thunk, dispatcher, } = nonedux(initialState);// note. use nonedux thunk instead of redux-thunk
@@ -146,7 +146,7 @@ function actionCreator(){
 ``` 
 
 ###Limitations:
- * Every value at initialState needs to be an object or array:
+ * Every value at nonedux:ex initialState needs to be an object or array:
     ```
     const initialState = { 
       str: 'string',                        //invalid!
@@ -156,7 +156,7 @@ function actionCreator(){
       arr: []                               //valid
     })}
     ```
- * Adding new root level values after init does not work:
+ * Adding new root level values after init, does not work:
    * instead you should init something like 'temp' object if you have changing data
    ```
    const initialState = {
@@ -195,7 +195,7 @@ function actionCreator(){
     }
     ...
     {
-      const { data } = store.data.setState({obj: {str: 'ok'}})
+      const { data } = nonedux.data.setState({obj: {str: 'ok'}})
       
       console.log(data.obj) //SubStore: ...
       
@@ -204,7 +204,7 @@ function actionCreator(){
     ```
  * **setState** and **clearState** take only objects and arrays as parameter:
   ```
-  store.data.setState('text'); //Error("['data'] Expected setState parameter to be an Object or Array, but got 'text'")
+  nonedux.data.setState('text'); //Error("['data'] Expected setState parameter to be an Object or Array, but got 'text'")
   ```
  * no multiple nonedux instances per application: 
    * Meaning that the application cannot have multiple react-redux Providers that both use different nonedux reducer at the same time
