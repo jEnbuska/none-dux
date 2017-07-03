@@ -3,23 +3,15 @@ import SubStore, { CLEAR_STATE, SET_STATE, REMOVE, } from './SubStore';
 import DevSubStore from './DevSubStore';
 import { spec, object, array, anyLeaf, isRequired, number, none, symbol, string, bool, regex, func, date, anyValue, } from './shape';
 
-const { entries, assign, } = Object;
+const { entries, assign, keys, getPrototypeOf,} = Object;
 const parentTypes = { object, array, };
 const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, anyValue, date, };
 const types = { ...parentTypes, ...childTypes, none, };
 
 export default function createNoneDux(initialState = {}, shape) {
-  const { subject, } = new StoreParent(initialState, shape);
+  const { subject, } = new ReducerParent(initialState, shape);
   const reducer = createReducer(initialState, subject);
-  const thunk = () => next => action => {
-    if (typeof action === 'function') {
-      return action(subject);
-    } else if (action.target && !action.target.length) {
-      console.error(JSON.stringify(action, null, 1)+'\nWas called to ROOT. This will not cause any changes');
-    } else {
-      return next(action);
-    }
-  };
+  const thunk = createThunk(subject);
   const dispatcher = store => {
     SubStore.onAction = action => store.dispatch(action);
   };
@@ -31,9 +23,33 @@ export default function createNoneDux(initialState = {}, shape) {
   };
 }
 
+function createThunk(subject){
+  return (store) => next => action => {
+    if (typeof action === 'function') {
+      return action(subject, store);
+    } else if (action.target && !action.target.length) {
+      console.error(JSON.stringify(action, null, 1)+'\n' +
+        'Was called to nonedux ROOT.\n' +
+        'This will not cause any updates!\n\n' +
+        'If you want to create a new reducer then you need to initialize it at the start by a empty object or array\n\n' +
+        'If you want to clear state of a reducer call store[target].clearState({}) or store[target].clearState([])');
+    } else {
+      return next(action);
+    }
+  };
+}
+
 function createReducer(initialState, subject) {
   const reducerTemplate = entries(initialState)
-    .reduce((acc, [ k, v, ]) => {
+    .map(([ k, v, ]) => {
+      if (!subject[k]) {
+        console.error('Initial state of reducer "' + k + '" must be an object or array.' +
+            '\nBut got "' + (v===undefined || null ? v : keys(SubStore.invalidSubStores).find((k) => getPrototypeOf(v).constructor.name===k))+'" instead'+
+          '\nThis reducer cannot be modified');
+      }
+      return ({ k, v, });
+    })
+    .reduce((acc, { k, v, }) => {
       acc[k] = (state=v, { type, target, param, }) => {
         if (target && target[0]===k) {
           const child = target.reduce((t, key) => t[key], subject);
@@ -48,8 +64,7 @@ function createReducer(initialState, subject) {
               child._onRemove(param);
               break;
             default:
-              console.error('Invalid action');
-              console.error({ type, target, param, });
+              console.error('Invalid action\n'+JSON.stringify({ type, target, param, }, null, 2));
           }
         }
         return subject.state[k];
@@ -59,7 +74,7 @@ function createReducer(initialState, subject) {
   return combineReducers(reducerTemplate);
 }
 
-export class StoreParent {
+export class ReducerParent {
   __substore_id__ = '__ground__';
   __substore_identity__ = [];
 
@@ -67,11 +82,11 @@ export class StoreParent {
     if (shape && process.env.NODE_ENV!=='production') {
       shape = {
         [spec]: { types: [ object, ], isRequired, },
-        ...StoreParent.reformatShape(shape),
+        ...ReducerParent.reformatShape(shape),
       };
-      const shapeErrors = StoreParent.validateShape(shape);
+      const shapeErrors = ReducerParent.validateShape(shape);
       if (shapeErrors.length) {
-        StoreParent.onDevSubStoreCreationError('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1)+'\nCreated default SubStore instead');
+        ReducerParent.onDevSubStoreCreationError('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1)+'\nCreated default SubStore instead');
         this.subject = new SubStore(state, 'root', this, 0, undefined, []);
       } else {
         this.subject = new DevSubStore(state, 'root', this, 0, shape, []);
@@ -113,7 +128,7 @@ export class StoreParent {
         }
         assign((acc[key], { isRequired, exclusive, }));
       } else if (value[spec] || value[spec]) {
-        acc[key] = StoreParent.reformatShape(value);
+        acc[key] = ReducerParent.reformatShape(value);
       }
       return acc;
     }, {});
@@ -143,7 +158,7 @@ export class StoreParent {
     }
     entryMap
       .forEach(([ k, v, ]) => {
-        StoreParent.validateShape(v, [ ...identity, k, ], errors);
+        ReducerParent.validateShape(v, [ ...identity, k, ], errors);
       });
 
     return errors;
