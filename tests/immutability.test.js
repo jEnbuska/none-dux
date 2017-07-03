@@ -1,11 +1,10 @@
-
-import nonedux from '../src/createNoneDux';
+import { ReducerParent, } from '../src/createNoneDux';
 
 describe('immutability', () => {
   let subject;
   test('previous states should not be changed',
     () => {
-      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
       const { state: initialState, } = subject;
       const { state: bInitialState, } = subject.b;
       subject._onSetState({ a: 2, });
@@ -15,7 +14,7 @@ describe('immutability', () => {
 
   test('subjects other children should remain unchanged',
     () => {
-      subject = nonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
       const { state: bInitialState, } = subject.b;
       subject._onSetState({ a: 2, });
       expect(bInitialState).toEqual(subject.b.state);
@@ -24,7 +23,7 @@ describe('immutability', () => {
 
   test('changing deep state',
     () => {
-      subject = nonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+      subject = new ReducerParent({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
       const bOrg = subject.b.state;
       const dOrg = subject.b.d.state;
       const eOrg = subject.b.e.state;
@@ -37,7 +36,7 @@ describe('immutability', () => {
     });
 
   test('changing deep state by children', () => {
-    subject = nonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
+    subject = new ReducerParent({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }).subject;
     const bOrg = subject.b.state;
     const dOrg = subject.b.d.state;
     const eOrg = subject.b.e.state;
@@ -80,7 +79,7 @@ describe('immutability', () => {
     expect(() => initialState.b.c='').toThrow(Error);
     expect(() => initialState.b='').toThrow(Error);
     expect(() => initialState.a='').toThrow(Error);
-    const {subject} = nonedux(initialState);
+    const { subject, } = new ReducerParent(initialState);
     const nextState = { a: 2, b: { c: { x: 1, }, d: 1, }, e: 3, };
     Object.defineProperty(nextState, 'a', {
       writable: false,

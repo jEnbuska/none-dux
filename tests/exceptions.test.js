@@ -1,4 +1,4 @@
-import nonedux from '../src/createNoneDux';
+import { ReducerParent, } from '../src/createNoneDux';
 import SubStore from '../src/SubStore';
 
 function verifyErrorOnChange(...params) {
@@ -17,7 +17,7 @@ describe('killSwitch', () => {
     () => {
       let killSwitchIsTriggered = false;
 
-      subject = nonedux({}).subject;
+      subject = new ReducerParent({}).subject;
       SubStore.__kill = () => { killSwitchIsTriggered = true; };
       let ref = subject;
       for (let i = 0; i<45; i++) {
@@ -26,12 +26,11 @@ describe('killSwitch', () => {
         expect(!killSwitchIsTriggered).toBeTruthy();
       }
       ref._onSetState({ a: {}, });
-      console.log('--------------');
       expect(killSwitchIsTriggered).toBeTruthy();
     });
   test('changing _onRemoved sub subject should throw an exception',
     () => {
-      subject = nonedux({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }).subject;
+      subject = new ReducerParent({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }).subject;
       const { a, c, } = subject;
       const { d, } = c;
       subject._onRemove('a');
@@ -40,7 +39,7 @@ describe('killSwitch', () => {
     });
 
   test('changing excluded sub subject should throw an exception', () => {
-    subject = nonedux({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }).subject;
+    subject = new ReducerParent({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }).subject;
     const { a, c, } = subject;
     const { d, } = c;
     subject._onClearState({ b: 2, });

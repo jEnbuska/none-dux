@@ -1,9 +1,9 @@
 
-import nonedux, { StoreParent, } from '../src/createNoneDux';
+import nonedux, { ReducerParent, } from '../src/createNoneDux';
 import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue, } from '../src/shape';
 import DevSubStore from '../src/DevSubStore';
 import createLeaf from '../src/SubStoreLeaf';
-StoreParent.onDevSubStoreCreationError = () => {};
+ReducerParent.onDevSubStoreCreationError = () => {};
 
 let validationErrors;
 let requiredFieldsErrors;
@@ -41,7 +41,7 @@ describe('Validate shape', () => {
   });
 
   test('reformatShape', () => {
-    const reformatted = StoreParent.reformatShape({
+    const reformatted = ReducerParent.reformatShape({
       [spec]: { object, isRequired, },
       a: { [spec]: { array, isRequired, exclusive, },
         [anyKey]: { [spec]: { object, },
@@ -65,7 +65,6 @@ describe('Validate shape', () => {
   });
 
   test('Valid array', () => {
-    refreshLists();
     nonedux(
       { arr1: [], arr2: [ [], ], },
       {
@@ -81,12 +80,14 @@ describe('Validate shape', () => {
   });
 
   test('Valid bool', () => {
-    refreshLists(); // beforeEach not working for some reason
     nonedux(
-      { a: false, b: true, },
+      { reducer: { a: false, b: true, }, },
       {
-        a: { [spec]: { bool, }, },
-        b: { [spec]: { bool, }, },
+        reducer: {
+          [spec]: { object, isRequired, },
+          a: { [spec]: { bool, }, },
+          b: { [spec]: { bool, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -95,13 +96,15 @@ describe('Validate shape', () => {
   });
 
   test('Valid number', () => {
-    refreshLists();
     nonedux(
-      { a: 1, b: 2, c: 3, },
+      { reducer: { a: 1, b: 2, c: 3, }, },
       {
-        a: { [spec]: { number, }, },
-        b: { [spec]: { number, }, },
-        c: { [spec]: { number, }, },
+        reducer: {
+          [spec]: { object, isRequired, },
+          a: { [spec]: { number, }, },
+          b: { [spec]: { number, }, },
+          c: { [spec]: { number, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -110,12 +113,14 @@ describe('Validate shape', () => {
   });
 
   test('Valid string', () => {
-    refreshLists();
     nonedux(
-      { a: '', b: 'abc', },
+      { reducer: { a: '', b: 'abc', }, },
       {
-        a: { [spec]: { string, }, },
-        b: { [spec]: { string, }, },
+        reducer: {
+          [spec]: { object, isRequired, },
+          a: { [spec]: { string, }, },
+          b: { [spec]: { string, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -124,12 +129,14 @@ describe('Validate shape', () => {
   });
 
   test('Valid object', () => {
-    refreshLists();
     nonedux(
-      { a: {}, b: {}, },
+      { reducer: { a: {}, b: {}, }, },
       {
-        a: { [spec]: { object, }, },
-        b: { [spec]: { object, }, },
+        reducer: {
+          [spec]: { object, isRequired, },
+          a: { [spec]: { object, }, },
+          b: { [spec]: { object, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -137,12 +144,14 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).toEqual(0);
   });
   test('Valid regex', () => {
-    refreshLists();
     nonedux(
-      { a: /hello/, b: /world/, },
+      { reducer: { a: /hello/, b: /world/, }, },
       {
-        a: { [spec]: { regex, }, },
-        b: { [spec]: { regex, }, },
+        reducer: {
+          [spec]: { object, isRequired, },
+          a: { [spec]: { regex, }, },
+          b: { [spec]: { regex, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -151,12 +160,13 @@ describe('Validate shape', () => {
   });
 
   test('Valid symbol', () => {
-    refreshLists();
     nonedux(
-      { a: Symbol('hello'), b: Symbol('world'), },
+      { reducer: { a: Symbol('hello'), b: Symbol('world'), }, },
       {
-        a: { [spec]: { symbol, }, },
-        b: { [spec]: { symbol, }, },
+        reducer: { [spec]: { object, isRequired, },
+          a: { [spec]: { symbol, }, },
+          b: { [spec]: { symbol, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -165,12 +175,13 @@ describe('Validate shape', () => {
   });
 
   test('Valid func', () => {
-    refreshLists();
     nonedux(
-      { a: () => {}, b() {}, },
+      { reducer: { a: () => {}, b() {}, }, },
       {
-        a: { [spec]: { func, }, },
-        b: { [spec]: { func, }, },
+        reducer: { [spec]: { object, isRequired, },
+          a: { [spec]: { func, }, },
+          b: { [spec]: { func, }, },
+        },
       });
     expect(validationErrors.length).toEqual(0);
     expect(requiredFieldsErrors.length).toEqual(0);
@@ -179,13 +190,13 @@ describe('Validate shape', () => {
   });
 
   test('Valid anyLeaf', () => {
-    refreshLists();
     nonedux(
-      { a: '', b: 2, c: false, },
-      {
+      { reducer: { a: '', b: 2, c: false, }, },
+      { reducer: { [spec]: { object, isRequired, },
         a: { [spec]: { anyLeaf, }, },
         b: { [spec]: { anyLeaf, }, },
         c: { [spec]: { anyLeaf, }, },
+      },
       });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(0);
@@ -194,10 +205,9 @@ describe('Validate shape', () => {
   });
 
   test('invalid bools', () => {
-    refreshLists();
     nonedux(
-      { a: 123, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
-      {
+      { reducer: { a: 123, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, }, },
+      { reducer: { [spec]: { object, isRequired, },
         a: { [spec]: { bool, }, },
         b: { [spec]: { bool, }, },
         c: { [spec]: { bool, }, },
@@ -205,20 +215,21 @@ describe('Validate shape', () => {
         e: { [spec]: { bool, }, },
         f: { [spec]: { bool, }, },
         g: { [spec]: { bool, }, },
+      },
       });
 
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: number.name, state: 123, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'reducer', 'a', ], actualType: number.name, state: 123, }, { identity: [ 'reducer', 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'reducer', 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ bool.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
     expect(requiredFieldsErrors.length).toBe(0);
@@ -227,30 +238,31 @@ describe('Validate shape', () => {
   });
 
   test('invalid numbers', () => {
-    refreshLists();
     nonedux(
-      { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
+      { reducer: { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, }, },
       {
-        b: { [spec]: { number, }, },
-        c: { [spec]: { number, }, },
-        d: { [spec]: { number, }, },
-        a: { [spec]: { number, }, },
-        e: { [spec]: { number, }, },
-        f: { [spec]: { number, }, },
-        g: { [spec]: { number, }, },
+        reducer: { [spec]: { isRequired, object, },
+          b: { [spec]: { number, }, },
+          c: { [spec]: { number, }, },
+          d: { [spec]: { number, }, },
+          a: { [spec]: { number, }, },
+          e: { [spec]: { number, }, },
+          f: { [spec]: { number, }, },
+          g: { [spec]: { number, }, },
+        },
       });
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'reducer', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'reducer', 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'reducer', 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ number.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -260,30 +272,30 @@ describe('Validate shape', () => {
   });
 
   test('invalid strings', () => {
-    refreshLists();
     nonedux(
-      { a: true, b: 123, c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, },
+      { reducer: { a: true, b: 123, c: emptyFunc, d: emptyObj, e: helloSymbol, f: testRegex, g: emptyArr, }, },
       {
-        b: { [spec]: { string, }, },
-        c: { [spec]: { string, }, },
-        d: { [spec]: { string, }, },
-        a: { [spec]: { string, }, },
-        e: { [spec]: { string, }, },
-        f: { [spec]: { string, }, },
-        g: { [spec]: { string, }, },
+        reducer: { [spec]: { object, isRequired, },
+          b: { [spec]: { string, }, },
+          c: { [spec]: { string, }, },
+          d: { [spec]: { string, }, },
+          a: { [spec]: { string, }, },
+          e: { [spec]: { string, }, },
+          f: { [spec]: { string, }, },
+          g: { [spec]: { string, }, },
+        },
       });
     expect(validationErrors.length).toBe(7);
-
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: number.name, state: 123, },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'reducer', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'reducer', 'b', ], actualType: number.name, state: 123, },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'reducer', 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ string.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
     expect(requiredFieldsErrors.length).toBe(0);
@@ -292,10 +304,9 @@ describe('Validate shape', () => {
   });
 
   test('invalid regex', () => {
-    refreshLists();
     nonedux(
-      { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: 123, g: emptyArr, },
-      {
+      { reducer: { a: true, b: 'abc', c: emptyFunc, d: emptyObj, e: helloSymbol, f: 123, g: emptyArr, }, },
+      { reducer: { [spec]: { object, isRequired, },
         b: { [spec]: { regex, }, },
         c: { [spec]: { regex, }, },
         d: { [spec]: { regex, }, },
@@ -303,20 +314,21 @@ describe('Validate shape', () => {
         e: { [spec]: { regex, }, },
         f: { [spec]: { regex, }, },
         g: { [spec]: { regex, }, },
+      },
       });
 
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: object.name, state: emptyObj, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'reducer', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'reducer', 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'reducer', 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ regex.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -326,30 +338,31 @@ describe('Validate shape', () => {
   });
 
   test('invalid object', () => {
-    refreshLists();
     nonedux(
-      { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyArr, },
+      { reducer: { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyArr, }, },
       {
-        a: { [spec]: { object, }, },
-        b: { [spec]: { object, }, },
-        c: { [spec]: { object, }, },
-        d: { [spec]: { object, }, },
-        e: { [spec]: { object, }, },
-        f: { [spec]: { object, }, },
-        g: { [spec]: { object, }, },
+        reducer: { [spec]: { object, isRequired, },
+          a: { [spec]: { object, }, },
+          b: { [spec]: { object, }, },
+          c: { [spec]: { object, }, },
+          d: { [spec]: { object, }, },
+          e: { [spec]: { object, }, },
+          f: { [spec]: { object, }, },
+          g: { [spec]: { object, }, },
+        },
       });
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'g', ], actualType: array.name, state: emptyArr, },
+      { identity: [ 'reducer', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'reducer', 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'reducer', 'g', ], actualType: array.name, state: emptyArr, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ object.name, none.name, ], exclusive: false, isRequired: false, ...expected, });
     }
 
@@ -359,30 +372,31 @@ describe('Validate shape', () => {
   });
 
   test('invalid array', () => {
-    refreshLists();
     nonedux(
-      { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyObj, },
+      { reducer: { a: true, b: 'abc', c: emptyFunc, d: testRegex, e: helloSymbol, f: 123, g: emptyObj, }, },
       {
-        a: { [spec]: { array, }, },
-        b: { [spec]: { array, }, },
-        c: { [spec]: { array, }, },
-        d: { [spec]: { array, }, },
-        e: { [spec]: { array, }, },
-        f: { [spec]: { array, }, },
-        g: { [spec]: { array, }, },
+        reducer: { [spec]: { object, isRequired, },
+          a: { [spec]: { array, }, },
+          b: { [spec]: { array, }, },
+          c: { [spec]: { array, }, },
+          d: { [spec]: { array, }, },
+          e: { [spec]: { array, }, },
+          f: { [spec]: { array, }, },
+          g: { [spec]: { array, }, },
+        },
       });
     expect(validationErrors.length).toBe(7);
 
     const expectedErrors =[
-      { identity: [ 'a', ], actualType: bool.name, state: true, }, { identity: [ 'b', ], actualType: string.name, state: 'abc', },
-      { identity: [ 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'd', ], actualType: regex.name, state: testRegex, },
-      { identity: [ 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'f', ], actualType: number.name, state: 123, },
-      { identity: [ 'g', ], actualType: object.name, state: emptyObj, },
+      { identity: [ 'reducer', 'a', ], actualType: bool.name, state: true, }, { identity: [ 'reducer', 'b', ], actualType: string.name, state: 'abc', },
+      { identity: [ 'reducer', 'c', ], actualType: func.name, state: emptyFunc, }, { identity: [ 'reducer', 'd', ], actualType: regex.name, state: testRegex, },
+      { identity: [ 'reducer', 'e', ], actualType: symbol.name, state: helloSymbol, }, { identity: [ 'reducer', 'f', ], actualType: number.name, state: 123, },
+      { identity: [ 'reducer', 'g', ], actualType: object.name, state: emptyObj, },
     ];
 
     for (let i = 0; i<validationErrors.length; i++) {
       const next = validationErrors[i];
-      const expected = expectedErrors.find(({ identity, }) => identity[0] === next.identity[0]);
+      const expected = expectedErrors.find(({ identity, }) => identity[1] === next.identity[1]);
       expect(next).toEqual({ expectedType: [ array.name, none.name, ], isRequired: false, exclusive: false, ...expected, });
     }
 
@@ -392,7 +406,6 @@ describe('Validate shape', () => {
   });
 
   test('invalid anyLeafs', () => {
-    refreshLists();
     nonedux(
       { a: emptyObj, b: emptyArr, },
       {
@@ -409,11 +422,12 @@ describe('Validate shape', () => {
   });
 
   test('Valid anyLeaf with any target', () => {
-    refreshLists();
     nonedux(
-      { a: 123, 1: 'abc', gdsabafda: false, },
+      { reducer: { a: 123, 1: 'abc', gdsabafda: false, }, },
       {
-        [anyKey]: { [spec]: { anyLeaf, }, },
+        reducer: { [spec]: { object, isRequired, },
+          [anyKey]: { [spec]: { anyLeaf, }, },
+        },
       });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(0);
@@ -422,27 +436,29 @@ describe('Validate shape', () => {
   });
 
   test('Missing required field error', () => {
-    refreshLists();
     nonedux(
-      { a: 123, },
+      { reducer: { a: 123, }, },
       {
-        [anyKey]: { [spec]: { anyLeaf, }, },
-        b: { [spec]: { number, isRequired, }, },
-        c: { [spec]: { object, isRequired, }, },
+        reducer: { [spec]: { object, isRequired, },
+          [anyKey]: { [spec]: { anyLeaf, }, },
+          b: { [spec]: { number, isRequired, }, },
+          c: { [spec]: { object, isRequired, }, },
+        },
       });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(1);
-    expect(requiredFieldsErrors[0]).toEqual({ identity: [ ], missingRequiredFields: [ 'b', 'c', ], });
+    expect(requiredFieldsErrors[0]).toEqual({ identity: [ 'reducer', ], missingRequiredFields: [ 'b', 'c', ], });
     expect(invalidSpecTypesErrors.length).toBe(0);
     expect(exclusiveFieldsErrors.length).toBe(0);
   });
 
   test('Redudant fields error', () => {
-    refreshLists();
     nonedux(
-      { a: 123, b: 'abc', },
+      { reducer: { a: 123, b: 'abc', }, },
       { [spec]: { object, exclusive, },
-        a: { [spec]: { anyLeaf, }, },
+        reducer: { [spec]: { exclusive, object, isRequired, },
+          a: { [spec]: { anyLeaf, }, },
+        },
       });
     expect(validationErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
@@ -453,11 +469,12 @@ describe('Validate shape', () => {
   });
 
   test('Non specified fields', () => {
-    refreshLists();
     nonedux(
-      { a: 123, b: 'abc', },
+      { reducer: { a: 123, b: 'abc', }, },
       { [spec]: { object, },
-        a: { [spec]: { anyLeaf, }, },
+        reducer: { [spec]: { object, isRequired, },
+          a: { [spec]: { anyLeaf, }, },
+        },
       });
     expect(validationErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
@@ -551,9 +568,10 @@ describe('Validate shape', () => {
   });
 
   test('Valid anyValue', () => {
-    refreshLists();
     nonedux(
-      { a: emptyObj, b: emptyArr, c: null, d: undefined, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
+      { reducer: { [spec]: { object, isRequired, },
+        a: emptyObj, b: emptyArr, c: null, d: undefined, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
+      },
       {
         a: { [spec]: { anyValue, }, },
         b: { [spec]: { anyValue, }, },
@@ -573,11 +591,10 @@ describe('Validate shape', () => {
     expect(exclusiveFieldsErrors.length).toBe(0);
   });
 
-  test('required anyValue', () => {
-    refreshLists();
+  test('valid required anyValue', () => {
     nonedux(
-      { a: emptyObj, b: emptyArr, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, },
-      {
+      { reducer: { a: emptyObj, b: emptyArr, e: 0, f: false, g: '', h: testRegex, i: emptyFunc, j: helloSymbol, }, },
+      { reducer: { [spec]: { object, isRequired, },
         a: { [spec]: { anyValue, isRequired, }, },
         b: { [spec]: { anyValue, isRequired, }, },
         e: { [spec]: { anyValue, isRequired, }, },
@@ -586,16 +603,24 @@ describe('Validate shape', () => {
         h: { [spec]: { anyValue, isRequired, }, },
         i: { [spec]: { anyValue, isRequired, }, },
         j: { [spec]: { anyValue, isRequired, }, },
+      },
       });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
     expect(exclusiveFieldsErrors.length).toBe(0);
-    nonedux({ c: null, d: undefined, },
-      {
+  });
+
+  test('missin required anyValue', () => {
+    nonedux({ reducer: {
+      c: null,
+      d: undefined,
+    },
+    },
+      { reducer: { [spec]: { object, isRequired, },
         c: { [spec]: { anyValue, isRequired, }, },
         d: { [spec]: { anyValue, isRequired, }, },
-      }
+      }, }
     );
     expect(validationErrors.length).toBe(2);
     expect(requiredFieldsErrors.length).toBe(0);
@@ -604,12 +629,13 @@ describe('Validate shape', () => {
   });
 
   test('valid date', () => {
-    refreshLists();
     nonedux(
-      { a: new Date(), },
-      {
+      { reducer: {
+        a: new Date(), },
+      },
+      { reducer: { [spec]: { object, isRequired, },
         a: { [spec]: { date, isRequired, }, },
-      });
+      }, });
     expect(validationErrors.length).toBe(0);
     expect(requiredFieldsErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
@@ -617,7 +643,6 @@ describe('Validate shape', () => {
   });
 
   test('validate object created by createLeaf', () => {
-    refreshLists();
     nonedux(
       { a: { b: createLeaf({ c: { d: 1, }, }), }, },
       {
@@ -632,7 +657,6 @@ describe('Validate shape', () => {
   });
 
   test('validate array created by createLeaf', () => {
-    refreshLists();
     nonedux(
       { a: { b: createLeaf([ { c: 1, }, 2, ]), }, },
       {
