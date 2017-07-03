@@ -30,23 +30,21 @@ function onThrow(func) {
 
 export class SubStoreArrayLeaf {
   constructor(arr = []) {
-    this.length = arr.length;
     assign(this, arr);
     freeze(this);
     seal(this);
   }
 
-  values() {
-    const { length, ...rest } = this;
-    return Object.values(rest);
+  get length() {
+    return values(this).length;
   }
 
   map(func) {
-    return this.values().map(func);
+    return values(this).map(func);
   }
 
   filter(arg) {
-    return this.values().filter(arg);
+    return values(this).filter(arg);
   }
 
   concat() {
@@ -56,31 +54,31 @@ export class SubStoreArrayLeaf {
     onThrow('copyWithin');
   }
   every(arg) {
-    return this.values().every(arg);
+    return values(this).every(arg);
   }
   fill() {
     onThrow('fill');
   }
   find(arg) {
-    return this.values().find(arg);
+    return values(this).find(arg);
   }
   findIndex(arg) {
-    return this.values().findIndex(arg);
+    return values(this).findIndex(arg);
   }
   forEach(arg) {
-    return this.values().forEach(arg);
+    return values(this).forEach(arg);
   }
   indexOf(arg) {
-    return this.values().indexOf(arg);
+    return values(this).indexOf(arg);
   }
   isArray() {
     onThrow('isArray');
   }
   join(arg) {
-    return this.values().join(arg);
+    return values(this).join(arg);
   }
   lastIndexOf(arg) {
-    return this.values().lastIndexOf(arg);
+    return values(this).lastIndexOf(arg);
   }
   pop() {
     onThrow('pop');
@@ -89,10 +87,10 @@ export class SubStoreArrayLeaf {
     onThrow('push');
   }
   reduce(arg, seed) {
-    return this.values().reduce(arg, seed);
+    return values(this).reduce(arg, seed);
   }
   reduceRight(arg, seed) {
-    return this.values().reduceRight(arg, seed);
+    return values(this).reduceRight(arg, seed);
   }
   reverse() {
     onThrow('reverse');
@@ -101,10 +99,10 @@ export class SubStoreArrayLeaf {
     onThrow('shift');
   }
   slice(arg1, arg2) {
-    return this.values().slice(arg1, arg2);
+    return values(this).slice(arg1, arg2);
   }
   some(arg) {
-    return this.values().some(arg);
+    return values(this).some(arg);
   }
   sort() {
     onThrow('sort');
@@ -113,12 +111,14 @@ export class SubStoreArrayLeaf {
     onThrow('splice');
   }
   toString()	{
-    return this.values().toString();
+    return values(this).toString();
   }
   unshift() {
     onThrow('unshift');
   }
   valueOf() {
-    return this.values().valueOf();
+    return values(this).valueOf();
   }
+
 }
+

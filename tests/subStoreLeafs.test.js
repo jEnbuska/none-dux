@@ -8,7 +8,11 @@ describe('Leafs', () => {
     const acc = {};
     leaf.forEach((v, i) => acc[i]=v);
     expect(acc).toEqual({ 0: 1, 1: 2, 2: { a: 3, b: { c: 4, }, }, 3: 'd', });
+    expect(Object.values(acc)).toEqual([ 1, 2, { a: 3, b: { c: 4, }, }, 'd', ]);
     const [ ...arr ] = leaf;
+    expect(Object.values(leaf)).toEqual([ 1, 2, { a: 3, b: { c: 4, }, }, 'd', ]);
+    expect(Object.keys(leaf)).toEqual([ '0', '1', '2', '3', ]);
+    expect(Object.entries(leaf)).toEqual([ [ '0', 1, ], [ '1', 2, ], [ '2', { a: 3, b: { c: 4, }, }, ], [ '3', 'd', ], ]);
     expect(arr).toEqual([ 1, 2, { a: 3, b: { c: 4, }, }, 'd', ]);
     expect(leaf.reduce((acc, next, i) => Object.assign(acc, { [i]: next, }), {})).toEqual({ 0: 1, 1: 2, 2: { a: 3, b: { c: 4, }, }, 3: 'd', });
     expect(leaf.map(it => it)).toEqual([ 1, 2, { a: 3, b: { c: 4, }, }, 'd', ]);
