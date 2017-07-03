@@ -17,7 +17,7 @@ Recommended to use be used with react-redux:
 
 All changes are immutable.
 
-Shape of the nonedux state can be extended and modified change dynamically.
+Shape of the nonedux state can be extended and changed dynamically.
 
 ##Getting started
 
@@ -33,11 +33,11 @@ const initialState = {
   users: {},
 };
 
-const { reducer, thunk, dispatcher, } = nonedux(initialState);// note. use nonedux thunk instead of redux-thunk
+const { reducer, thunk, dispatcher, } = nonedux(initialState);// use nonedux thunk instead of redux-thunk
 const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
 
-dispatcher(store); // introduce store to none-dux, so it can dispatch new actions
+dispatcher(store); // introduce store to none-dux, so it able to dispatch actions when needed
 
 const root = (
   <Provider store={store}>
@@ -46,23 +46,8 @@ const root = (
         ...
 ```
 ####action creators:
+#####Second argument of actions is reduxStore (just in case if you have some non nonedux reducers)
 ```
-// setState: 1. creates the action. 2. dispatches the action. 3. return object it self
-export function juggle(){
- return function({data}){
-  console.log(data.state);                    // '{}'
-  const {state} = data.setState({a: {b: 1}})  // dispatch({type: SET_STATE, target: [ 'data' ], param: {a: {b:  1}}})
-    .a.setState({c: {d: 2}})                  // dispatch({type: SET_STATE, target: [ 'data', 'a' ], param: {c: {d: 2}}})
-    .c.setState({e: {f: 3}})                  // dispatch({type: SET_STATE, target: [ 'data', 'a' ,'c' ], param: {e: {f: 3}}})
-  console.log(data.state)                     //'{a: {b: 1, c: {d: 2,e: {f: 3}}}}'
-  console.log(state)                          //'{ d:2, e: {f: 3} }' <-- state of c
- }
-}
-```
-####action creator examples
-```
-* Second argument of actions is reduxStore, just in case if you have some non nonedux reducers
-
 //userActions
 function createUser(userData){
   return function({users}, reduxStore){
@@ -122,14 +107,28 @@ target.remove(ids); //removes all children with matching ids
 target.removeSelf(); //remove self
 ```
 
-#####State of the nonedux object can be redefined at any time, but the top level objects has to be defined at start:
+
+###State of the nonedux child object can be redefined at any time, but immediate childs of nonedux (top level values) have to be objects, and defined at the initialState:
+
+ ####Initial state
+ ```
+ 
+const initialState = { 
+       str: 'string',                        //invalid value!
+       leaf: createLeaf({statistics: {...}}) //invalid value!
+       empty: null,                          //invalid value!
+       obj: {a:1}                            //valid
+       arr: []                               //valid
+       parent: {}                            //valid
+     })}
+ ```
 ```
 function actionCreator(){
   return function(nonedux){
     const {parent} = nonedux;
     console.log(parent.state); // {}
     parent.setState({
-          child: {
+          children: {
             firstSubChild: {
               role: 'first', children: false
             },
@@ -138,41 +137,36 @@ function actionCreator(){
             }
          }
        });
-    const {firstSubChild, secondSubChild} = parent.child;
+    const {firstSubChild, secondSubChild} = parent.children;
     firstSubChild.removeSelf();
   }
 }
-
-``` 
-
+```
+ 
+ * **setState** and **clearState** take only objects and arrays as parameter:
+  ```
+  nonedux.data.setState('text'); //Error("['data'] Expected setState parameter to be an Object or Array, but got 'text'")
+  ```
+  
+  
 ###Limitations:
- * Every value at nonedux:ex initialState needs to be an object or array:
-    ```
-    const initialState = { 
-      str: 'string',                        //invalid!
-      leaf: createLeaf({statistics: {...}}) //invalid!
-      empty: null,                          //invalid!
-      obj: {}                               //valid
-      arr: []                               //valid
-    })}
-    ```
- * Adding new root level values after init, does not work:
-   * instead you should init something like 'temp' object if you have changing data
+  * Adding new root level values after init, is not possible:
+      * instead you should init something like 'temp' object if you have changing data
    ```
    const initialState = {
      ...otherData,
      temp: {}     //used for forms etc.
    };
-   ...
+   ... // on enter form page
    temp.setState({userForm: {
       firstName: '', lastName: '', email: '' ...
    }})
-   ...
+   ... // on exit form page
    //dispose of non relevant data:
    temp.clearState({}) //state => {}
    
    ```
- * ***setState*** ***remove***, ***clearState*** can be called only children of nonedux:
+ * ***setState*** ***remove***, ***clearState*** can be called only by **children** of nonedux:
     
    ```
    nonedux.setState({something:{...}); //will not cause any changes
@@ -202,10 +196,7 @@ function actionCreator(){
       console.log(data.obj.state) // {str: 'ok'}
     }
     ```
- * **setState** and **clearState** take only objects and arrays as parameter:
-  ```
-  nonedux.data.setState('text'); //Error("['data'] Expected setState parameter to be an Object or Array, but got 'text'")
-  ```
+  
  * no multiple nonedux instances per application: 
    * Meaning that the application cannot have multiple react-redux Providers that both use different nonedux reducer at the same time
    
@@ -266,7 +257,7 @@ If you redux stack consists of redux, react-redux and redux-thunk you can try ou
  } 
 ```
 
-if you have a big static data that will only be added, removed or replaced, you can save by creating 'leafs'':
+if you have a big static data that will only be added, removed or replaced, you can save performance by creating 'leafs'':
 ```
 import { createLeaf } from 'none-dux'
 
@@ -289,7 +280,7 @@ function fetchCustomerData(){
 }
 ```
 
-if you want to add type checking add 'shape' as second argument for nonedux function call':
+if you want to add type checking use **shape** as second argument for nonedux function call':
 ```
 /*
 The only effect is that you will get console warnings during development, when shape breaks specification.
@@ -319,7 +310,6 @@ const shape = {
 const initialState = {todosByUser: {}, users: {}, request: {}}};
 const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
 
-//... and the rest is the same
 /*
 using shape makes the performance significantly slower in dev environment
 shape is ignored when NODE_ENV === 'production'
