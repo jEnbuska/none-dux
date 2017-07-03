@@ -114,6 +114,9 @@ export default class SubStore {
   }
 
   remove(...keys) {
+    if (keys[0] instanceof Array) {
+      keys = keys[0];
+    }
     SubStore.onAction({ type: REMOVE, target: this.__substore_identity__, param: keys, });
     return this;
   }
