@@ -1,5 +1,4 @@
-
-import { ReducerParent, }from '../src/createNoneDux';
+import ReducerParent from '../src/ReducerParent';
 import SubStore from '../src/SubStore';
 import { data, data2, } from './resources';
 
@@ -10,7 +9,8 @@ describe('performance', () => {
     const odd = data2;
     const firstCompany = keys(even.companies)[0];
     const firstChildOdd = keys(odd)[0];
-    const root = new ReducerParent({}).subject;
+    const root = new ReducerParent({});
+    SubStore.maxDepth = 100;
     root._onSetState(even);
     const time = new Date();
     for (let i = 0; i < 1000; i++) {
@@ -24,7 +24,7 @@ describe('performance', () => {
       } else {
         root._onSetState(odd);
         root[firstChildOdd]._onSetState(even.companies[firstCompany]);
-        root._onRemove([firstChildOdd]);
+        root._onRemove([ firstChildOdd, ]);
       }
     }
     console.log('~ 1000 node merges, 1000 resets, 1 000  000 subsubject nodes removals, 1 000 000 subsubject nodes created. Took total of: ', new Date() - time, 'ms');
@@ -32,7 +32,7 @@ describe('performance', () => {
 
   test('memory management after set state', function () {
     const data = { a: 1, b: { c: { d: 2, }, e: [ 1, 2, { f: { g: 1, }, }, ], }, };
-    const { subject, } = new ReducerParent(data);
+    const subject = new ReducerParent(data);
     const { state, prevState, } = subject._onSetState({ b: { c: { d: 2, }, e: [ 1, { h: 1, }, { f: { i: 1, }, }, ], j: { k: 1, }, }, l: 1, m: { n: 1, }, });
     expect(state.b === subject.b.state).toBeTruthy();
     expect(state.b.c === subject.b.c.state).toBeTruthy();
@@ -58,7 +58,7 @@ describe('performance', () => {
 
   test('memory management after _onRemove', function () {
     const data = { a: 1, b: { c: { d: 2, }, e: [ 1, 2, { f: { g: 1, }, }, ], }, };
-    const { subject, } = new ReducerParent(data);
+    const subject = new ReducerParent(data);
     subject.b.e[2]._onRemove('f');
     expect(subject.b.state=== subject.state.b);
     expect(subject.b.prevState=== subject.prevState.b);

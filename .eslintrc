@@ -2,7 +2,7 @@
   "extends": [
     "airbnb"
   ],
-  "plugins": ["react"],
+  "plugins": ["react", "jest"],
   "parser": "babel-eslint",
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -12,7 +12,7 @@
     "es6": true,
     "browser": true,
     "node": true,
-    "mocha": true
+    "jest/globals": true
   },
   "rules": {
     "strict": ["warn", "never"],

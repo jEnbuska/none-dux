@@ -1,4 +1,3 @@
-
 import nonedux from '../src/createNoneDux';
 
 describe('Create subject', () => {

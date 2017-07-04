@@ -1,4 +1,3 @@
-
 import nonedux from '../src/createNoneDux';
 import createLeaf, { SubStoreObjectLeaf, SubStoreArrayLeaf, } from '../src/SubStoreLeaf';
 
