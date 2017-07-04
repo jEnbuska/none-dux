@@ -1,11 +1,12 @@
-export const SET_STATE = 'SET_STATE';
-export const CLEAR_STATE = 'CLEAR_STATE';
-export const REMOVE = 'REMOVE';
-
+import { SET_STATE, CLEAR_STATE, REMOVE, } from './common';
 const { getPrototypeOf, assign, values, } = Object;
 
 export default class SubStore {
 
+  static __kill(target) {
+    console.trace();
+    throw new Error('SubStore maximum depth '+SubStore.maxDepth+' exceeded by "'+JSON.stringify(target.__substore_identity__, null, 1)+'"');
+  }
   static onAction;
   static maxDepth = 45;
   static invalidSubStores = {
@@ -25,14 +26,15 @@ export default class SubStore {
   __substore_id__;
   __substore_identity__;
   __substore_parent__;
+  __substore_onAction__;
 
-  constructor(initialValue, id, parent, depth, shape, identity) {
-    if (depth>SubStore.maxDepth) { SubStore.__kill(); }
-    this.__substore_shape__= shape;
+  constructor(initialValue, id, parent, depth, identity, onAction) {
+    this.__substore_identity__ = identity;
+    if (depth>SubStore.maxDepth) { SubStore.__kill(this); }
     this.__substore_depth__ = depth;
     this.__substore_id__ = id;
     this.__substore_parent__ = parent;
-    this.__substore_identity__ = identity;
+    this.__substore_onAction__ = onAction;
     let initialState;
     if (initialValue instanceof Array) {
       initialState = [ ...initialValue, ];
@@ -41,7 +43,7 @@ export default class SubStore {
     }
     for (const k in initialState) {
       if (SubStore.couldBeParent(initialState[k])) {
-        initialState[k] = this._createSubStore(initialState[k], k, this, depth + 1, shape).state;
+        initialState[k] = this._createSubStore(initialState[k], k, this, depth + 1).state;
       }
     }
     this.state = initialState;
@@ -59,12 +61,8 @@ export default class SubStore {
     return this.__substore_identity__;
   }
 
-  stillAttatched() {
-    return !!this.__substore_parent__;
-  }
-
   setState(value) {
-    SubStore.onAction({ type: SET_STATE, target: this.__substore_identity__, param: value, });
+    this.__substore_onAction__.dispatch({ type: SET_STATE, target: this.__substore_identity__, param: value, });
     return this;
   }
 
@@ -90,7 +88,7 @@ export default class SubStore {
   }
 
   clearState(value) {
-    SubStore.onAction({ type: CLEAR_STATE, target: this.__substore_identity__, param: value, });
+    this.__substore_onAction__.dispatch({ type: CLEAR_STATE, target: this.__substore_identity__, param: value, });
     return this;
   }
 
@@ -117,7 +115,7 @@ export default class SubStore {
     if (keys[0] instanceof Array) {
       keys = keys[0];
     }
-    SubStore.onAction({ type: REMOVE, target: this.__substore_identity__, param: keys, });
+    this.__substore_onAction__.dispatch({ type: REMOVE, target: this.__substore_identity__, param: keys, });
     return this;
   }
 
@@ -133,7 +131,7 @@ export default class SubStore {
     if (!this.__substore_parent__) {
       throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
     }
-    SubStore.onAction({ type: REMOVE, target: this.__substore_parent__.__substore_identity__, param: [ this.__substore_id__, ], });
+    this.__substore_onAction__.dispatch({ type: REMOVE, target: this.__substore_parent__.__substore_identity__, param: [ this.__substore_id__, ], });
     return this;
   }
 
@@ -203,7 +201,7 @@ export default class SubStore {
           }
         }
       } else if (SubStore.couldBeParent(next)) {
-        nextState[k] = this._createSubStore(next, k, this, this.__substore_depth__ + 1, this.__substore_shape__).state;
+        nextState[k] = this._createSubStore(next, k, this, this.__substore_depth__ + 1).state;
       } else {
         nextState[k] = next;
       }
@@ -270,7 +268,7 @@ export default class SubStore {
         }
       }
     }
-    assign(target, { __substore_parent__: undefined, __substore_shape__: undefined, state: undefined, prevState: state, });
+    assign(target, { __substore_parent__: undefined, state: undefined, prevState: state, });
     delete this[k];
   }
 
@@ -287,11 +285,9 @@ export default class SubStore {
   }
 
   _createSubStore(initialState, k, parent) {
-    this[k] = new SubStore(initialState, k, parent, this.__substore_depth__ + 1, undefined, [ ...this.__substore_identity__, k, ]);
+    this[k] = new SubStore(initialState, k, parent, this.__substore_depth__ + 1, [ ...this.__substore_identity__, k, ], this.__substore_onAction__);
     return this[k];
   }
-
-  static __kill() { /* redefined by StoreCreator*/ }
 
   static couldBeParent(value) {
     return value && value instanceof Object && !SubStore.invalidSubStores[getPrototypeOf(value).constructor.name];
