@@ -18,10 +18,8 @@ export function toggleTodo(id, userId) {
     const todo = content[userId][id];
     todo.setState({ done: !todo.state.done, pending: true, });
     return new Promise(res => setTimeout(() => {
-      if (todo.stillAttatched()) {
-        todo.remove('pending');
-        localStorage.setItem('todosContent', JSON.stringify(content.state));
-      }
+      todo.remove('pending');
+      localStorage.setItem('todosContent', JSON.stringify(content.state));
       res();
     }, 800));
   };

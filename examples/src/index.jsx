@@ -16,7 +16,7 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { spec, anyKey, anyValue, array, object, number, string, exclusive, isRequired, bool, } = shapes;
+const { spec, anyKey, anyValue, object, number, string, exclusive, isRequired, bool, } = shapes;
 
 // If you specify invalid shape to provider, console errors will try to provided information to fix the problem
 // Note that shape is not used when NODE_ENV==='production '
@@ -76,10 +76,9 @@ const shape = {
   },
 };
 
-const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
+const { reducer, thunk, } = nonedux(initialState, shape);
 const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
-dispatcher(store);
 
 const Root = () => (
   <Provider store={store}>
