@@ -1,5 +1,5 @@
 import SubStore from './SubStore';
-
+/*
 import { spec, object, array, anyKey, regex, func, date, } from './shape';
 
 const { entries, } = Object;
@@ -151,4 +151,4 @@ export default class DevSubStore extends SubStore {
   static onInvalidSpecType(target) {
     console.error(`invalid spec type '${JSON.stringify(target.__substore_shape__[spec].type)}\nTarget ${JSON.stringify(target.get)}`);
   }
-}
+}*/

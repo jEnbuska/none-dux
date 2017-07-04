@@ -1,38 +1,145 @@
-import nonedux from '../src/createNoneDux';
 import ReducerParent from '../src/ReducerParent';
-import { anyKey, spec, isRequired, anyLeaf, exclusive, bool, number, string, object, array, regex, symbol, func, none, date, anyValue, } from '../src/shape';
-import DevSubStore from '../src/DevSubStore';
-import createLeaf from '../src/SubStoreLeaf';
+import Validator, { validatorChecker, validatorIsRequired, validatorStrict, } from '../src/shape/Validator';
+import createValidator, { toType, } from '../src/shape/createValidator';
+import { array, object, spec, number, strict, isRequired, string, any, bool, } from '../src/shape/types';
+
 ReducerParent.onDevSubStoreCreationError = () => {};
 
-let validationErrors;
-let requiredFieldsErrors;
-let invalidSpecTypesErrors;
-let exclusiveFieldsErrors;
-
-function refreshLists() {
-  validationErrors = [];
-  requiredFieldsErrors = [];
-  invalidSpecTypesErrors = []; // beforeEach not working for some reason
-  exclusiveFieldsErrors = [];
+function reParse(val) {
+  return JSON.parse(JSON.stringify(val));
 }
 
-const emptyFunc = () => {};
-const emptyObj = {};
-const helloSymbol= Symbol('hello world');
-const emptyArr = [];
-const testRegex = /test/;
+function createSpec(name = 'Object', required = false, strict = false) {
+  return { [validatorChecker]: {
+    name,
+  },
+    [validatorIsRequired]: required,
+    [validatorStrict]: strict,
+  };
+}
 
-DevSubStore.onValidationError = err => validationErrors.push(err);
-DevSubStore.onMissingRequiredFields = err => requiredFieldsErrors.push(err);
-DevSubStore.onInvalidSpecType = err => {
-  invalidSpecTypesErrors.push(err);
-};
-DevSubStore.onExclusiveViolation= err => {
-  exclusiveFieldsErrors.push(err);
-};
+describe('Validate shape', () => {
+  test('init Validator', () => {
+    const checker = { check: () => true, name: 'Object', };
+    const validator = new Validator(checker);
+    expect({ ...validator, }).toEqual({ __type_isRequired__: false, __type_strict__: false, __type_checker__: checker, });
+    expect(validator.isRequired.strict).toEqual({ __type_isRequired__: true, __type_strict__: true, __type_checker__: checker, });
+  });
 
-describe('Validate shape', () => {/*
+  test('create validator object validator with required number', () => {
+    const validator = createValidator({
+      a: number.isRequired,
+    });
+    expect(reParse(validator)).toEqual({
+      [spec]: createSpec(),
+      a: { [spec]: createSpec('Number', true), },
+    });
+  });
+
+  test('create validator object with initial spec', () => {
+    const validator = createValidator({
+      [spec]: strict.isRequired,
+    });
+    const parsed = reParse(validator);
+    expect(parsed).toEqual({ [spec]: {
+      [validatorStrict]: true,
+      [validatorIsRequired]: true,
+      [validatorChecker]: {
+        name: 'Object',
+      },
+    }, });
+  });
+
+  test('create validator array with initial spec', () => {
+    const validator = createValidator([
+      { [spec]: strict.isRequired, },
+    ]);
+    const parsed = reParse(validator);
+    expect(parsed).toEqual(reParse({
+      [spec]: {
+        [validatorChecker]: { name: 'Array', },
+        [validatorStrict]: false,
+        [validatorIsRequired]: true,
+      },
+    }));
+  });
+
+  test('create more complicated validator', () => {
+    const validator = createValidator({
+      a: {
+        b: {
+          [spec]: isRequired.strict,
+          c: {},
+          ...[ 'd', 'e', 'f', ].reduce(toType(string), {}),
+          g: number.isRequired,
+        },
+        h: [
+          [
+            { [spec]: isRequired, },
+            number,
+          ],
+        ],
+        i: [
+          { k: {
+            l: number,
+            [any]: {
+              [spec]: strict,
+              m: number,
+              n: bool.isRequired,
+            },
+          }, },
+        ],
+      },
+    });
+    const output = reParse(validator);
+    const expected = {
+      [spec]: createSpec(),
+      a: {
+        [spec]: createSpec(),
+        b: {
+          [spec]: createSpec(undefined, true, true),
+          c: {
+            [spec]: createSpec(),
+          },
+          d: { [spec]: createSpec('String'), },
+          e: { [spec]: createSpec('String'), },
+          f: { [spec]: createSpec('String'), },
+          g: { [spec]: createSpec('Number', true), },
+        },
+        h: {
+          [spec]: createSpec('Array'),
+          [any]: {
+            [spec]: createSpec('Array', true),
+            [any]: { [spec]: createSpec('Number'), },
+          },
+        },
+        i: {
+          [spec]: createSpec('Array'),
+          [any]: {
+            [spec]: createSpec(),
+            k: {
+              [spec]: createSpec(),
+              l: {
+                [spec]: createSpec('Number'),
+              },
+              [any]: {
+                [spec]: createSpec('Object', false, true),
+                m: {
+                  [spec]: createSpec('Number'),
+                },
+                n: {
+                  [spec]: createSpec('Boolean', true),
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    expect(output).toEqual(expected);
+  });
+
+  /*
   beforeEach(() => {
     validationErrors = [];
     requiredFieldsErrors = [];
@@ -668,5 +775,6 @@ describe('Validate shape', () => {/*
     expect(requiredFieldsErrors.length).toBe(0);
     expect(invalidSpecTypesErrors.length).toBe(0);
     expect(exclusiveFieldsErrors.length).toBe(0);
-  });*/
+  });
+  */
 });

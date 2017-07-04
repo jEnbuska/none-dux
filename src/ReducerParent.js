@@ -1,10 +1,4 @@
 import SubStore from './SubStore';
-import { spec, object, array, anyLeaf, number, none, symbol, string, bool, regex, func, date, anyValue, } from './shape';
-
-const { entries, assign, } = Object;
-const parentTypes = { object, array, };
-const childTypes = { anyLeaf, number, symbol, string, bool, regex, func, anyValue, date, };
-const types = { ...parentTypes, ...childTypes, none, };
 
 export default class ReducerParent extends SubStore {
 
@@ -16,7 +10,7 @@ export default class ReducerParent extends SubStore {
     super({}, 'root', { _notifyUp() {}, }, 0, [], { dispatch: () => {console.log('empty')}, });
     this._onSetState(state);
   }
-
+/*
   static onDevSubStoreCreationError(shapeErrors) {
     console.error('DevSubStore could not be used:\n'+JSON.stringify(shapeErrors, null, 1)+'\nCreated default SubStore instead');
   }
@@ -67,5 +61,5 @@ export default class ReducerParent extends SubStore {
         ReducerParent.validateShape(v, [ ...identity, k, ], errors);
       });
     return errors;
-  }
+  }*/
 }
