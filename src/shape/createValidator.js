@@ -1,5 +1,5 @@
 import { spec, object, array, any, } from './types';
-import Validator, { validatorIsRequired, validatorStrict, validatorChecker} from './Validator';
+import Validator, { validatorIsRequired, validatorStrict, validatorChecker, } from './Validator';
 
 const { entries, } = Object;
 
@@ -11,7 +11,7 @@ export function toType(type) {
   };
 }
 
-export default function createValidator(shape) {
+export default function createValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
     shape = shape.reduce((acc, v) => {
@@ -43,8 +43,11 @@ export default function createValidator(shape) {
     .reduce((acc, [ k, v, ]) => {
       if (k !== spec) {
         if (!(v instanceof Validator)) {
-          acc[k] = createValidator(v);
+          acc[k] = createValidator(v, [...identity, k]);
         } else if (v !== validator) {
+          if (!v[validatorChecker]) {
+            throw new Error('Missing validator data type at "'+ [ ...identity, k, ].join(', ')+'"');
+          }
           acc[k] = { [spec]: v, };
         }
       }

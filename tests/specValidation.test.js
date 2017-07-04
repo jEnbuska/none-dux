@@ -26,6 +26,22 @@ describe('Validate shape', () => {
     expect(validator.isRequired.strict).toEqual({ __type_isRequired__: true, __type_strict__: true, __type_checker__: checker, });
   });
 
+  test('invalid initial validator shape', () => {
+    const shape = {
+      a: number.isRequired,
+      b: {
+        c: [
+          { d: {
+            [any]: isRequired,
+          }, },
+        ],
+      },
+    };
+    let errMessage;
+    try { createValidator(shape); } catch ({ message, }) { errMessage = message; }
+    expect(errMessage).toBe('Missing validator data type at "b, c, '+any+', d, '+any+'"');
+  });
+
   test('create validator object validator with required number', () => {
     const validator = createValidator({
       a: number.isRequired,
