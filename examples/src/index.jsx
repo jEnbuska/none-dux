@@ -4,8 +4,8 @@ import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
 import { applyMiddleware, createStore, } from 'redux';
-import nonedux, { validatorMiddleware, } from '../../src';
-import shape from './shape';
+import nonedux, { shape, } from '../../src';
+import validators from './validators';
 import UserProfile from './containers/UserProfile.jsx';
 import BrowseUsers from './containers/BrowseUsers.jsx';
 import Users from './containers/Users.jsx';
@@ -19,7 +19,7 @@ const initialState= {
 
 const { reducer, thunk, subject, } = nonedux(initialState);
 
-const createStoreWithMiddleware = applyMiddleware(...[ thunk, validatorMiddleware(subject, shape), ])(createStore);
+const createStoreWithMiddleware = applyMiddleware(...[ thunk, shape.validatorMiddleware(subject, validators), ])(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
 
 const Root = () => (

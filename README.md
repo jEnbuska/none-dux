@@ -1,25 +1,31 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-Application state can be changed directly from actions.
+Flexible state management for React
 
-All regular Object and Arrays of the nonedux state are quite like their own Component.
+Creates a highly flexible top level reducer that takes care of immutability.
+
+Application state can be changed directly from actions.
+```
+function myActionCreator(){
+  return changeSomething(nonedux, reduxStore){
+    const rootState = nonedux.state;
+    const {state, prevState} = nonedux.change.a.child.by.calling.setState({ reborn: true } });
+    console.log(state); // { reborn: true }
+    console.log(rootState !== nonedux.state) // true
+  }
+}
+```
+Shape of the nonedux state can be extended and changed dynamically.
 
 Action are auto generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
 
-Makes immutability easy and saves you the time of implementing maintaining and testing reducers.
+Makes immutability easy and saves you the time of implementing, maintaining and testing reducers.
 
-Works with redux devtools.
+Uses it's own thunk middleware
 
-Has it's own thunk implementation
 
-Recommended to use be used with react-redux:
-
-All changes are immutable.
-
-Shape of the nonedux state can be extended and changed dynamically.
-
-##Getting started
+##Configuring store
 
 ```
 import { Provider, connect, } from 'react-redux';
@@ -33,11 +39,11 @@ const initialState = {
   users: {},
 };
 
+//Does NOT work with default 'redux-thunk'
+
 const { reducer, thunk, dispatcher, } = nonedux(initialState);// use nonedux thunk instead of redux-thunk
 const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
-const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
-
-dispatcher(store); // introduce store to none-dux, so it able to dispatch actions when needed
+const store = createStoreWithMiddleware(reducer);
 
 const root = (
   <Provider store={store}>
@@ -45,17 +51,18 @@ const root = (
       <Route path='/' component={App}>
         ...
 ```
-####action creators:
-#####Second argument of actions is reduxStore (just in case if you have some non nonedux reducers)
+#####***setState*** ***remove***, ***clearState*** can be called to all objects and arrays from inside action creators:
+##### Actual state of object is inside ***state*** variable
+##Action examples
+
 ```
-//userActions
 function createUser(userData){
   return function({users}, reduxStore){
      const id = uuid()
      const {[id]: newUser} = users.setState({[id]: {...userData, id}})
-     // 1. an action was created {type: 'SET_STATE', target: ['users'], param: {id, /*and reset of userData*/...}}
+     // 1. an action was created {type: 'NONE_DUX_SET_STATE', target: ['users'], param: {id, ... }}
      // 2. action was dispatched
-     // 3. users reducer performed the actions
+     // 3. nonedux reducer performed the actions
      // 4. setState method returned the very same users object
      api.postUser(newUser.state)
       .then(...)
@@ -65,63 +72,64 @@ function createUser(userData){
 function verifyUser(id)
   return function(nonedux){
   const { state } = nonedux.users[id].setState({verified: true});
+  /*action {
+    type: 'NONE_DUX_SET_STATE', 
+    target: ['users', $id], 
+    param: { verified: true },
+  }*/
   console.log(state.verified) // 'true'
-  // action {type: 'SET_STATE', target: ['users', $id], param: {verified: true'} }
 }
 
 export function removeUser(userId) {
-   return function ({users, todosByUser, }) {
+   return function ({users, todosByUser}) {
     const user = users[userId];
     const usersTodos = todosByUser[userId]
     user.setState({ verified: false, });
-    // an action was created {type: 'SET_STATE', target: ['users', $id], param: {verified: false'} }
     deleteUser(userId)
       .then(()=> {
         users.remove(userId);
-        // action  {type: 'REMOVE', target: ['users'], param: [userId] }
-        userTodos.removeSelf();
-        // action  {type: 'REMOVE', target: ['todosByUser'], param: [userId] }        
+        userTodos.removeSelf();        
       }); 
   }
 }
-
-
-//todoActions
-export function toggleTodo(id,userId){
-  return function(nonedux){
-    const todo = nonedux.todosByUser[userId][id];
-    const { state: {done}, } = todo;
-    const { state, prevState, } = todo.setState({pending: true, done: !done});
-    // action  {type: 'SET_STATE', target: ['todosByUser', userId, id ], param: {pending: true, done: !done}}
-    updateTodo(id, state)
-      .then(...)
-  }
-}
+```
+Note that String, Booleans Numbers, Errors, Date, etc are under state
+```
+console.log(target.state)// {value: 'text'};
+console.log(target.value); //undefined
+console.log(target.state.value); //'text'
 ```
 
-#####Other methods:
+##Functions
+
 ```
-const ids = [1,2,3 ];
-target.remove(ids); //removes all children with matching ids
-// same as target.remove(1,2,3);
-target.removeSelf(); //remove self
-```
-
-
-###State of the nonedux child object can be redefined at any time, but immediate childs of nonedux (top level values) have to be objects, and defined at the initialState:
-
- ####Initial state
- ```
+console.log(target.state); // { a: 1, b: {} }
+target.setState({ a: 2, c: 3 });
+console.log(target.state) // { a: 2, b: {}, c: 3 }
+// setState keeps the outerjoin
+ ...
  
-const initialState = { 
-       str: 'string',                        //invalid value!
-       leaf: createLeaf({statistics: {...}}) //invalid value!
-       empty: null,                          //invalid value!
-       obj: {a:1}                            //valid
-       arr: []                               //valid
-       parent: {}                            //valid
-     })}
- ```
+ //clear state removes the outer join of the state
+ console.log(target.state); //{ a: 1, b: { } }
+ target.clearState({ b: 2 });
+ console.log(target.state); // { b: 2 }
+ 
+ // Both clearState and setState take object or array as parameter
+ target.setState('text'); //Error("[..., 'target'] Expected setState parameter to be an Object or Array, but got 'text'")
+...
+
+const ids = [ 1, 2, 3 ];
+
+target.remove(ids); //removes all children with matching ids
+// same as target.remove(1, 2, 3);
+...
+
+target.removeSelf(); //remove self
+// same as target.getParent().remove(target.getId())
+```
+
+
+#####State of the nonedux child object can be redefined at any time:
 ```
 function actionCreator(){
   return function(nonedux){
@@ -141,104 +149,64 @@ function actionCreator(){
     firstSubChild.removeSelf();
   }
 }
-```
- 
- * **setState** and **clearState** take only objects and arrays as parameter:
-  ```
-  nonedux.data.setState('text'); //Error("['data'] Expected setState parameter to be an Object or Array, but got 'text'")
-  ```
+```  
   
-  
-###Limitations:
-  * Adding new root level values after init, is not possible:
-      * instead you should init something like 'temp' object if you have changing data
+##Limitations:
+ * ***setState*** ***remove***, ***clearState*** can be called to all objects and arrays:
+ * Only objects and arrays can be referenced directly:
    ```
-   const initialState = {
-     ...otherData,
-     temp: {}     //used for forms etc.
-   };
-   ... // on enter form page
-   temp.setState({userForm: {
-      firstName: '', lastName: '', email: '' ...
-   }})
-   ... // on exit form page
-   //dispose of non relevant data:
-   temp.clearState({}) //state => {}
-   
-   ```
- * ***setState*** ***remove***, ***clearState*** can be called only by **children** of nonedux:
+   {
+     const {data} = nonedux.data.setState({str:'abc'});
+     
+     console.log(data.str); // undefined
+      
+     console.log(data.str.state); // throws Error(...)
+      
+     console.log(data.state.str); // 'abc'
+   }
+   ...
+   {
+     const { data } = nonedux.data.setState({obj: {str: 'ok'}})
+      
+     console.log(data.obj) //SubStore: ...
+      
+     console.log(data.obj.state) // {str: 'ok'}
+   }
+    ```
     
-   ```
-   nonedux.setState({something:{...}); //will not cause any changes
-   ``` 
-   instead 
-   ```
-   nonedux.something.setState(obj) //is fine
-   ``` 
- 
-  * Only objects and arrays can be referenced directly:
-    ```
-    {
-      const {data} = nonedux.data.setState({str:'abc'});
-      
-      console.log(data.str); // undefined
-      
-      console.log(data.str.state); // throws Error(...)
-      
-      console.log(data.state.str); // 'abc'
-    }
-    ...
-    {
-      const { data } = nonedux.data.setState({obj: {str: 'ok'}})
-      
-      console.log(data.obj) //SubStore: ...
-      
-      console.log(data.obj.state) // {str: 'ok'}
-    }
-    ```
-  
- * no multiple nonedux instances per application: 
-   * Meaning that the application cannot have multiple react-redux Providers that both use different nonedux reducer at the same time
-   
- 
+
+#####If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
+happy path: (assuming you do not have circular structures, custom Javascript classes or React.Components in our redux state)
 
 
-If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
-
-##Provider
-###Replace
+####1. Initializing store
+replace
 ```
-  import {createStore, applyMiddleware} from 'redux'
+  ...
   import thunk from 'redux-thunk'
   
   const middleware = [ thunk, ];
   const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore);
-  const store = createStoreWithMiddleware(
-    reducers, 
-    process.env.NODE_ENV !=='production' && window.devToolsExtension && window.devToolsExtension()
-  );
+  const store = createStoreWithMiddleware(reducers);
   
   <Provider store={store}> ... 
   
 ```
-###By
+by
 ```
   //Take the current initial state of from your reducers and use it as initialState
-  import {createStore, applyMiddleware} from 'redux'
+  ...
   import nonedux from 'none-dux'
   
-  const { reducer, thunk, dispatcher, } = nonedux(initialState);
+  //use nonedux thunk
+  const { reducer, thunk, } = nonedux(initialState);
   const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
-  const store = createStoreWithMiddleware(
-    reducer, 
-    process.env.NODE_ENV !=='production' && window.devToolsExtension && window.devToolsExtension()
-  );
-  dispatcher(store);
+  const store = createStoreWithMiddleware(reducer);
   
   <Provider store={store}> ...   
   ```
-  ##Actions
-  ###Replace
+  ###2. Actions
+  replace something like
   ```
  //actions redux-thunk
  function changeUserName(id, name){
@@ -247,7 +215,7 @@ If you redux stack consists of redux, react-redux and redux-thunk you can try ou
     }
  } 
   ```
-  ###By
+  By
  ``` 
  //actions none-dux
  function changeUserName(id, name){
@@ -256,8 +224,14 @@ If you redux stack consists of redux, react-redux and redux-thunk you can try ou
     }
  } 
 ```
+----------------
+And That should be done
 
-if you have a big static data that will only be added, removed or replaced, you can save performance by creating 'leafs'':
+
+
+##Judge non changing datas or objects that have circular structure
+
+if you have a lot of data data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
 ```
 import { createLeaf } from 'none-dux'
 
@@ -279,45 +253,67 @@ function fetchCustomerData(){
   }
 }
 ```
+##Warning
+If you have circular structures, react components or 3th party library objects like 'moment':s. 
 
-if you want to add type checking use **shape** as second argument for nonedux function call':
+If you wan't to have them in nonedux reducer state use 'createLeaf'.
+
+Using custom JavaScript classes in nonedux reducer state is not well tested.
+
+###Type checking
 ```
-/*
-The only effect is that you will get console warnings during development, when shape breaks specification.
-*/
-import nonedux, {shapes} from 'none-dux
-const { spec, any, array, object, number, string, exclusive, isRequired, bool, } = shapes;
+//The only effect is that you will get console warnings during development, when shape breaks specification.
 
-const shape = {
-  todosByUser: { [spec]:{ object, isRequired, }, 
-    [anyKey]: { [spec]: { object},                   // byUserIds 
-        [anyKey]: { [spec]: { object, exclusive},    // byTodoIds.  'exclusive' console errors when values outside of spec are added
-          userId: {[spec]: { string, isRequired, }, },  // 'isRequired' console errors when userId is not spesified in todo object
-          id: { [spec]: { string, isRequired}, },
-          description: { [spec]: { string, isRequired, }, },
-          done: { [spec]: { bool, }, },
+import nonedux, { shape } from 'none-dux
+
+const { reducer, thunk, subject, } = nonedux(initialState);
+
+const { types, any, validatorMiddleware } = shape;
+const { isRequired, strict string, bool } = types;
+
+const validator = {
+  ...isRequired.strict
+  todosByUser: { ...isRequired, // !!! does not work without destructuring
+    [any]: {                          // byUserIds 
+      [any]: { ...strict,             // byTodoIds.  'strict' console errors when values outside of spec are added
+        userId: string.isRequired,    // 'isRequired' console errors when userId is undefined or null or non existing
+        id: string.isRequired,
+        description: string.isRequired,
+        done: bool,
     },
   },
-  users: { [spec]: { object, }, // by id
-     [anyKey]: {
-      id: { [spec]: { string, }, },
-      firstName: { [spec]: { string, },
-      lastName: { [spec]: { string, },     
+  users: {  // by id
+   [any]: {
+    ...strict
+    id: string,
+    firstName: string,
+    lastName: string,     
     },
   },
-  request: {[spec]: { object, isRequired}}
+  
+  //more
+  someObjectList: [
+    isRequired,    // is you have list spesific validator (isRequired), The validator must be the first parameters
+    {  //object shape
+      a: number,
+      b: {},          //object that can include anything 
+    }
+  ],
+  someStringList: [ string ]
+  request: {...isRequired}
 };
-const initialState = {todosByUser: {}, users: {}, request: {}}};
-const { reducer, thunk, dispatcher, } = nonedux(initialState, shape);
-
-/*
-using shape makes the performance significantly slower in dev environment
-shape is ignored when NODE_ENV === 'production'
-
-Shape validation should be moved to it's own package as a redux middleware later on
-
-Currently when using 'shape' to evaluate state, values created using createLeaf are not evaluated.
-*/
 ```
+If you cannot use destructuring
+```
+//instead of
+{
+  ...strict.isRequired
+}
+//do
+{
+ [types.spec]: isRequired.strict[types.spec]
+}
+```
+using shape makes the performance significantly slower
 
 

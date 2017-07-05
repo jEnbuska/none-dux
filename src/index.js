@@ -1,7 +1,6 @@
 import createNoneDux from './createNonedux';
 import createLeaf from './SubStoreLeaf';
-import validatorMiddleware, { any, types, } from './shape';
+import shape from './shape';
 
 export default createNoneDux;
-const shape = { any, types, };
-export { createLeaf, validatorMiddleware, shape, };
+export { createLeaf, shape, };
