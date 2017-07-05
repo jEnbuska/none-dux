@@ -1,6 +1,7 @@
-import { object, array, any, } from './types';
-import Validator, { validatorIsRequired, validatorStrict, validatorChecker, spec, } from './Validator';
+import { object, array, } from './types';
+import Validator, { spec, } from './Validator';
 
+export const any = '__target_any__'; // any object key like uuid or array index. Can not be isRequired
 const { entries, assign, } = Object;
 
 export function toType(type) {
@@ -11,28 +12,34 @@ export function toType(type) {
   };
 }
 
-export default function createValidator(shape, identity = [], parent, key) {
+export default function createValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
-    const [ first, second, ] = shape;
-    const initial = {};
-    if (second) {
-      if (first[spec].checker) {
-        const { checker, } = first[spec].checker;
-        if (checker.name!=='Array') {
-          throw new Error('First type of two values inside array should be of type array or not set at all but got ' + checker.name+'\nAt: '+identity.join(', '));
+    const [ first, second, third, ] = shape;
+    shape = {};
+    if (third) {
+      throw new Error('Only one child shape per array. Got'+shape.length+ ' at "'+identity.join(', ') +2+'"');
+    }
+    if (first) {
+      if (first[spec]) {
+        if (first[spec].name) {
+          assign(shape, { [any]: first, }, array);
+        } else {
+          validator = array;
+          if (first[spec].isRequired) {
+            validator = validator.isRequired;
+          }
+          assign(shape, validator);
+          if (second) {
+            assign(shape, { [any]: second, });
+          }
         }
-        console.warn('The array spesific argument should not be given a type at: '+identity.join(', '));
+      } else {
+        assign(shape, { [any]: first, }, array);
       }
-      assign(initial, first, { [any]: second, });
-    } else if (first) {
-      assign(initial, first);
+    } else {
+      assign(shape, array);
     }
-    validator = array;
-    if (initial.isRequired) {
-      validator = array.isRequired;
-    }
-    assign(shape, validator);
   } else {
     const initial = shape[spec] || {};
     validator = object;
@@ -45,18 +52,9 @@ export default function createValidator(shape, identity = [], parent, key) {
     assign(shape, validator);
   }
   return entries(shape)
+    .filter(([ k, v, ]) => k!==spec && !(v instanceof Validator))
     .reduce((acc, [ k, v, ]) => {
-      if (k !== spec) {
-        acc[k] = createValidator(v, [ ...identity, k, ], shape, k);
-      } else if (v !== validator) {
-        if (!v[spec]) {
-          throw new Error('Invalid type at "'+ [ ...identity, k, ].join(', ')+'"');
-        } else if (!v[spec].checker) {
-          console.log({ v, });
-          throw new Error('Missing validator data type at "'+ [ ...identity, k, ].join(', ')+'"');
-        }
-        acc[k] = v;
-      }
+      acc[k] = createValidator(v, [ ...identity, k, ]);
       return acc;
     }, shape);
 }

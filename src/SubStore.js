@@ -62,6 +62,11 @@ export default class SubStore {
   }
 
   setState(value) {
+    if (value instanceof SubStore) {
+      throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
+    } else if (!this.__substore_parent__) {
+      throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
+    }
     this.__substore_onAction__.dispatch({ type: SET_STATE, target: this.__substore_identity__, param: value, });
     return this;
   }
@@ -69,18 +74,12 @@ export default class SubStore {
   _onSetState(value) {
     if (SubStore.couldBeParent(value)) {
       const { state: prevState, __substore_parent__, } = this;
-      if (value instanceof SubStore) {
-        throw new Error('SubStore does not take other SubStores as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
-      } else if (!__substore_parent__) {
-        throw new Error('detached SubStore action: setState', JSON.stringify(this.__substore_identity__));
-      }
       if (!(value instanceof Array || prevState instanceof Array)) {
         this._merge(value, prevState);
       } else {
         this._reset(value, prevState);
       }
       this.prevState = prevState;
-
       __substore_parent__._notifyUp(this);
       return this;
     }
@@ -88,8 +87,16 @@ export default class SubStore {
   }
 
   clearState(value) {
-    this.__substore_onAction__.dispatch({ type: CLEAR_STATE, target: this.__substore_identity__, param: value, });
-    return this;
+    if (SubStore.couldBeParent(value)) {
+      if (!this.__substore_parent__) {
+        throw new Error('detached SubStore action: clearState', JSON.stringify(this.__substore_identity__));
+      } else if (value instanceof SubStore) {
+        throw new Error('SubStore does not take other SubStores as resetState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__substore_identity__));
+      }
+      this.__substore_onAction__.dispatch({ type: CLEAR_STATE, target: this.__substore_identity__, param: value, });
+      return this;
+    }
+    throw new Error(`${JSON.stringify(this.__substore_identity__)}. Expected clearState parameter to be an Object or Array, but got ${value}.`);
   }
 
   _onClearState(value) {
@@ -112,6 +119,9 @@ export default class SubStore {
   }
 
   remove(...keys) {
+    if (!this.__substore_parent__) {
+      throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
+    }
     if (keys[0] instanceof Array) {
       keys = keys[0];
     }
@@ -120,9 +130,6 @@ export default class SubStore {
   }
 
   _onRemove(keys) {
-    if (!this.__substore_parent__) {
-      throw new Error('detached SubStore action: remove', JSON.stringify(this.__substore_identity__));
-    }
     this._remove(keys);
     return this;
   }

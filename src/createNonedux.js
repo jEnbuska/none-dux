@@ -19,12 +19,8 @@ function createThunk(subject) {
       store.dispatch(action);
     };
     return (next) => (action) => {
-      if (action.type === 'ACTION_CREATOR_ACTION') {
-        if (action.name) {
-          next({ type: 'ACTION_CREATOR_ACTION', payload: { name: action.name, params: action, }, });
-        }
-        console.log(action.func)
-        return action.func(subject, store);
+      if (typeof action === 'function') {
+        return action(subject, store);
       }
       return next(action);
     };
