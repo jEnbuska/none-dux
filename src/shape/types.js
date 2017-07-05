@@ -1,7 +1,6 @@
 import Validator from './Validator';
 
 const { getPrototypeOf, } = Object;
-export const spec = '__type_spec__';
 export const any = '__target_any__'; // any object key like uuid or array index. Can not be isRequired
 
 export const string = new Validator({ check: (val) => val === '' || (val && getPrototypeOf(val).constructor.name === 'String'), name: 'String', });

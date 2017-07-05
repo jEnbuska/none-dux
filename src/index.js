@@ -1,6 +1,6 @@
 import createNoneDux from './createNonedux';
 import createLeaf from './SubStoreLeaf';
-import * as shapes from './shape';
+//import * as shapes from './shape';
 
 export default createNoneDux;
-export { shapes, createLeaf, };
+export { createLeaf, };
