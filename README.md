@@ -11,16 +11,19 @@ function myActionCreator(){
   return changeSomething(nonedux, reduxStore){
     const stateBefore = nonedux.state;
     console.log(stateBefore)// { change: { a: { child: { by: {calling: {}} } } } }
-    const {state, prevState} = nonedux
+    const {state, prevState, subChild} = nonedux
       .change
       .a
       .child
       .by
-      .calling.setState({ reborn: true } });
+      .calling.setState({ subChild: {wasCreated: 'now' } });
       
     console.log(prevState) // {}
-    console.log(state); // { reborn: true }
+    console.log(state); // { subChild: {wasCreated: 'now' } }
     console.log(stateBefore !== nonedux.state) // true
+    
+    subChild.setState({wasCreated: 'previously'})
+    
   }
 }
 ```
