@@ -9,10 +9,18 @@ Application state can be changed directly from actions.
 ```
 function myActionCreator(){
   return changeSomething(nonedux, reduxStore){
-    const rootState = nonedux.state;
-    const {state, prevState} = nonedux.change.a.child.by.calling.setState({ reborn: true } });
+    const stateBefore = nonedux.state;
+    console.log(stateBefore)// { change: { a: { child: { by: {calling: {}} } } } }
+    const {state, prevState} = nonedux
+      .change
+      .a
+      .child
+      .by
+      .calling.setState({ reborn: true } });
+      
+    console.log(prevState) // {}
     console.log(state); // { reborn: true }
-    console.log(rootState !== nonedux.state) // true
+    console.log(stateBefore !== nonedux.state) // true
   }
 }
 ```
