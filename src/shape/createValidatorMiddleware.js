@@ -17,8 +17,19 @@ function stringify(obj) {
   }
 }
 
+let pending;
+function performValidation() {
+  if (pending) {
+    pending();
+  }
+  pending=undefined;
+}
+
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
   shape = createValidator(shape);
+  subject.__substore_parent__._notifyUp = () => {
+    performValidation();
+  };
   validateRecursively(subject.state, subject.prevState, subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
@@ -33,7 +44,7 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
         }
         child = child[target[i]];
       }
-      validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
+      pending = () => validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
     }
     return result;
   };
@@ -44,6 +55,7 @@ const { error, } = console;
 function validateRecursively(state, prevState, identity, shape) {
   const { [spec]: specification, [any]: anyK, ...children } = shape;
   const { name, strict, isRequired, } = specification || {};
+
   if (checkers[name](state)) {
     if (state && !naturalLeafTypes[getPrototypeOf(state).constructor.name]) {
       keys({ ...state, ...children, })
