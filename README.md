@@ -96,7 +96,7 @@ export function removeUser(userId) {
     const user = users[userId];
     const usersTodos = todosByUser[userId]
     user.setState({ verified: false, });
-    deleteUser(userId)
+    api.deleteUser(userId)
       .then(()=> {
         users.remove(userId);
         userTodos.removeSelf();        
