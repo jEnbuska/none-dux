@@ -1,12 +1,14 @@
 import { SET_STATE, CLEAR_STATE, REMOVE, } from './common';
+
 const { getPrototypeOf, assign, values, } = Object;
 
 export default class SubStore {
 
   static __kill(target) {
     console.trace();
-    throw new Error('SubStore maximum depth '+SubStore.maxDepth+' exceeded by "'+JSON.stringify(target.__substore_identity__, null, 1)+'"');
+    throw new Error('SubStore maximum depth '+SubStore.maxDepth+' exceeded by "'+target.__substore_identity__.join(', ')+'"');
   }
+
   static onAction;
   static maxDepth = 45;
   static invalidSubStores = {
