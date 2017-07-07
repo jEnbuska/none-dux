@@ -265,41 +265,15 @@ function fetchCustomerData(){
 }
 ```
 ##Warning
-If you have circular structures, react components or 3th party library objects like 'moment':s. 
+It's best to have only normalized state in application state
 
-If you wan't to have them in nonedux reducer state use 'createLeaf'.
+But if you have circular structures, react components or 3th party library objects like `moment`:s. in your state
+,use 'createLeaf'.
 
-Using custom JavaScript classes in nonedux reducer state is not well tested.
+Using custom JavaScript classes in nonedux reducer state is not well tested, but most likely they are changed into regular Objects without class spesific functions.
 
 ##Type checking
-Type checking with arrays has some fundamental problems when they include object child custom spec:
 
-Code like
-```
-  const validators = {
-   arr: [
-    { 
-     ...isRequired.strict, // this line will brake type checking. Don's use strict or isRequired for arrays direct object child
-     a: {},
-     b: number
-    }
-   ]
-  }
-```
-does not work.
-
-But code like:
-```
-  const validators = {
-   arr: [
-    { 
-     a: {},
-     b: number
-    }
-   ]
-  }
-```
-should be fine
 ```
 //The only effect is that you will get console warnings during development, when shape breaks specification.
 
@@ -310,12 +284,11 @@ const { reducer, thunk, subject, } = nonedux(initialState);
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
 
-const validator = {
-  ...isRequired.strict
-  todosByUser: { ...isRequired, // !!! does not work without destructuring
-    [any]: {                          // byUserIds 
-      [any]: { ...strict,             // byTodoIds.  'strict' console errors when values outside of spec are added
-        userId: string.isRequired,    // 'isRequired' console errors when userId is undefined or null or non existing
+const validator = { ...isRequired.strict  //!!!Use destructed on Objects shape spesification
+  todosByUser: { ...isRequired,           // Not null not undefined
+    [any]: {                              // byUserIds 
+      [any]: { ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
+        userId: string.isRequired,        // No desctructing   
         id: string.isRequired,
         description: string.isRequired,
         done: bool,
@@ -332,27 +305,28 @@ const validator = {
   
   //more
   someObjectList: [
-    isRequired,    // is you have list spesific validator (isRequired), The validator must be the first parameters
+    isRequired,         //!!!No desctructing
     {  //object shape
       a: number,
-      b: {},          //object that can include anything 
+      b: {},            //Object that can include anything an is not required
     }
   ],
   someStringList: [ string ]
   request: {...isRequired}
 };
 ```
-If you cannot use destructuring
+If you do not have destructing available (with objects):
 ```
 //instead of
 {
   ...strict.isRequired
 }
 //do
+const {spec} = shape;
 {
- [types.spec]: isRequired.strict[types.spec]
+ [spec]: isRequired.strict[types]
 }
 ```
-using shape makes the performance significantly slower
+using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
 
