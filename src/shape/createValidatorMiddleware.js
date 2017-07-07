@@ -46,7 +46,6 @@ const emptyShape = {
 
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
   shape = createValidator(shape);
-  console.log(JSON.stringify({shape}, null, 2))
   subject.__substore_parent__._notifyUp = () => {
     performValidation();
   };

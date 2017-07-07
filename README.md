@@ -271,7 +271,35 @@ If you wan't to have them in nonedux reducer state use 'createLeaf'.
 
 Using custom JavaScript classes in nonedux reducer state is not well tested.
 
-###Type checking
+##Type checking
+Type checking with arrays has some fundamental problems when they include object child custom spec:
+
+Code like
+```
+  const validators = {
+   arr: [
+    { 
+     ...isRequired.strict, // this line will brake type checking. Don's use strict or isRequired for arrays direct object child
+     a: {},
+     b: number
+    }
+   ]
+  }
+```
+does not work.
+
+But code like:
+```
+  const validators = {
+   arr: [
+    { 
+     a: {},
+     b: number
+    }
+   ]
+  }
+```
+should be fine
 ```
 //The only effect is that you will get console warnings during development, when shape breaks specification.
 

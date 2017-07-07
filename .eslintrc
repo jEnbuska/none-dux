@@ -15,6 +15,7 @@
     "jest/globals": true
   },
   "rules": {
+    "no-cond-assign": 0,
     "strict": ["warn", "never"],
     "no-shadow": 0,
     "react/require-default-props": 0,
