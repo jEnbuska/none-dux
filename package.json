@@ -25,6 +25,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "babel-core": "^6.24.0",
     "babel-eslint": "^7.2.1",
     "babel-jest": "^20.0.3",
@@ -47,7 +48,7 @@
     "redux": "^3.7.1",
     "rollup": "^0.43.0",
     "uglifyjs-webpack-plugin": "^0.4.6",
-    "webpack": "^3.0.0"
+    "webpack": "^2.6.1"
   },
   "false": {}
 }
