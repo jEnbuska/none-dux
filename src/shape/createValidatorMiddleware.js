@@ -10,14 +10,6 @@ function stringify(obj) {
   }
 }
 
-let pending;
-function performValidation() {
-  if (pending) {
-    pending();
-  }
-  pending=undefined;
-}
-
 export const onErrorHandlers = {
   onStrictError: (identity, key, state) =>
     console.error('"strict" validation failed:' +
@@ -28,11 +20,9 @@ export const onErrorHandlers = {
     console.error('"isRequired" validation failed:' +
     '\nAt: '+identity.join(', ')+'"' +
     '\nIs missing value for key: '+key),
-  onTypeError: (isRequired, strict, type, state, identity) =>
+  onTypeError: (type, state, identity) =>
     console.error('Validation failed at "'+identity.join(', ')+'"\n' +
     'Expected: '+ type+'' +
-    '\nisRequired: '+ isRequired + '' +
-    '\nstrict: '+strict +
     '\nBut got '+stringify(state)),
 };
 
@@ -46,9 +36,6 @@ const emptyShape = {
 
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
   shape = createValidator(shape);
-  subject.__substore_parent__._notifyUp = () => {
-    performValidation();
-  };
   validateRecursively(subject.state, subject.prevState, subject.getIdentity(), shape, true);
   return () => (next) => (action) => {
     const result = next(action);
@@ -57,13 +44,13 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
       let child = subject;
       let subShape = shape;
       for (let i = 0; i<target.length; i++) {
-        subShape = subShape[target[i]];
-        if (!subShape) {
-          return result;
+        if (!subShape[target[i]] && !subShape[any]) {
+          break;
         }
+        subShape = subShape[target[i]] || subShape[any];
         child = child[target[i]];
       }
-      pending = () => validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
+      validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
     }
     return result;
   };
@@ -78,7 +65,7 @@ function validateRecursively(state, prevState, identity, shape, initial) {
       keys({ ...state, ...children, })
       .filter((k) => {
         try {
-          return initial || state[k] !== prevState[k];
+          return initial || !prevState || state[k] !== prevState[k] || !prevState.hasOwnProperty(k);
         } catch (Exception) {
           return true;
         }
@@ -105,6 +92,6 @@ function validateRecursively(state, prevState, identity, shape, initial) {
       });
     }
   } else {
-    onErrorHandlers.onTypeError(isRequired, strict, name, state, identity);
+    onErrorHandlers.onTypeError(name, state, identity);
   }
 }

@@ -16,27 +16,22 @@ export default function createValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
     const [ first, second, third, ] = shape;
-    shape = {};
     if (third) {
       throw new Error('Only one child shape per array. Got'+shape.length+ ' at "'+identity.join(', ') +2+'"');
     }
-    if (first) {
-      if (first[spec]) {
-        if (first[spec].name) {
-          assign(shape, { [any]: first, }, array);
+    shape = [ first, second, ]
+      .filter(exists => exists)
+      .reduce((acc, next) => {
+        if ((next instanceof Validator && next[spec].name) || !(next instanceof Validator)) {
+          acc[any] = next;
         } else {
-          validator = array;
-          if (first[spec].isRequired) {
-            validator = validator.isRequired;
-          }
-          assign(shape, validator);
-          if (second) {
-            assign(shape, { [any]: second, });
-          }
+          acc[spec] = next[spec];
         }
-      } else {
-        assign(shape, { [any]: first, }, array);
-      }
+        return acc;
+      }, {});
+    if (shape[spec]) {
+      const { isRequired, } = shape[spec];
+      assign(shape, new Validator('Array', false, isRequired));
     } else {
       assign(shape, array);
     }
@@ -52,7 +47,7 @@ export default function createValidator(shape, identity = []) {
     assign(shape, validator);
   }
   return entries(shape)
-    .filter(([ k, v, ]) => k!==spec && !(v instanceof Validator))
+    .filter(([ k, v, ]) => !(k === spec || (v instanceof Validator && v[spec].name)))
     .reduce((acc, [ k, v, ]) => {
       acc[k] = createValidator(v, [ ...identity, k, ]);
       return acc;
