@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "less verbose react handling with redux react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "7.0.10",
+  "version": "7.0.11",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -23,11 +23,7 @@
     "test:watch": "npm run test -- --watch",
     "update-readme": "npm publish --update-readme"
   },
-  "dependencies": {
-    "prop-types": "^15.5.10",
-    "react": "^15.5.4",
-    "redux": "^3.7.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.24.0",
     "babel-eslint": "^7.2.1",
@@ -47,6 +43,8 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
     "jest": "^20.0.4",
+    "react": "^15.6.1",
+    "redux": "^3.7.1",
     "rollup": "^0.43.0",
     "uglifyjs-webpack-plugin": "^0.4.6",
     "webpack": "^3.0.0"

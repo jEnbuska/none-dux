@@ -64,11 +64,15 @@ describe('Validator middleware', () => {
       identity: [ 'a', ],
       key: '0',
     });
+  });
+
+  test('this test will fail', () => {
+    // fundamental problems
     onCreateStore({ a: [ undefined, ], }, { a: [ { ...isRequired, }, ], });
     expect(onIsRequiredErrors.length).toBe(5);
     expect(onIsRequiredErrors[4]).toEqual({
       identity: [ 'a', ],
       key: '0',
     });
-  });
+  })
 });
