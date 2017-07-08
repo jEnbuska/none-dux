@@ -11,9 +11,7 @@ export default {
       ...isRequired.strict,
       [any]: {
         id: string.isRequired,
-        firstName: string.isRequired,
-        lastName: string.isRequired,
-        email: string.isRequired,
+        ...string.isRequired.many('firstName', 'lastName', 'email'),
         age: number.isRequired,
         single: bool,
       },
@@ -31,9 +29,7 @@ export default {
       [any]: {
         [any]: {
           ...strict,
-          id: string.isRequired,
-          userId: string.isRequired,
-          description: string.isRequired,
+          ...string.isRequired.many('id', 'userId', 'description'),
           done: bool.isRequired,
           pending: bool,
         },
@@ -45,13 +41,8 @@ export default {
     ...strict,
     user: {
       ...strict,
-      id: string,
-      firstName: string,
-      lastName: string,
-      email: string,
+      ...string.many('id', 'firstName', 'lastName', 'email', 'phone'),
       age: number,
-      phone: string,
-      single: bool,
-      pending: bool,
+      ...bool.many('single', 'pending'),
     }, },
 };
