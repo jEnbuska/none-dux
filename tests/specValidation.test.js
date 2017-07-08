@@ -1,6 +1,6 @@
 import ReducerParent from '../src/ReducerParent';
 import Validator, { spec, } from '../src/shape/Validator';
-import createValidator, { toType, any, } from '../src/shape/createValidator';
+import createValidator, { any, } from '../src/shape/createValidator';
 import { array, object, number, strict, isRequired, string, bool, } from '../src/shape/types';
 
 ReducerParent.onDevSubStoreCreationError = () => {};
@@ -50,6 +50,18 @@ describe('Validate shape', () => {
     ]);
     const parsed = reParse(validator);
     expect(parsed).toEqual(createSpec('Array', true));
+  });
+
+  test('create validator object with many required strings', () => {
+    const validator = createValidator({
+      ...string.isRequired.many('a', 'b', 'c'),
+    });
+    expect(reParse(validator)).toEqual({
+      ...createSpec(),
+      a: { ...createSpec('String', true), },
+      b: { ...createSpec('String', true), },
+      c: { ...createSpec('String', true), },
+    });
   });
 
   test('create nested arrays with child Object', () => {
@@ -210,7 +222,7 @@ describe('Validate shape', () => {
         b: {
           ...isRequired.strict,
           c: {},
-          ...[ 'd', 'e', 'f', ].reduce(toType(string), {}),
+          ...string.many('d', 'e', 'f'),
           g: number.isRequired,
         },
         h: [

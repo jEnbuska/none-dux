@@ -1,4 +1,5 @@
 export const spec = '__type_spec__';
+const { assign, } = Object;
 
 export default class Validator {
 
@@ -14,5 +15,9 @@ export default class Validator {
   get strict() {
     const { name, isRequired, } = this[spec];
     return new Validator(name, true, isRequired);
+  }
+
+  many(...keys) {
+    return keys.reduce((acc, k) => assign(acc, { [k]: this, }), {});
   }
 }

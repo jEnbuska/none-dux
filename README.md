@@ -296,10 +296,9 @@ const validator = { ...isRequired.strict  //!!!Use destructed on Objects shape s
   },
   users: {  // by id
    [any]: {
-    ...strict
-    id: string,
-    firstName: string,
-    lastName: string,     
+    ...strict,
+    //one liner for creating multiple keys with same spec
+    ...string.many('id', 'firstName', 'lastName')  
     },
   },
   

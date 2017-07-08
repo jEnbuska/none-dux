@@ -4,20 +4,12 @@ import Validator, { spec, } from './Validator';
 export const any = '__target_any__'; // any object key like uuid or array index. Can not be isRequired
 const { entries, assign, } = Object;
 
-export function toType(type) {
-  return function (acc, next) {
-    acc = acc instanceof String ? {}: acc;
-    acc[next] = type;
-    return acc;
-  };
-}
-
 export default function createValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
     const [ first, second, third, ] = shape;
     if (third) {
-      throw new Error('Only one child shape per array. Got'+shape.length+ ' at "'+identity.join(', ') +2+'"');
+      throw new Error('Only one child shape / array. Got'+shape.length+ ' at "'+identity.join(', ') +2+'"');
     }
     shape = [ first, second, ]
       .filter(exists => exists)

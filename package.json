@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "less verbose react handling with redux react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "7.0.15",
+  "version": "7.1.0",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -44,6 +44,7 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.8.0",
     "jest": "^20.0.4",
+    "jest-cli": "^20.0.4",
     "react": "^15.6.1",
     "redux": "^3.7.1",
     "rollup": "^0.43.0",
