@@ -44,10 +44,11 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
       let child = subject;
       let subShape = shape;
       for (let i = 0; i<target.length; i++) {
-        if (!subShape[target[i]] && !subShape[any]) {
+        const nextSubShape = subShape[target[i]] && !subShape[any];
+        if (!nextSubShape) {
           break;
         }
-        subShape = subShape[target[i]] || subShape[any];
+        subShape = nextSubShape;
         child = child[target[i]];
       }
       validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
