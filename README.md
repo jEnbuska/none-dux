@@ -26,7 +26,7 @@ function createMess(depth = 3, index = 0) {
 })
 ```
 
-##Configuring store
+## Configuring store
 
 ```
 import { Provider, connect, } from 'react-redux';
@@ -51,10 +51,10 @@ const root = (
       <Route path='/' component={App}>
         ...
 ```
-#####***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
+##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ##### Actual state of object is inside ***state*** variable
 
-##Action examples
+## Action examples
 
 ```
 // first argument is nonedux root reducer, second one is redux store
@@ -111,7 +111,7 @@ console.log(target.state.value); //'text'
 }
 ```
 
-##Functions
+## Functions
 
 ```
 console.log(target.state); // { a: 1, b: {} }
@@ -140,11 +140,11 @@ target[2].removeSelf();
 target[3].removeSelf();
 ```
 
-#####If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
+##### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
 happy path: (assuming you do not have circular structures, custom Javascript classes or React.Components in our redux state)
 
 
-####1. Initializing store
+#### 1. Initializing store
 replace
 ```
   ...
@@ -171,7 +171,7 @@ by
   
   <Provider store={store}> ...   
   ```
-  ###2. Actions
+  ### 2. Actions
   replace with something like
   ```
  //actions redux-thunk
@@ -194,7 +194,7 @@ by
 
 
 
-##Large non changing objects
+## Large non changing objects
 
 if you have data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
 ```
@@ -218,12 +218,12 @@ function fetchCustomerData(){
   }
 }
 ```
-##Warning
+## Warning
 If your state has circular structures, react components or 3th party library objects like `moment`:s, then use 'createLeaf' to avoid those objects being destructed recursively.
 
 Using custom JavaScript classes in reducer state is not well tested.
 
-##Type checking
+## Type checking
 
 ```
 //Provides console errors when something breaks spesifications.
