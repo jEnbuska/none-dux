@@ -9,17 +9,28 @@ No reducer boilerplate.
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
-Creates a flexible top level reducer that keeps changes immutable.
+Creates a flexible top level reducer that takes care of immutability.
 
+State can be safely extended without any preset shape
 ```
-//action creator
-function recursiveMess(depth = 3, index = 0) {
+
+function grow() {
+  return function (nonedux) {
+    console.log(nonedux.state); // {}
+    let child = nonedux;
+    [1,2,3].forEach(n => {
+      child.setState({[n]: {}});
+      child = child[n];
+    })
+    console.log(nonedux.state) // {1: {2: {3: {}}}}
+  };
+}
+function generateMessState(depth = 3, height = 0) {
   return function (nonedux, { dispatch, }) {
     const { mess, } = nonedux;
     let child = mess || nonedux.setState({ mess: {}, }).mess;
     for (let i = 0; i<depth && child; i++) {
-      child = child.setState({ [index]: dispatch(recursiveMess(i, index+1)) })
-      child = child[index];
+      child = child.setState({ [height]: dispatch(generateMessState(i, index+1)) })[height]
     }
     return nonedux.mess.state;
   };
