@@ -1,5 +1,5 @@
 import { any, spec, naturalLeafTypes, checkers, } from './common';
-import onShapeError from './onShapeErrorHandler';
+import onShapeError from './shapeErrorHandler';
 
 const { keys, getPrototypeOf, } = Object;
 

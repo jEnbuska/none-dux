@@ -8,7 +8,7 @@ export default {
       '\nWith value: '+ stringify(state)),
   onRequiredError: (identity, key) =>
     console.error('"isRequired" validation failed:' +
-      '\nAt: '+identity.join(', ')+'"' +
+      '\nAt: "'+identity.join(', ')+'"' +
       '\nIs missing value for key: '+key),
   onTypeError: (type, state, identity) =>
     console.error('Validation failed at "'+identity.join(', ')+'"\n' +
