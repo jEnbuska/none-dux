@@ -12,7 +12,8 @@
   "keywords": [
     "react",
     "redux",
-    "state"
+    "state",
+    "react-redux"
   ],
   "scripts": {
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
@@ -24,6 +25,11 @@
     "update-readme": "npm publish --update-readme"
   },
   "dependencies": {},
+  "peerDependencies": {
+    "react": "x",
+    "react-redux": "x",
+    "redux": "x"
+  },
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.0",
