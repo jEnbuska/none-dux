@@ -17,9 +17,9 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { reducer, thunk, subject, } = nonedux(initialState);
+const { reducer, middlewares, subject, } = nonedux(initialState);
 
-const createStoreWithMiddleware = applyMiddleware(...[ thunk, shape.validatorMiddleware(subject, validators), ])(createStore);
+const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
 
 const Root = () => (
