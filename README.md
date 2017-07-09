@@ -34,7 +34,7 @@ import { createStore, applyMiddleware, } from 'redux';
 import nonedux from 'none-dux';
 
 
-const initialState = {
+const initialState = { //Sames as the initial state of reducers
   request: {},
   todosByUser: {},  
   users: {},
@@ -51,8 +51,9 @@ const root = (
       <Route path='/' component={App}>
         ...
 ```
-#####***setState*** ***remove***, ***clearState*** can be called to all objects and arrays from inside action creators:
+#####***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ##### Actual state of object is inside ***state*** variable
+
 ##Action examples
 
 ```
