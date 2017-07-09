@@ -1,90 +1,78 @@
-import ReducerParent from '../src/ReducerParent';
+import { createStoreWithNonedux, } from './utils';
 
-describe('_onRemove', () => {
+describe('remove', () => {
   let subject;
   test('removing the root subject should be ok',
     () => {
-      subject = new ReducerParent({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject._onRemove([ 'b', ]);
+      subject = createStoreWithNonedux({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.remove([ 'b', ]);
       expect(subject.state).toEqual({ a: {}, });
     });
 
   test('removing leaf from object',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.b._onRemove([ 'd', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.b.remove([ 'd', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
     });
 
-  test('the number of children should match the non _onRemoved children',
+  test('the number of children should match the non removed children',
     () => {
-      subject = new ReducerParent({});
-      subject._onSetState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
+      subject = createStoreWithNonedux({});
+      subject.__applySetState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
       let children = subject.getChildrenRecursively();
       expect(children.length).toEqual(5);
-      subject.b.e._onRemove([ 'h', ]);
+      subject.b.e.remove([ 'h', ]);
       children = subject.getChildrenRecursively();
       expect(children.length).toEqual(2);
     });
 
-  test('_onRemove sub object',
+  test('remove sub object',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.b.e.h._onRemove([ 'x', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.b.e.h.remove([ 'x', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      subject.b._onRemove([ 'd', ]);
-      subject._onRemove([ 'b', ]);
+      subject.b.remove([ 'd', ]);
+      subject.remove([ 'b', ]);
       expect(subject.state).toEqual({ a: 1, });
     });
 
-  test('should be able to _onRemove an empty child',
+  test('should be able to remove an empty child',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      subject.b.e.h._onRemove([ 'x', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
+      subject.b.e.h.remove([ 'x', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
     });
 
-  test('should be able to _onRemove undefined value',
+  test('should be able to remove undefined value',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, });
-      subject.b._onRemove([ 'd', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: undefined, d: undefined, e: { f: 4, g: 7, }, }, });
+      subject.b.remove([ 'd', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: undefined, e: { f: 4, g: 7, }, }, });
     });
 
-  test('should be able to _onRemove multiple children at ones',
+  test('should be able to remove multiple children at ones',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
-      subject.b.e.h._onRemove([ 'x', 'j', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
+      subject.b.e.h.remove([ 'x', 'j', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, }, }, }, });
     });
 
   test('should be able to remove multiple children little by little',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.b.e.h._onRemove([ 'x', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.b.e.h.remove([ 'x', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      subject.b.e._onRemove([ 'h', ]);
-      subject.b._onRemove([ 'e', ]);
+      subject.b.e.remove([ 'h', ]);
+      subject.b.remove([ 'e', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, }, });
     });
 
-  test('sub subject should be _onRemoved',
+  test('sub subject should be removed',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject._onRemove([ 'b', ]);
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.remove([ 'b', ]);
       expect(subject.b).toEqual(undefined);
       expect(subject.state.b).toEqual(undefined);
-    });
-
-  test('state should be shift after removal',
-    () => {
-      subject = new ReducerParent({ a: 1, b: { c: 'test', d: { x: 1, }, }, });
-      const { b, } = subject;
-      const { d, } = subject.b;
-      subject._onRemove([ 'b', ]);
-      expect(d.state).toBeUndefined()
-      expect(d.prevState).toEqual({ x: 1, });
-      expect(b.state).toBeUndefined()
-      expect(b.prevState).toEqual({ c: 'test', d: { x: 1, }, });
     });
 });

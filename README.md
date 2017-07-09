@@ -27,14 +27,10 @@ function myActionCreator(){
   }
 }
 ```
-Shape of the nonedux state can be extended and changed dynamically.
 
 Action are auto generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
 
 Makes immutability easy and saves you the time of implementing, maintaining and testing reducers.
-
-Uses it's own thunk middleware
-
 
 ##Configuring store
 
@@ -50,9 +46,7 @@ const initialState = {
   users: {},
 };
 
-//Does NOT work with default 'redux-thunk'
-
-const { reducer, thunk, dispatcher, } = nonedux(initialState);// use nonedux thunk instead of redux-thunk
+const { reducer, thunk, dispatcher, } = nonedux(initialState);
 const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
 const store = createStoreWithMiddleware(reducer);
 
@@ -138,29 +132,6 @@ target.remove(ids); //removes all children with matching ids
 target.removeSelf(); //remove self
 // same as target.getParent().remove(target.getId())
 ```
-
-
-#####State of the nonedux child object can be redefined at any time:
-```
-function actionCreator(){
-  return function(nonedux){
-    const {parent} = nonedux;
-    console.log(parent.state); // {}
-    parent.setState({
-          children: {
-            firstSubChild: {
-              role: 'first', children: false
-            },
-            secondSubChild: {
-              role: 'second'
-            }
-         }
-       });
-    const {firstSubChild, secondSubChild} = parent.children;
-    firstSubChild.removeSelf();
-  }
-}
-```  
   
 ##Limitations:
  * ***setState*** ***remove***, ***clearState*** can be called to all objects and arrays:
@@ -179,7 +150,7 @@ function actionCreator(){
    {
      const { data } = nonedux.data.setState({obj: {str: 'ok'}})
       
-     console.log(data.obj) //SubStore: ...
+     console.log(data.obj) //AutoReducer: ...
       
      console.log(data.obj.state) // {str: 'ok'}
    }

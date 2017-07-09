@@ -16,17 +16,17 @@ export const checkers = {
   Object: (val) => {
     if (val) {
       const { name, } = getPrototypeOf(val).constructor;
-      return val && val instanceof Object && (name !== 'Array' && name !== 'SubStoreArrayLeaf' && !naturalLeafTypes[name]);
+      return val && val instanceof Object && (name !== 'Array' && name !== 'AutoReducerArrayLeaf' && !naturalLeafTypes[name]);
     }
     return false;
   },
   Array: (val) => {
     if (val) {
       const { name, } = getPrototypeOf(val).constructor;
-      return val && (val instanceof Array || name === 'SubStoreArrayLeaf');
+      return val && (val instanceof Array || name === 'AutoReducerArrayLeaf');
     }
     return false;
-  }
+  },
 };
 export const string = new Validator('String');
 export const number = new Validator('Number');
@@ -45,7 +45,7 @@ export const object = new Validator('Object');
 export const array = new Validator('Array');
 
 export default {
-  get object() {
+  object() {
     throw new Error('Object types are not explicitly, just use "isRequired" and "strict" instead');
   },
   get array() {

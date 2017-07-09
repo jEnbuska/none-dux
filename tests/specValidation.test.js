@@ -3,7 +3,7 @@ import Validator, { spec, } from '../src/shape/Validator';
 import createValidator, { any, } from '../src/shape/createValidator';
 import { array, object, number, strict, isRequired, string, bool, } from '../src/shape/types';
 
-ReducerParent.onDevSubStoreCreationError = () => {};
+ReducerParent.onDevAutoReducerCreationError = () => {};
 
 function reParse(val) {
   return JSON.parse(JSON.stringify(val));

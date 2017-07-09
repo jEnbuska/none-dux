@@ -1,34 +1,34 @@
-import ReducerParent from '../src/ReducerParent';
+import { createStoreWithNonedux, } from './utils';
 
 describe('immutability', () => {
   let subject;
   test('previous states should not be changed',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       const { state: initialState, } = subject;
       const { state: bInitialState, } = subject.b;
-      subject._onSetState({ a: 2, });
+      subject.setState({ a: 2, });
       expect(initialState).not.toEqual(subject.state);
       expect(bInitialState).toEqual(subject.b.state);
     });
 
   test('subjects other children should remain unchanged',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       const { state: bInitialState, } = subject.b;
-      subject._onSetState({ a: 2, });
+      subject.setState({ a: 2, });
       expect(bInitialState).toEqual(subject.b.state);
       expect(bInitialState===subject.state.b);
     });
 
   test('changing deep state',
     () => {
-      subject = new ReducerParent({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       const bOrg = subject.b.state;
       const dOrg = subject.b.d.state;
       const eOrg = subject.b.e.state;
       const hOrg = subject.b.e.h.state;
-      subject._onSetState({ b: { c: 3, d: {}, e: { f: 4, g: 7, h: { i: 101, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      subject.setState({ b: { c: 3, d: {}, e: { f: 4, g: 7, h: { i: 101, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       expect(subject.b.state!==bOrg, 'b').toBeTruthy();
       expect(subject.b.d.state!==dOrg, 'd').toBeTruthy();
       expect(subject.b.e.state!==eOrg, 'e').toBeTruthy();
@@ -36,15 +36,15 @@ describe('immutability', () => {
     });
 
   test('changing deep state by children', () => {
-    subject = new ReducerParent({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+    subject = createStoreWithNonedux({ a: 1, b: { c: 2, d: {}, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
     const bOrg = subject.b.state;
     const dOrg = subject.b.d.state;
     const eOrg = subject.b.e.state;
     const hOrg = subject.b.e.h.state;
 
     const { b, } = subject;
-    b._onSetState({ c: 3, });
-    b.e.h._onSetState({ i: 101, });
+    b.setState({ c: 3, });
+    b.e.h.setState({ i: 101, });
 
     expect(subject.b.state!==bOrg, 'b').toBeTruthy();
     expect(subject.b.d.state===dOrg, 'd').toBeTruthy();
@@ -79,7 +79,7 @@ describe('immutability', () => {
     expect(() => initialState.b.c='').toThrow(Error);
     expect(() => initialState.b='').toThrow(Error);
     expect(() => initialState.a='').toThrow(Error);
-    const subject = new ReducerParent(initialState);
+    const subject = createStoreWithNonedux(initialState);
     const nextState = { a: 2, b: { c: { x: 1, }, d: 1, }, e: 3, };
     Object.defineProperty(nextState, 'a', {
       writable: false,
@@ -110,7 +110,7 @@ describe('immutability', () => {
     expect(() => nextState.b.c.x='').toThrow(Error);
     expect(() => nextState.b.d='').toThrow(Error);
     expect(() => nextState.b='').toThrow(Error);
-    subject._onSetState(nextState);
+    subject.setState(nextState);
 
     Object.defineProperty(subject.state.b.c, 'x', {
       writable: false,
@@ -124,13 +124,13 @@ describe('immutability', () => {
       writable: false,
       value: subject.state.b,
     });
-    subject.b.c._onRemove('x');
+    subject.b.c.remove('x');
 
     Object.defineProperty(subject.state, 'e', {
       writable: false,
       value: subject.state.e,
     });
-    subject._onRemove('e');
+    subject.remove('e');
 
     Object.defineProperty(subject.state.b.c, 'x', {
       writable: false,
@@ -148,6 +148,6 @@ describe('immutability', () => {
       writable: false,
       value: subject.state.b,
     });
-    subject._onSetState({ b: { c: 1, }, });
+    subject.setState({ b: { c: 1, }, });
   });
 });

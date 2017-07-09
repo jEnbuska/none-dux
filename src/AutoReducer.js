@@ -1,6 +1,6 @@
-import { SET_STATE, CLEAR_STATE, REMOVE, } from './common';
+import { stringify, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from './common';
 
-const { getPrototypeOf, assign, values, } = Object;
+const { getPrototypeOf, values, } = Object;
 
 export default class AutoReducer {
 
@@ -23,8 +23,8 @@ export default class AutoReducer {
     Error: true,
   };
 
-  state;
-  prevState = {};
+  __autoreducer_state__;
+  __autoreducer_state__ = {};
   __autoreducer_id__;
   __autoreducer_identity__;
   __autoreducer_parent__;
@@ -45,14 +45,26 @@ export default class AutoReducer {
     }
     for (const k in initialState) {
       if (AutoReducer.couldBeParent(initialState[k])) {
-        initialState[k] = this._createAutoReducer(initialState[k], k, this, depth + 1).state;
+        initialState[k] = this._createAutoReducer(initialState[k], k, this, depth + 1).__autoreducer_state__;
       }
     }
-    this.state = initialState;
+    this.__autoreducer_state__ = initialState;
   }
 
   getParent() {
     return this.__autoreducer_parent__;
+  }
+
+  get state() {
+    let state;
+    this.__autoreducer_dispatcher__.dispatch({ type: GET_STATE, target: this.__autoreducer_identity__, callback: (value) => { state = value; }, });
+    return state;
+  }
+
+  get prevState() {
+    let prevState;
+    this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, target: this.__autoreducer_identity__, callback: (value) => { prevState = value; }, });
+    return prevState;
   }
 
   getId() {
@@ -65,65 +77,54 @@ export default class AutoReducer {
 
   setState(value) {
     if (value instanceof AutoReducer) {
-      throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__autoreducer_identity__));
+      throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
     } else if (!this.__autoreducer_parent__) {
-      throw new Error('detached AutoReducer action: setState', JSON.stringify(this.__autoreducer_identity__));
+      throw new Error('detached AutoReducer action: setState', stringify(this.__autoreducer_identity__));
     }
     this.__autoreducer_dispatcher__.dispatch({ type: SET_STATE, target: this.__autoreducer_identity__, param: value, });
     return this;
   }
 
-  _onSetState(value) {
+  __applySetState(value) {
     if (AutoReducer.couldBeParent(value)) {
-      const { state: prevState, __autoreducer_parent__, } = this;
-      if (!(value instanceof Array || prevState instanceof Array)) {
-        this._merge(value, prevState);
+      const { __autoreducer_state__: __autoreducer_prevState__, __autoreducer_parent__, } = this;
+      if (!(value instanceof Array || __autoreducer_prevState__ instanceof Array)) {
+        this._merge(value, __autoreducer_prevState__);
       } else {
-        this._reset(value, prevState);
+        this._reset(value, __autoreducer_prevState__);
       }
-      this.prevState = prevState;
+      this.__autoreducer_prevState__ = __autoreducer_prevState__;
       __autoreducer_parent__._notifyUp(this);
       return this;
     }
-    throw new Error(`${JSON.stringify(this.__autoreducer_identity__)}. Expected setState parameter to be an Object or Array, but got ${value}.`);
+    throw new Error(`"${this.__autoreducer_identity__.join(', ')}". Expected setState parameter to be an Object or Array, but got ${value}.`);
   }
 
   clearState(value) {
-    if (AutoReducer.couldBeParent(value)) {
-      if (!this.__autoreducer_parent__) {
-        throw new Error('detached AutoReducer action: clearState', JSON.stringify(this.__autoreducer_identity__));
-      } else if (value instanceof AutoReducer) {
-        throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity:`, JSON.stringify(this.__autoreducer_identity__));
-      }
-      this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, target: this.__autoreducer_identity__, param: value, });
-      return this;
+    if (value instanceof AutoReducer) {
+      throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
     }
-    throw new Error(`${JSON.stringify(this.__autoreducer_identity__)}. Expected clearState parameter to be an Object or Array, but got ${value}.`);
+    this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, target: this.__autoreducer_identity__, param: value, });
+    return this;
   }
 
-  _onClearState(value) {
+  __applyClearState(value) {
     const { __autoreducer_parent__, } = this;
     if (AutoReducer.couldBeParent(value)) {
-      if (!__autoreducer_parent__) {
-        throw new Error('detached AutoReducer action: clearState',
-          JSON.stringify(this.__autoreducer_identity__));
-      } else if (value instanceof AutoReducer) {
+      if (value instanceof AutoReducer) {
         throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:',
-          `${value}. Identity:`,
-          JSON.stringify(this.__autoreducer_identity__));
+          `${value}. Identity:
+          "${this.__autoreducer_identity__.join(', ')}"`);
       }
-      const prevState = this.state;
-      this._reset(value, prevState);
+      const __autoreducer_prevState__ = this.__autoreducer_state__;
+      this._reset(value, __autoreducer_prevState__);
       __autoreducer_parent__._notifyUp(this);
       return this;
     }
-    throw new Error(`${JSON.stringify(this.__autoreducer_identity__)}. Expected clearState parameter to be an Object or Array, but got ${value}.`);
+    throw new Error(`"${this.__autoreducer_identity__.join(', ')}". Expected clearState parameter to be an Object or Array, but got ${value}.`);
   }
 
   remove(...keys) {
-    if (!this.__autoreducer_parent__) {
-      throw new Error('detached AutoReducer action: remove', JSON.stringify(this.__autoreducer_identity__));
-    }
     if (keys[0] instanceof Array) {
       keys = keys[0];
     }
@@ -131,41 +132,36 @@ export default class AutoReducer {
     return this;
   }
 
-  _onRemove(keys) {
-    this._remove(keys);
-    return this;
+  __applyRemove(keys = []) {
+    const { __autoreducer_state__, } = this;
+    this.__autoreducer_prevState__ = __autoreducer_state__;
+    if (AutoReducer.couldBeParent(__autoreducer_state__)) {
+      let nextState;
+      if (__autoreducer_state__ instanceof Array) {
+        nextState = this._removeFromArrayState(keys);
+      } else {
+        nextState = this._removeFromObjectState(keys);
+      }
+      this.__autoreducer_state__ = nextState;
+      this.__autoreducer_parent__._notifyUp(this);
+    } else {
+      console.error('Remove error:', `${this.__autoreducer_identity__.join(', ')}. Has no children, was given,${JSON.stringify(keys)} when state: ${__autoreducer_state__}`);
+    }
   }
 
   removeSelf() {
     if (!this.__autoreducer_parent__) {
-      throw new Error('detached AutoReducer action: remove', JSON.stringify(this.__autoreducer_identity__));
+      throw new Error('detached AutoReducer action: remove "'+ this.__autoreducer_identity__.join(', ')+'"');
     }
     this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, target: this.__autoreducer_parent__.__autoreducer_identity__, param: [ this.__autoreducer_id__, ], });
     return this;
   }
 
-  _remove(keys = []) {
-    const { state, } = this;
-    this.prevState = state;
-    if (AutoReducer.couldBeParent(state)) {
-      let nextState;
-      if (state instanceof Array) {
-        nextState = this._removeFromArrayState(keys);
-      } else {
-        nextState = this._removeFromObjectState(keys);
-      }
-      this.state = nextState;
-      this.__autoreducer_parent__._notifyUp(this);
-    } else {
-      console.error('Remove error:', `${JSON.stringify(this.__autoreducer_identity__)}. Has no children, was given,${JSON.stringify(keys)} when state: ${state}`);
-    }
-  }
-
   _removeFromArrayState(indexes) {
     const set = indexes.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
     const nextState = [];
-    const { state, } = this;
-    const stateLength = state.length;
+    const { __autoreducer_state__, } = this;
+    const stateLength = __autoreducer_state__.length;
     for (let i = 0; i<stateLength; i++) {
       const { length, } = nextState;
       if (!set[i]) {
@@ -176,109 +172,95 @@ export default class AutoReducer {
           target.__autoreducer_identity__[target.__autoreducer_identity__.length-1] = length;
           target.__autoreducer_id__ = length;
         }
-        nextState.push(state[i]);
-      } else if (AutoReducer.couldBeParent(state[i])) {
-        this._removeChild(i);
+        nextState.push(__autoreducer_state__[i]);
+      } else if (AutoReducer.couldBeParent(__autoreducer_state__[i])) {
+        delete this[i];
       }
     }
     return nextState;
   }
 
   _removeFromObjectState(keys) {
-    const nextState = { ...this.state, };
+    const nextState = { ...this.__autoreducer_state__, };
     for (const k of keys) {
       delete nextState[k];
       if (this[k]) {
-        this._removeChild(k);
+        delete this[k];
       }
     }
     return nextState;
   }
 
-  _merge(obj, prevState) {
+  _merge(obj, __autoreducer_prevState__) {
     const nextState = {};
     for (const k in obj) {
       const child = this[k];
       const next = obj[k];
       if (child) {
-        if (next!==prevState[k]) {
+        if (next!==__autoreducer_prevState__[k]) {
           if (AutoReducer.couldBeParent(next)) {
-            nextState[k] = child._reset(next, prevState[k]).state;
+            nextState[k] = child._reset(next, __autoreducer_prevState__[k]).__autoreducer_state__;
           } else {
-            this._removeChild(k);
+            delete this[k];
             nextState[k] = next;
           }
         }
       } else if (AutoReducer.couldBeParent(next)) {
-        nextState[k] = this._createAutoReducer(next, k, this, this.__autoreducer_depth__ + 1).state;
+        nextState[k] = this._createAutoReducer(next, k, this, this.__autoreducer_depth__ + 1).__autoreducer_state__;
       } else {
         nextState[k] = next;
       }
     }
-    this.state = { ...prevState, ...nextState, };
+    this.__autoreducer_state__ = { ...__autoreducer_prevState__, ...nextState, };
     return this;
   }
 
-  _reset(value, prevState) {
-    this.prevState = prevState;
-    const merge = { ...prevState, ...value, };
+  _reset(value, __autoreducer_prevState__) {
+    this.__autoreducer_prevState__ = __autoreducer_prevState__;
+    const merge = { ...__autoreducer_prevState__, ...value, };
     const nextState = {};
     for (const k in merge) {
       const child = this[k];
       const next = value[k];
       if (child) {
         if (value.hasOwnProperty(k)) {
-          if (next !== prevState[k]) {
+          if (next !== __autoreducer_prevState__[k]) {
             if (AutoReducer.couldBeParent(next)) {
-              nextState[k] = child._reset(next, prevState[k]).state;
+              nextState[k] = child._reset(next, __autoreducer_prevState__[k]).__autoreducer_state__;
             } else {
-              this._removeChild(k);
+              delete this[k];
               nextState[k] = next;
             }
           } else {
             nextState[k] = next;
           }
         } else {
-          this._removeChild(k);
+          delete this[k];
         }
       } else if (AutoReducer.couldBeParent(next)) {
-        nextState[k] = this._createAutoReducer(next, k, this).state;
+        nextState[k] = this._createAutoReducer(next, k, this).__autoreducer_state__;
       } else if (value.hasOwnProperty(k)) {
         nextState[k] = next;
       }
     }
-    this.state = value instanceof Array ? values(nextState) : nextState;
+    this.__autoreducer_state__ = value instanceof Array ? values(nextState) : nextState;
     return this;
   }
 
   _notifyUp(child) {
-    const { __autoreducer_id__, state, } = child;
-    const prevState = this.state;
-    if (prevState instanceof Array) {
-      this.state = [ ...prevState.slice(0, __autoreducer_id__), state, ...prevState.slice(Number(__autoreducer_id__)+1, prevState.length), ];
+    const { __autoreducer_id__, __autoreducer_state__, } = child;
+    const __autoreducer_prevState__ = this.__autoreducer_state__;
+    if (__autoreducer_prevState__ instanceof Array) {
+      this.__autoreducer_state__ = [ ...__autoreducer_prevState__.slice(0, __autoreducer_id__), __autoreducer_state__, ...__autoreducer_prevState__.slice(Number(__autoreducer_id__)+1, __autoreducer_prevState__.length), ];
     } else {
-      this.state = { ...prevState, [__autoreducer_id__]: state, };
+      this.__autoreducer_state__ = { ...__autoreducer_prevState__, [__autoreducer_id__]: __autoreducer_state__, };
     }
-    this.prevState = prevState;
+    this.__autoreducer_prevState__ = __autoreducer_prevState__;
     if (this.__autoreducer_parent__) {
       this.__autoreducer_parent__._notifyUp(this);
     } else {
-      throw new Error('Detached Child AutoReducer cannot be modified:', JSON.stringify(this.__autoreducer_identity__));
+      throw new Error('Detached Child AutoReducer cannot be modified: "', this.__autoreducer_identity__.join(', ')+'"');
     }
-  }
-
-  _removeChild(k) {
-    const target = this[k];
-    const { state, } = target;
-    if (AutoReducer.couldBeParent(state)) {
-      for (const key in state) {
-        if (target[key]) {
-          target._removeChild(key);
-        }
-      }
-    }
-    assign(target, { __autoreducer_parent__: undefined, state: undefined, prevState: state, });
-    delete this[k];
   }
 
   getChildrenRecursively() {
@@ -289,7 +271,6 @@ export default class AutoReducer {
   }
 
   getChildren() {
-    // refactor
     return values(this).filter(v => v instanceof AutoReducer && v!==this.__autoreducer_parent__);
   }
 

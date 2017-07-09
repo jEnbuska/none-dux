@@ -1,14 +1,7 @@
 import { spec, } from './Validator';
 import createValidator, { any, } from './createValidator';
 import { naturalLeafTypes, checkers, } from './types';
-
-function stringify(obj) {
-  try {
-    return JSON.stringify(obj, null, 2);
-  } catch (Exception) {
-    return obj;
-  }
-}
+import { stringify, } from '../common';
 
 export const onErrorHandlers = {
   onStrictError: (identity, key, state) =>
@@ -36,22 +29,22 @@ const emptyShape = {
 
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
   shape = createValidator(shape);
-  validateRecursively(subject.state, subject.prevState, subject.getIdentity(), shape, true);
+  validateRecursively(subject.__autoreducer_state__, subject.__autoreducer_prevState__, subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
-    const { target, } = action;
-    if (target) {
+    const { target, callback, } = action;
+    if (target && !callback) {
       let child = subject;
       let subShape = shape;
       for (let i = 0; i<target.length; i++) {
-        const nextSubShape = subShape[target[i]] && !subShape[any];
+        const nextSubShape = subShape[target[i]] || subShape[any];
         if (!nextSubShape) {
           break;
         }
         subShape = nextSubShape;
         child = child[target[i]];
       }
-      validateRecursively(child.state, child.prevState, child.getIdentity(), subShape);
+      validateRecursively(child.__autoreducer_state__, child.__autoreducer_prevState__, child.getIdentity(), subShape);
     }
     return result;
   };
