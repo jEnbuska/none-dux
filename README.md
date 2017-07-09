@@ -1,7 +1,7 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-React-redux extension that make state management more flexible
+React-redux extension that makes state management more flexible
 
 Application state can be changed directly from actions.
 
