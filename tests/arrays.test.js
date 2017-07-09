@@ -15,7 +15,6 @@ describe('arrays as state', () => {
   });
 
   test('sub state should stay as array', () => {
-    console.log('create state')
     const subject = createStoreWithNonedux({ a: [ 1, 2, 3, ], });
     expect(subject.state).toEqual({ a: [ 1, 2, 3, ], });
     expect(subject.a.state[0]).toEqual(1);
@@ -80,7 +79,7 @@ describe('arrays as state', () => {
     subject.setState([ 3, 2, ]);
     expect(subject.state).toEqual([ 3, 2, ]);
     expect(last.state).toEqual(undefined);
-    expect(last.prevState).toEqual(undefined);
+    expect(last.prevState).toEqual({ c: 3, });
   });
 
   test('array to array should not merge', () => {
@@ -100,14 +99,13 @@ describe('arrays as state', () => {
     expect(subject.state[3]).toEqual(5);
   });
 
-  test('arrays child removing self', () => {
+  test('array state should shift', () => {
     const subject = createStoreWithNonedux([ 0, 1, { toBeRemoved: 2, }, 3, { toBeKept: 4, }, 5, 6, ]);
     const third = subject[2];
     subject.remove(2);
     expect(subject.state).toEqual([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
-    expect(third.state).toEqual(undefined);
-    expect(third.prevState).toEqual(undefined);
-    expect(third.__subsubject_parent__).toEqual(undefined);
+    expect(third.state).toEqual(3);
+    expect(third.prevState).toEqual({ toBeRemoved: 2, });
     expect(subject.state[2]).toEqual(3);
     expect(subject[3].state).toEqual({ toBeKept: 4, });
   });

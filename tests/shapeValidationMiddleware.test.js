@@ -1,12 +1,9 @@
-import AutoReducer from '../src/reducer/AutoReducer';
 import { createStoreWithNonedux, } from './utils';
 import { shape, } from '../src/';
 import onErrorHandler from '../src/shape/shapeErrorHandler';
 
 const { types, any, } = shape;
 const { number, strict, isRequired, string, bool, } = types;
-
-AutoReducer.onDevAutoReducerCreationError = () => {};
 
 describe('Validator middleware', () => {
   let onStrictErrors;

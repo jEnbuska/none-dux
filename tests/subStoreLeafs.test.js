@@ -36,27 +36,27 @@ describe('Leafs', () => {
     const subject = createStoreWithNonedux({ a: { b: {}, }, });
     expect(subject.state).toEqual({ a: { b: { }, }, });
     expect(subject.a.b.state).toEqual({});
-    subject.a.__applySetState({ b: createLeaf({ c: 1, d: 2, }), });
+    subject.a.setState({ b: createLeaf({ c: 1, d: 2, }), });
     expect(subject.a.b).toBeUndefined();
     expect(subject.a.state).toEqual({ b: { c: 1, d: 2, }, });
-    subject.a.__applySetState({ e: createLeaf({ f: 3, g: 4, }), });
+    subject.a.setState({ e: createLeaf({ f: 3, g: 4, }), });
     expect(subject.a.b).toBeUndefined();
     expect(subject.a.e).toBeUndefined();
     expect(subject.a.state).toEqual({ b: { c: 1, d: 2, }, e: { f: 3, g: 4, }, });
   });
 
-  test('__applyClearState with AutoReducerObjectLeaf', () => {
+  test('clearState with AutoReducerObjectLeaf', () => {
     const subject = createStoreWithNonedux({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.state).toEqual({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.a.b.state).toEqual({});
-    subject.a.__applyClearState({ b: createLeaf({ c: 1, d: 2, }), });
+    subject.a.clearState({ b: createLeaf({ c: 1, d: 2, }), });
     expect(subject.a.b).toBeUndefined();
     expect(subject.a.state).toEqual({ b: { c: 1, d: 2, }, });
   });
 
-  test('__applyRemove AutoReducerObjectLeaf', () => {
+  test('remove AutoReducerObjectLeaf', () => {
     const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: 1, d: 2, }), }, });
-    subject.a.__applyRemove('b');
+    subject.a.remove('b');
     expect(subject.a.state).toEqual({});
   });
 

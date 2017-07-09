@@ -1,8 +1,5 @@
-import AutoReducer from '../src/reducer/AutoReducer';
 import { Validator, spec, any, number, strict, isRequired, string, bool, } from '../src/shape/common';
 import createValidator from '../src/shape/buildValidator';
-
-AutoReducer.onDevAutoReducerCreationError = () => {};
 
 function reParse(val) {
   return JSON.parse(JSON.stringify(val));

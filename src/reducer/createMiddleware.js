@@ -1,4 +1,4 @@
-import { invalidReferenceHandler, SUB_REDUCER, GET_STATE, GET_PREV_STATE, findChild, } from '../common';
+import { SUB_REDUCER, GET_STATE, GET_PREV_STATE, findChild, } from '../common';
 
 export function createThunk(autoReducer) {
   return (store) => {
@@ -16,14 +16,10 @@ export function createStateAccessMiddleware(autoReducer) {
   return () => (next) => (action) => {
     const { type, [SUB_REDUCER]: path, } = action;
     switch (type) {
+      case GET_STATE:
+        return findChild(autoReducer.__autoreducer_state__, path);
       case GET_PREV_STATE:
-      case GET_STATE: {
-        const child = findChild(autoReducer, path);
-        if (child) { // disallow access to removed childrens state
-          return type === GET_STATE ? child.__autoreducer_state__ : child.__autoreducer_prevState__;
-        }
-        return invalidReferenceHandler[type](path);
-      }
+        return findChild(autoReducer.__autoreducer_prevState__, path);
       default:
         return next(action);
     }

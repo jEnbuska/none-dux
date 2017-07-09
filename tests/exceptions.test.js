@@ -66,15 +66,5 @@ describe('killSwitch', () => {
     expect(() => b.remove('val')).toThrow(Error);
     expect(() => c.remove('d')).toThrow(Error);
     expect(() => d.remove('val')).toThrow(Error);
-
-    expect(() => a.state).toThrow(Error);
-    expect(() => b.state).toThrow(Error);
-    expect(() => c.state).toThrow(Error);
-    expect(() => d.state).toThrow(Error);
-
-    expect(() => a.prevState).toThrow(Error);
-    expect(() => b.prevState).toThrow(Error);
-    expect(() => c.prevState).toThrow(Error);
-    expect(() => d.prevState).toThrow(Error);
   });
 });

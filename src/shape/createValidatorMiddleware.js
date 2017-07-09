@@ -1,5 +1,5 @@
 import { any, spec, } from './common';
-import { ACCESS_CALLBACK, SUB_REDUCER, } from '../common';
+import { SUB_REDUCER, SET_STATE, REMOVE, CLEAR_STATE, } from '../common';
 import buildValidator from './buildValidator';
 import validateState from './validateState';
 
@@ -11,24 +11,30 @@ const emptyShape = {
   },
 };
 
+const typesOfInterres = [ SET_STATE, REMOVE, CLEAR_STATE, ];
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
   shape = buildValidator(shape);
   validateState(subject.__autoreducer_state__, subject.__autoreducer_prevState__, subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
-    const { [SUB_REDUCER]: path, [ACCESS_CALLBACK]: callback, } = action;
-    if (path && !callback) {
+    const { type, [SUB_REDUCER]: path, } = action;
+    if (path && typesOfInterres.some(t => t === type)) {
+      let currentState= subject.state;
       let child = subject;
+      let prevState = subject.prevState;
       let subShape = shape;
       for (let i = 0; i<path.length; i++) {
-        const nextSubShape = subShape[path[i]] || subShape[any];
+        const key = path[i];
+        const nextSubShape = subShape[key] || subShape[any];
         if (!nextSubShape) {
           break;
         }
         subShape = nextSubShape;
-        child = child[path[i]];
+        currentState = currentState[key];
+        prevState = prevState && prevState[key];
+        child = child[key];
       }
-      validateState(child.__autoreducer_state__, child.__autoreducer_prevState__, child.getIdentity(), subShape);
+      validateState(currentState, prevState, child.getIdentity(), subShape);
     }
     return result;
   };

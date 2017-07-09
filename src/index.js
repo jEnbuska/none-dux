@@ -7,6 +7,8 @@ import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddl
 
 export default function initAutoReducer(initialState = {}) {
   const subject = new AutoReducer(initialState, 'root', 0, [], { dispatch: () => { }, });
+  subject.__autoreducer_state__ = initialState;
+  subject.__autoreducer_prevState__= {};
   const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
   const reducer = createReducer(subject);

@@ -19,7 +19,7 @@ describe('remove', () => {
   test('the number of children should match the non removed children',
     () => {
       subject = createStoreWithNonedux({});
-      subject.__applySetState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
+      subject.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
       let children = subject.getChildrenRecursively();
       expect(children.length).toEqual(5);
       subject.b.e.remove([ 'h', ]);

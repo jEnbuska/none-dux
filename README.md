@@ -229,10 +229,27 @@ function fetchCustomerData(){
   }
 }
 ```
-## Warning
+### Warnings
 If your state has circular structures, react components or 3th party library objects like `moment`:s, then use 'createLeaf' to avoid those objects being destructed recursively.
 
 Using custom JavaScript classes in reducer state is not well tested.
+
+##### Objects available in action creators do not actually hold any state they are just objects with meta data
+```
+
+function removeAndAddBack(){
+  function(nonedux}){
+    const {a} = nonedux.setState({a:{b: 1 }})
+    console.log(a.getIdentity()); // ['a']
+    nonedux.remove('a');
+    console.log(a.state) // undefined
+    // {type: GET_STATE, [SUB_REDUCER]: ['a]}
+    nonedux.setState({a: {b: 1}})
+    console.log(a.state) // {b: 1}
+    console.log(a===nonedux.a) // false
+  }
+}
+```
 
 ## Type checking
 
