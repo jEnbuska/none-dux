@@ -9,9 +9,10 @@ No reducer boilerplate.
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
-Creates a flexible top level reducer that takes care of immutability.
+Creates a flexible top level reducer that keeps changes immutable.
 
 ```
+//action creator
 function createMess(depth = 3, index = 0) {
   return function (nonedux, { dispatch, }) {
     const { mess, } = nonedux;
