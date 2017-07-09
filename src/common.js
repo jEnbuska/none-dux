@@ -14,10 +14,18 @@ export function stringify(obj) {
   }
 }
 
-export function findChild(root, path) {
-  let child = root;
-  for (let i = 0; child && i<path.length; i++) {
-    child = child[path[i]];
+export function findChild(value, path) {
+  let child = value;
+  for (let i = 0; i<path.length; i++) {
+    const key = path[i];
+    child = child[key];
+    if (!child) {
+      if (i===path.length-1) {
+        break;
+      } else {
+        return undefined;
+      }
+    }
   }
   return child;
 }
