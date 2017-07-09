@@ -1,10 +1,10 @@
-import ReducerParent from '../src/ReducerParent';
+import {createStoreWithNonedux} from './utils';
 
 describe('get children', () => {
   let subject;
   // noinspection JSAnnotator
   test('should return all immediate children', () => {
-    subject = new ReducerParent({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
+    subject = createStoreWithNonedux({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
     const { a, f, ..._ } = subject;
     const [ first, second, ...rootNone ]= subject.getChildren();
     expect(rootNone.length).toBe(0);
@@ -21,7 +21,7 @@ describe('get children', () => {
   });
 
   test('should return children recursively', () => {
-    subject = new ReducerParent({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
+    subject = createStoreWithNonedux({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
     const [ a, f, ...rootNone ]= subject.getChildren();
     const [ b, ...aNone ] = a.getChildren();
     const [ d, ...bNone ]= b.getChildren();
@@ -42,7 +42,7 @@ describe('get children', () => {
     expect(b=== expectB).toBeTruthy();
 
     expect(d.getId()).toBe(expectD.getId());
-    expect(d=== expectD).toBeTruthy();
+    expect(d === expectD).toBeTruthy();
 
     expect(f.getId()).toBe(expectF.getId());
     expect(f=== expectF).toBeTruthy();

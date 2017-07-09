@@ -1,23 +1,7 @@
-import { spec, } from './Validator';
-import createValidator, { any, } from './createValidator';
-import { naturalLeafTypes, checkers, } from './types';
-import { stringify, ACCESS_CALLBACK, SUB_REDUCER} from '../common';
-
-export const onErrorHandlers = {
-  onStrictError: (identity, key, state) =>
-    console.error('"strict" validation failed:' +
-    '\nAt: "'+identity.join(', ')+'"' +
-    '\nNo validations for key: '+key +'' +
-    '\nWith value: '+ stringify(state)),
-  onRequiredError: (identity, key) =>
-    console.error('"isRequired" validation failed:' +
-    '\nAt: '+identity.join(', ')+'"' +
-    '\nIs missing value for key: '+key),
-  onTypeError: (type, state, identity) =>
-    console.error('Validation failed at "'+identity.join(', ')+'"\n' +
-    'Expected: '+ type+'' +
-    '\nBut got '+stringify(state)),
-};
+import { any, spec, } from './common';
+import { ACCESS_CALLBACK, SUB_REDUCER, } from '../common';
+import buildValidator from './buildValidator';
+import validateState from './validateState';
 
 const emptyShape = {
   [spec]: {
@@ -28,8 +12,8 @@ const emptyShape = {
 };
 
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
-  shape = createValidator(shape);
-  validateRecursively(subject.__autoreducer_state__, subject.__autoreducer_prevState__, subject.getIdentity(), shape);
+  shape = buildValidator(shape);
+  validateState(subject.__autoreducer_state__, subject.__autoreducer_prevState__, subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
     const { [SUB_REDUCER]: path, [ACCESS_CALLBACK]: callback, } = action;
@@ -44,48 +28,8 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
         subShape = nextSubShape;
         child = child[path[i]];
       }
-      validateRecursively(child.__autoreducer_state__, child.__autoreducer_prevState__, child.getIdentity(), subShape);
+      validateState(child.__autoreducer_state__, child.__autoreducer_prevState__, child.getIdentity(), subShape);
     }
     return result;
   };
-}
-
-const { keys, getPrototypeOf, } = Object;
-function validateRecursively(state, prevState, identity, shape, initial) {
-  const { [spec]: specification, [any]: _, ...children } = shape;
-  const { name, strict, isRequired, } = specification || {};
-  if (checkers[name](state)) {
-    if (state && !naturalLeafTypes[getPrototypeOf(state).constructor.name]) {
-      keys({ ...state, ...children, })
-      .filter((k) => {
-        try {
-          return initial || !prevState || state[k] !== prevState[k] || !prevState.hasOwnProperty(k);
-        } catch (Exception) {
-          return true;
-        }
-      })
-      .forEach((k) => {
-        const subShape = shape[k] || shape[any];
-        if (!subShape && strict) {
-          onErrorHandlers.onStrictError(identity, k, state[k]);
-        } else if (subShape) {
-          if (state[k] === null || state[k] === undefined) {
-            if (subShape[spec].isRequired) {
-              onErrorHandlers.onRequiredError(identity, k);
-            }
-          } else {
-            validateRecursively(
-              state[k],
-              prevState && prevState.hasOwnProperty(k) ? prevState[k] : undefined,
-              [ ...identity, k, ],
-              subShape,
-              initial,
-            );
-          }
-        }
-      });
-    }
-  } else {
-    onErrorHandlers.onTypeError(name, state, identity);
-  }
 }

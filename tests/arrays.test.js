@@ -1,6 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import { invalidReferenceHandler, } from '../src/createNonedux';
-import { SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
+import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays as state', () => {
   beforeAll(() => {
@@ -16,6 +15,7 @@ describe('arrays as state', () => {
   });
 
   test('sub state should stay as array', () => {
+    console.log('create state')
     const subject = createStoreWithNonedux({ a: [ 1, 2, 3, ], });
     expect(subject.state).toEqual({ a: [ 1, 2, 3, ], });
     expect(subject.a.state[0]).toEqual(1);

@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import AutoReducer from '../src/AutoReducer';
+import AutoReducer from '../src/reducer/AutoReducer';
 import { data, data2, } from './resources';
 
 const { keys, } = Object;

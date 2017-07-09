@@ -1,7 +1,6 @@
 import { createStoreWithNonedux, } from './utils';
-import AutoReducer from '../src/AutoReducer';
-import { invalidReferenceHandler, } from '../src/createNonedux';
-import { SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
+import AutoReducer from '../src/reducer/AutoReducer';
+import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 function verifyErrorOnChange(...params) {
   params.forEach(next => {

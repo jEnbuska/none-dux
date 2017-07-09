@@ -1,6 +1,4 @@
-import { any, } from './createValidator';
 import validatorMiddleware from './createValidatorMiddleware';
-import types from './types';
-import { spec, } from './Validator';
+import types, { spec, any, } from './common';
 
-export default { validatorMiddleware, any, types, spec, };
+export default { validatorMiddleware, types, spec, any, };

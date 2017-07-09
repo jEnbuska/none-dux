@@ -1,9 +1,34 @@
-import Validator from './Validator';
+export const spec = '__type_spec__';
+export const any = '__target_any__'; // any KEY (not value)
 
 const { getPrototypeOf, } = Object;
 export const naturalLeafTypes = {
   Number: true, RegExp: true, Boolean: true, Function: true, Date: true, Error: true, String: true, Symbol: true,
 };
+
+const { assign, } = Object;
+
+export class Validator {
+
+  constructor(name, strict= false, isRequired= false) {
+    this[spec] = { name, strict, isRequired, };
+  }
+
+  get isRequired() {
+    const { name, strict, } = this[spec];
+    return new Validator(name, strict, true);
+  }
+
+  get strict() {
+    const { name, isRequired, } = this[spec];
+    return new Validator(name, true, isRequired);
+  }
+
+  many(...keys) {
+    return keys.reduce((acc, k) => assign(acc, { [k]: this, }), {});
+  }
+}
+
 export const checkers = {
   String: (val) => (val === '' || (val && getPrototypeOf(val).constructor.name === 'String')),
   Number: val => val === 0 || (val && getPrototypeOf(val).constructor.name === 'Number'),
@@ -45,7 +70,7 @@ export const object = new Validator('Object');
 export const array = new Validator('Array');
 
 export default {
-  object() {
+  get object() {
     throw new Error('Object types are not explicitly, just use "isRequired" and "strict" instead');
   },
   get array() {

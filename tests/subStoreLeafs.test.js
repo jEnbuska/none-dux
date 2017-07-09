@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import createLeaf, { AutoReducerObjectLeaf, AutoReducerArrayLeaf, } from '../src/AutoReducerLeaf';
+import createLeaf, { AutoReducerObjectLeaf, AutoReducerArrayLeaf, } from '../src/reducer/AutoReducerLeaf';
 
 describe('Leafs', () => {
   test('create autoreducer array leaf', () => {

@@ -1,9 +1,8 @@
-import ReducerParent from '../src/ReducerParent';
-import Validator, { spec, } from '../src/shape/Validator';
-import createValidator, { any, } from '../src/shape/createValidator';
-import { array, object, number, strict, isRequired, string, bool, } from '../src/shape/types';
+import AutoReducer from '../src/reducer/AutoReducer';
+import { Validator, spec, any, number, strict, isRequired, string, bool, } from '../src/shape/common';
+import createValidator from '../src/shape/buildValidator';
 
-ReducerParent.onDevAutoReducerCreationError = () => {};
+AutoReducer.onDevAutoReducerCreationError = () => {};
 
 function reParse(val) {
   return JSON.parse(JSON.stringify(val));

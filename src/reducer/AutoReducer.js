@@ -1,4 +1,4 @@
-import { stringify, ACCESS_CALLBACK, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from './common';
+import { stringify, ACCESS_CALLBACK, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, } from '../common';
 
 const { getPrototypeOf, values, } = Object;
 
@@ -72,7 +72,7 @@ export default class AutoReducer {
     if (value instanceof AutoReducer) {
       throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: SET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, param: value, });
+    this.__autoreducer_dispatcher__.dispatch({ type: SET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: value, });
     return this;
   }
 
@@ -94,7 +94,7 @@ export default class AutoReducer {
     if (value instanceof AutoReducer) {
       throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, param: value, });
+    this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: value, });
     return this;
   }
 
@@ -116,7 +116,7 @@ export default class AutoReducer {
     if (keys[0] instanceof Array) {
       keys = keys[0];
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: this.__autoreducer_identity__, param: keys, });
+    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: keys, });
     return this;
   }
 
@@ -132,13 +132,13 @@ export default class AutoReducer {
       }
       this.__autoreducer_state__ = nextState;
     } else {
-      console.error('Remove error:', `${this.__autoreducer_identity__.join(', ')}. Has no children, was given,${JSON.stringify(keys)} when state: ${__autoreducer_state__}`);
+      console.error('Remove error:', `${this.__autoreducer_identity__.join(', ')}. Has no children, was given,${stringify(keys)}\nWhen state: ${__autoreducer_state__}`);
     }
   }
 
   removeSelf() {
     const [ _, ...parentIdentityReversed ] = [ ...this.__autoreducer_identity__, ].reverse();
-    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: parentIdentityReversed.reverse(), param: [ this.__autoreducer_id__, ], });
+    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: parentIdentityReversed.reverse(), [PARAM]: [ this.__autoreducer_id__, ], });
     return this;
   }
 
@@ -233,14 +233,11 @@ export default class AutoReducer {
   }
 
   getChildrenRecursively() {
-    const onReduceChildren = function (acc, child) {
-      return [ ...acc, child, ...child.getChildrenRecursively(), ];
-    };
     return this.getChildren().reduce(onReduceChildren, []);
   }
 
   getChildren() {
-    return values(this).filter(v => v instanceof AutoReducer);
+    return Object.values(this).filter(v => v && v instanceof AutoReducer);
   }
 
   _createAutoReducer(initialState, k) {
@@ -251,4 +248,8 @@ export default class AutoReducer {
   static couldBeParent(value) {
     return value && value instanceof Object && !AutoReducer.invalidAutoReducers[getPrototypeOf(value).constructor.name];
   }
+}
+
+function onReduceChildren(acc, child) {
+  return [ ...acc, child, ...child.getChildrenRecursively(), ];
 }

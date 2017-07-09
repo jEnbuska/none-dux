@@ -2,12 +2,12 @@ import { createStoreWithNonedux, } from './utils';
 
 describe('remove', () => {
   let subject;
-  /*test('removing the root subject should be ok',
+  test('removing the root subject should be ok',
     () => {
       subject = createStoreWithNonedux({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       subject.remove([ 'b', ]);
       expect(subject.state).toEqual({ a: {}, });
-    });*/
+    });
 
   test('removing leaf from object',
     () => {

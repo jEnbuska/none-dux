@@ -8,13 +8,12 @@ describe('Create subject', () => {
   })
 
   test('should return 2 level initial values', () => {
-    root = createStoreWithNonedux({ b: { c: 1, }, }).subject;
+    root = createStoreWithNonedux({ b: { c: 1, }, });
     expect(root.state).toEqual({ b: { c: 1, }, });
   });
 
   test('should return 3 level initial values', () => {
-    root = createStoreWithNonedux({ b: { c: 2, d: 3, e: { f: 4, }, }, }).subject;
+    root = createStoreWithNonedux({ b: { c: 2, d: 3, e: { f: 4, }, }, });
     expect(root.state).toEqual({ b: { c: 2, d: 3, e: { f: 4, }, }, });
   });
-
 });

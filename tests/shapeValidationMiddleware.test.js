@@ -1,12 +1,12 @@
-import ReducerParent from '../src/ReducerParent';
+import AutoReducer from '../src/reducer/AutoReducer';
 import { createStoreWithNonedux, } from './utils';
 import { shape, } from '../src/';
-import { onErrorHandlers, } from '../src/shape/createValidatorMiddleware';
+import onErrorHandler from '../src/shape/onShapeErrorHandler';
 
 const { types, any, } = shape;
 const { number, strict, isRequired, string, bool, } = types;
 
-ReducerParent.onDevAutoReducerCreationError = () => {};
+AutoReducer.onDevAutoReducerCreationError = () => {};
 
 describe('Validator middleware', () => {
   let onStrictErrors;
@@ -14,9 +14,9 @@ describe('Validator middleware', () => {
   let onTypeErrors;
 
   beforeAll(() => {
-    onErrorHandlers.onTypeError = ((type, state, identity) => onTypeErrors.push({ type, state, identity, }));
-    onErrorHandlers.onStrictError = ((identity, key, state) => onStrictErrors.push({ identity, key, state, }));
-    onErrorHandlers.onRequiredError = ((identity, key) => onIsRequiredErrors.push({ identity, key, }));
+    onErrorHandler.onTypeError = ((type, state, identity) => onTypeErrors.push({ type, state, identity, }));
+    onErrorHandler.onStrictError = ((identity, key, state) => onStrictErrors.push({ identity, key, state, }));
+    onErrorHandler.onRequiredError = ((identity, key) => onIsRequiredErrors.push({ identity, key, }));
   });
 
   beforeEach(() => {

@@ -2,9 +2,9 @@ import { createStore, applyMiddleware, } from 'redux';
 import nonedux, { shape, } from '../src';
 
 const { validatorMiddleware, } = shape;
+
 export function createStoreWithNonedux(initialState, shape) {
-  const { reducer, thunk, subject, } = nonedux(initialState);
-  const middlewares = [ thunk, ];
+  const { reducer, middlewares, subject, } = nonedux(initialState);
   if (shape) {
     middlewares.push(validatorMiddleware(subject, shape));
   }

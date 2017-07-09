@@ -1,10 +1,8 @@
-import { object, array, } from './types';
-import Validator, { spec, } from './Validator';
+import { Validator, object, array, spec, any, } from './common';
 
-export const any = '__target_any__'; // any object key like uuid or array index. Can not be isRequired
 const { entries, assign, } = Object;
 
-export default function createValidator(shape, identity = []) {
+export default function buildValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
     const [ first, second, third, ] = shape;
@@ -41,7 +39,7 @@ export default function createValidator(shape, identity = []) {
   return entries(shape)
     .filter(([ k, v, ]) => !(k === spec || (v instanceof Validator && v[spec].name)))
     .reduce((acc, [ k, v, ]) => {
-      acc[k] = createValidator(v, [ ...identity, k, ]);
+      acc[k] = buildValidator(v, [ ...identity, k, ]);
       return acc;
     }, shape);
 }
