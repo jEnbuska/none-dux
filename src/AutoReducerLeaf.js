@@ -1,21 +1,21 @@
 const { assign, freeze, seal, values, } = Object;
 
-// If you have an object that you be an SubStore
+// If you have an object that you be an AutoReducer
 /*
 * const judgeStaticData = {....}
 * */
-// target.setState({resources: new SubStoreLeaf(judgeStaticData)})
+// target.setState({resources: new AutoReducerLeaf(judgeStaticData)})
 export default function createLeaf(obj) {
   if (obj instanceof Object) {
     if (obj instanceof Array) {
-      return new SubStoreArrayLeaf(obj);
+      return new AutoReducerArrayLeaf(obj);
     }
-    return new SubStoreObjectLeaf(obj);
+    return new AutoReducerObjectLeaf(obj);
   }
   throw new Error('createLeaf expected to receive on object as parameter but received '+obj);
 }
 
-export class SubStoreObjectLeaf {
+export class AutoReducerObjectLeaf {
 
   constructor(obj) {
     assign(this, obj);
@@ -25,10 +25,10 @@ export class SubStoreObjectLeaf {
 }
 
 function onThrow(func) {
-  throw new Error('SubStoreArrayLeaf does not implement "'+ func+'"');
+  throw new Error('AutoReducerArrayLeaf does not implement "'+ func+'"');
 }
 
-export class SubStoreArrayLeaf {
+export class AutoReducerArrayLeaf {
   constructor(arr = []) {
     assign(this, arr);
     freeze(this);
