@@ -235,6 +235,7 @@ If your state has circular structures, react components or 3th party library obj
 Using custom JavaScript classes in reducer state is not well tested.
 
 ##### Objects available in action creators do not actually hold any state they are just objects with meta data
+###### That way functions like setState etc. are ~2x faster that they would be with internal state
 ```
 
 function removeAndAddBack(){
@@ -243,7 +244,7 @@ function removeAndAddBack(){
     console.log(a.getIdentity()); // ['a']
     nonedux.remove('a');
     console.log(a.state) // undefined
-    // {type: GET_STATE, [SUB_REDUCER]: ['a]}
+    // What actually happens when state is asked is 'return dispatch({type: GET_STATE, [SUB_REDUCER]: ['a]})'
     nonedux.setState({a: {b: 1}})
     console.log(a.state) // {b: 1}
     console.log(a===nonedux.a) // false
