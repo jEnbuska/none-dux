@@ -1,37 +1,32 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-Flexible state management for React
-
-Add on for react-redux 
-
-Creates a highly flexible top level reducer that takes care of immutability.
+React-redux extension that make state management more flexible
 
 Application state can be changed directly from actions.
-```
-function myActionCreator(){
-  return changeSomething(nonedux, reduxStore){
-    const stateBefore = nonedux.state;
-    console.log(stateBefore)// { change: { child: { byCalling: {}} } } 
-    const {state, prevState, subChild} = nonedux
-      .change
-      .child
-      .byCalling.setState({ subChild: {wasCreated: 'now' } });
-      
-    console.log(prevState) // {}
-    console.log(state); // { subChild: {wasCreated: 'now' } }
-    console.log(stateBefore !== nonedux.state) // true
-    
-    //new state can be interracted with
-    subChild.setState({wasCreated: 'previously'})
-    
-  }
-}
-```
 
-Action are generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
+No reducer boilerplate.
 
-Makes immutability easy and saves the time of implementing, maintaining and testing reducers.
+Reducers and action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
+
+Creates a flexible top level reducer that takes care of immutability.
+
+
+State can be modified to almost anything that is not circular
+```
+function hugeMess(depth = 3, index = 0) {
+  return function (nonedux, { dispatch, }) {
+    const { mess, } = nonedux;
+    let child = mess || nonedux.setState({ mess: {}, }).mess;
+    for (let i = 0; i<depth && child; i++) {
+      child = child.setState({
+        [index]: dispatch(hugeMess(i, index+1)),
+      })[index];
+    }
+    return nonedux.mess.state;
+  };
+})
+```
 
 ##Configuring store
 
@@ -47,7 +42,7 @@ const initialState = {
   users: {},
 };
 
-//does not work with redux thunk, because it does the same thing but differently
+// don't use 'redux-thunk'
 const { reducer, middlewares } = nonedux(initialState);
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(reducer);
@@ -63,35 +58,9 @@ const root = (
 ##Action examples
 
 ```
-function createUser(userData){
-  return function({users}, reduxStore){
-     const id = uuid()
-     users.setState({[id]: {...userData, id}})
-     // 1. an action was created: {
-        type: 'NONEDUX::SET_STATE', 
-        NONEDUX::SUB_REDUCER: ['users'], 
-        NONEDUX::PARAM: {id, ... }
-      }
-     // 2. action was dispatched
-     // 3. nonedux reducer performed the actions
-     api.postUser(users[id].state)
-      .then(...)
-  }
-}
-
-function verifyUser(id)
-  return function(nonedux){
-  const { state } = nonedux.users[id].setState({verified: true});
-  /*action {
-    type: 'NONEDUX::SET_STATE', 
-    NONEDUX::SUB_REDUCER: ['users', $id], 
-    param: { verified: true },
-  }*/
-  console.log(state.verified) // 'true'
-}
-
+// first argument is nonedux root reducer, second one is redux store
 export function removeUser(userId) {
-   return function ({users, todosByUser}) {
+   return function ({users, todosByUser}, {dispatch}) { 
     const user = users[userId];
     const usersTodos = todosByUser[userId]
     user.setState({ verified: false, });
@@ -102,12 +71,45 @@ export function removeUser(userId) {
       }); 
   }
 }
+
+function createTransaction(userId, data){
+  return function({users, transactions}){
+  const user = users[userId];
+  if(!user.state.pendingPayment){
+     user.setState({pendingPaymend: true})
+     const id = = generateId(); 
+     const {[id]: transaction} = transactions[userId].setState({[id]: {id, ...data, userId, validated: false, }})
+     api.postTransactions(transaction.state)
+      .then(() => transaction.setState({validated: true}))
+      .then(() => user.setState({pendingPayment: false}))
+      .catch(err => { ... })
+    }
+  }
+}
 ```
-String, Numbers, Date, etc. Can only be changed through parent object and accesses through parent state
+String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
 ```
 console.log(target.state)// {value: 'text'};
 console.log(target.value); //undefined
 console.log(target.state.value); //'text'
+...
+{
+  const {data} = nonedux.data.setState({str:'abc'});
+  
+  console.log(data.str); // undefined
+   
+  console.log(data.str.state); // throws Error(...)
+   
+  console.log(data.state.str); // 'abc'
+}
+...
+{
+  const { data } = nonedux.data.setState({obj: {str: 'ok'}})
+   
+  console.log(data.obj) //AutoReducer: ...
+   
+  console.log(data.obj.state) // {str: 'ok'}
+}
 ```
 
 ##Functions
@@ -138,30 +140,6 @@ target[1].removeSelf();
 target[2].removeSelf();
 target[3].removeSelf();
 ```
-  
-##Limitations:
- * ***setState*** ***remove***, ***clearState*** can be called to all objects and arrays:
- * Only objects and arrays can be referenced directly:
-   ```
-   {
-     const {data} = nonedux.data.setState({str:'abc'});
-     
-     console.log(data.str); // undefined
-      
-     console.log(data.str.state); // throws Error(...)
-      
-     console.log(data.state.str); // 'abc'
-   }
-   ...
-   {
-     const { data } = nonedux.data.setState({obj: {str: 'ok'}})
-      
-     console.log(data.obj) //AutoReducer: ...
-      
-     console.log(data.obj.state) // {str: 'ok'}
-   }
-    ```
-    
 
 #####If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
 happy path: (assuming you do not have circular structures, custom Javascript classes or React.Components in our redux state)
@@ -198,18 +176,18 @@ by
   replace with something like
   ```
  //actions redux-thunk
- function changeUserName(id, name){
+ function updateUser(id, changes){
     function(dispatch){
-      dispatch({type: SET_USER_NAME, payload: {id, name}}) 
+      dispatch({type: UPDATE_USER, payload: {id, ...changes}}) 
     }
  } 
   ```
   By
  ``` 
- //actions none-dux
- function changeUserName(id, name){
+ //actions nonedux
+ function updateUser(id, changes){
     function({users}){
-      users[id].setState({name});
+      users[id].setState(changes);
     }
  } 
 ```
@@ -217,9 +195,9 @@ by
 
 
 
-##Judge non changing data, or objects that with circular structure
+##Large non changing objects
 
-if you have a lot of data data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
+if you have data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
 ```
 import { createLeaf } from 'none-dux'
 
@@ -242,15 +220,14 @@ function fetchCustomerData(){
 }
 ```
 ##Warning
-It's best to use only normalized state, but if you have circular structures, react components or 3th party library objects like `moment`:s. in your state
-,use 'createLeaf'.
+If your state has circular structures, react components or 3th party library objects like `moment`:s, then use 'createLeaf' to avoid those objects being destructed recursively.
 
-Using custom JavaScript classes in nonedux reducer state is not well tested, but most likely they are changed into regular Objects without class specific functions.
+Using custom JavaScript classes in reducer state is not well tested.
 
 ##Type checking
 
 ```
-//Provides console errors when something is not what it should have been.
+//Provides console errors when something breaks spesifications.
 
 import nonedux, { shape } from 'none-dux
 
@@ -282,7 +259,7 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
     isRequired,         // ! No desctructing
     {
       a: number,
-      b: {},            //Object that can include anything an is not required
+      b: {},            // Object that can include anything an is not required
     }
   ],
   someStringList: [ string ]
