@@ -1,7 +1,7 @@
 import { spec, } from './Validator';
 import createValidator, { any, } from './createValidator';
 import { naturalLeafTypes, checkers, } from './types';
-import { stringify, } from '../common';
+import { stringify, ACCESS_CALLBACK, SUB_REDUCER} from '../common';
 
 export const onErrorHandlers = {
   onStrictError: (identity, key, state) =>
@@ -32,17 +32,17 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
   validateRecursively(subject.__autoreducer_state__, subject.__autoreducer_prevState__, subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
-    const { target, callback, } = action;
-    if (target && !callback) {
+    const { [SUB_REDUCER]: path, [ACCESS_CALLBACK]: callback, } = action;
+    if (path && !callback) {
       let child = subject;
       let subShape = shape;
-      for (let i = 0; i<target.length; i++) {
-        const nextSubShape = subShape[target[i]] || subShape[any];
+      for (let i = 0; i<path.length; i++) {
+        const nextSubShape = subShape[path[i]] || subShape[any];
         if (!nextSubShape) {
           break;
         }
         subShape = nextSubShape;
-        child = child[target[i]];
+        child = child[path[i]];
       }
       validateRecursively(child.__autoreducer_state__, child.__autoreducer_prevState__, child.getIdentity(), subShape);
     }

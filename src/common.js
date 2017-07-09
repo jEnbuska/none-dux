@@ -3,6 +3,8 @@ export const CLEAR_STATE = 'NONEDUX_CLEAR_STATE';
 export const REMOVE = 'NONEDUX_REMOVE';
 export const GET_STATE = 'NONEDUX_GET_STATE';
 export const GET_PREV_STATE = 'NONEDUX_GET_PREV_STATE';
+export const ACCESS_CALLBACK = 'NONEDUX_ACCESS_CALLBACK';
+export const SUB_REDUCER = 'SUB_REDUCER';
 
 export function stringify(obj) {
   try {

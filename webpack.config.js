@@ -12,11 +12,11 @@ module.exports = {
   entry: {// use babel-polyfill to enable new javascript features on old IE:s
     index: [ 'index.js', ],
     connect: [ 'connect.jsx', ],
-    DevSubStore: [ 'DevSubStore.js', ],
+    DevAutoReducer: [ 'DevAutoReducer.js', ],
     Provider: [ 'Provider.jsx', ],
     shape: [ 'shape.js', ],
-    SubStore: [ 'SubStore.js', ],
-    SubStoreLeaf: [ 'SubStoreLeaf.js', ],
+    AutoReducer: [ 'AutoReducer.js', ],
+    AutoReducerLeaf: [ 'AutoReducerLeaf.js', ],
   },
   output: {
     path: libPath,
@@ -41,7 +41,7 @@ module.exports = {
   plugins: [
     new webpack.NamedModulesPlugin(),
     new webpack.optimize.CommonsChunkPlugin({
-      names: [ 'index', 'connect', 'DevSubStore', 'Provider', 'shape', 'SubStore', 'SubStoreLeaf', ],
+      names: [ 'index', 'connect', 'DevAutoReducer', 'Provider', 'shape', 'AutoReducer', 'AutoReducerLeaf', ],
     }),
     new CleanWebpackPlugin([ libPath, ]),
     new webpack.EnvironmentPlugin({ NODE_ENV: 'development', }),
