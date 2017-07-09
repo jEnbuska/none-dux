@@ -14,6 +14,9 @@ export default function initAutoReducer(initialState = {}) {
     reducer,
     middlewares: [ accessCallback, thunk, ],
     subject,
+    get thunk() {
+      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares" provided');
+    },
     dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
   };
 }
