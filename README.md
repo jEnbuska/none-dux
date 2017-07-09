@@ -13,14 +13,13 @@ Creates a flexible top level reducer that keeps changes immutable.
 
 ```
 //action creator
-function createMess(depth = 3, index = 0) {
+function recursiveMess(depth = 3, index = 0) {
   return function (nonedux, { dispatch, }) {
     const { mess, } = nonedux;
     let child = mess || nonedux.setState({ mess: {}, }).mess;
     for (let i = 0; i<depth && child; i++) {
-      child = child.setState({
-        [index]: dispatch(createMess(i, index+1)),
-      })[index];
+      child = child.setState({ [index]: dispatch(recursiveMess(i, index+1)) })
+      child = child[index];
     }
     return nonedux.mess.state;
   };
