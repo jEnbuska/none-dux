@@ -3,6 +3,8 @@
 
 Flexible state management for React
 
+Add on for react-redux 
+
 Creates a highly flexible top level reducer that takes care of immutability.
 
 Application state can be changed directly from actions.
@@ -10,27 +12,26 @@ Application state can be changed directly from actions.
 function myActionCreator(){
   return changeSomething(nonedux, reduxStore){
     const stateBefore = nonedux.state;
-    console.log(stateBefore)// { change: { a: { child: { by: {calling: {}} } } } }
+    console.log(stateBefore)// { change: { child: { byCalling: {}} } } 
     const {state, prevState, subChild} = nonedux
       .change
-      .a
       .child
-      .by
-      .calling.setState({ subChild: {wasCreated: 'now' } });
+      .byCalling.setState({ subChild: {wasCreated: 'now' } });
       
     console.log(prevState) // {}
     console.log(state); // { subChild: {wasCreated: 'now' } }
     console.log(stateBefore !== nonedux.state) // true
     
+    //new state can be interracted with
     subChild.setState({wasCreated: 'previously'})
     
   }
 }
 ```
 
-Action are auto generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
+Action are generated and dispatched when functions **setState**, **clearState**, and **remove** are invoked.
 
-Makes immutability easy and saves you the time of implementing, maintaining and testing reducers.
+Makes immutability easy and saves the time of implementing, maintaining and testing reducers.
 
 ##Configuring store
 
@@ -46,8 +47,9 @@ const initialState = {
   users: {},
 };
 
-const { reducer, thunk, dispatcher, } = nonedux(initialState);
-const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
+//does not work with redux thunk, because it does the same thing but differently
+const { reducer, middlewares } = nonedux(initialState);
+const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(reducer);
 
 const root = (
@@ -64,12 +66,15 @@ const root = (
 function createUser(userData){
   return function({users}, reduxStore){
      const id = uuid()
-     const {[id]: newUser} = users.setState({[id]: {...userData, id}})
-     // 1. an action was created {type: 'NONE_DUX_SET_STATE', target: ['users'], param: {id, ... }}
+     users.setState({[id]: {...userData, id}})
+     // 1. an action was created: {
+        type: 'NONEDUX::SET_STATE', 
+        NONEDUX::SUB_REDUCER: ['users'], 
+        NONEDUX::PARAM: {id, ... }
+      }
      // 2. action was dispatched
      // 3. nonedux reducer performed the actions
-     // 4. setState method returned the very same users object
-     api.postUser(newUser.state)
+     api.postUser(users[id].state)
       .then(...)
   }
 }
@@ -78,8 +83,8 @@ function verifyUser(id)
   return function(nonedux){
   const { state } = nonedux.users[id].setState({verified: true});
   /*action {
-    type: 'NONE_DUX_SET_STATE', 
-    target: ['users', $id], 
+    type: 'NONEDUX::SET_STATE', 
+    NONEDUX::SUB_REDUCER: ['users', $id], 
     param: { verified: true },
   }*/
   console.log(state.verified) // 'true'
@@ -98,7 +103,7 @@ export function removeUser(userId) {
   }
 }
 ```
-Note that String, Booleans Numbers, Errors, Date, etc are under state
+String, Numbers, Date, etc. Can only be changed through parent object and accesses through parent state
 ```
 console.log(target.state)// {value: 'text'};
 console.log(target.value); //undefined
@@ -111,8 +116,8 @@ console.log(target.state.value); //'text'
 console.log(target.state); // { a: 1, b: {} }
 target.setState({ a: 2, c: 3 });
 console.log(target.state) // { a: 2, b: {}, c: 3 }
-// setState keeps the outerjoin
- ...
+// setState does shallow merge
+ ... 
  
  //clear state removes the outer join of the state
  console.log(target.state); //{ a: 1, b: { } }
@@ -126,11 +131,12 @@ console.log(target.state) // { a: 2, b: {}, c: 3 }
 const ids = [ 1, 2, 3 ];
 
 target.remove(ids); //removes all children with matching ids
-// same as target.remove(1, 2, 3);
-...
-
-target.removeSelf(); //remove self
-// same as target.getParent().remove(target.getId())
+or
+target.remove(1,2,3);
+or
+target[1].removeSelf();
+target[2].removeSelf();
+target[3].removeSelf();
 ```
   
 ##Limitations:
@@ -176,19 +182,20 @@ replace
 ```
 by
 ```
-  //Take the current initial state of from your reducers and use it as initialState
+  // Take the current initial state of from your reducers and use it as initialState
+  
   ...
   import nonedux from 'none-dux'
   
-  //use nonedux thunk
-  const { reducer, thunk, } = nonedux(initialState);
-  const createStoreWithMiddleware = applyMiddleware(...[ thunk, ])(createStore);
+  // (Do not use 'redux-thunk')
+  const { reducer, middlewares, } = nonedux(initialState);
+  const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
   const store = createStoreWithMiddleware(reducer);
   
   <Provider store={store}> ...   
   ```
   ###2. Actions
-  replace something like
+  replace with something like
   ```
  //actions redux-thunk
  function changeUserName(id, name){
@@ -206,12 +213,11 @@ by
     }
  } 
 ```
-----------------
-And That should be done
+---------------
 
 
 
-##Judge non changing datas or objects that have circular structure
+##Judge non changing data, or objects that with circular structure
 
 if you have a lot of data data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
 ```
@@ -236,30 +242,28 @@ function fetchCustomerData(){
 }
 ```
 ##Warning
-It's best to have only normalized state in application state
-
-But if you have circular structures, react components or 3th party library objects like `moment`:s. in your state
+It's best to use only normalized state, but if you have circular structures, react components or 3th party library objects like `moment`:s. in your state
 ,use 'createLeaf'.
 
-Using custom JavaScript classes in nonedux reducer state is not well tested, but most likely they are changed into regular Objects without class spesific functions.
+Using custom JavaScript classes in nonedux reducer state is not well tested, but most likely they are changed into regular Objects without class specific functions.
 
 ##Type checking
 
 ```
-//The only effect is that you will get console warnings during development, when shape breaks specification.
+//Provides console errors when something is not what it should have been.
 
 import nonedux, { shape } from 'none-dux
 
-const { reducer, thunk, subject, } = nonedux(initialState);
+const { reducer, middlewares, subject, } = nonedux(initialState);
 
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
 
-const validator = { ...isRequired.strict  //!!!Use destructed on Objects shape spesification
+const validator = { ...isRequired.strict  // ! Use destructed when you have Objects shape spesification
   todosByUser: { ...isRequired,           // Not null not undefined
     [any]: {                              // byUserIds 
       [any]: { ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
-        userId: string.isRequired,        // No desctructing   
+        userId: string.isRequired,        // ! No desctructing   
         id: string.isRequired,
         description: string.isRequired,
         done: bool,
@@ -273,10 +277,10 @@ const validator = { ...isRequired.strict  //!!!Use destructed on Objects shape s
     },
   },
   
-  //more
+  //more examples
   someObjectList: [
-    isRequired,         //!!!No desctructing
-    {  //object shape
+    isRequired,         // ! No desctructing
+    {
       a: number,
       b: {},            //Object that can include anything an is not required
     }
@@ -285,7 +289,7 @@ const validator = { ...isRequired.strict  //!!!Use destructed on Objects shape s
   request: {...isRequired}
 };
 ```
-If you do not have destructing available (with objects):
+If you do not have destructing available (with objects specs):
 ```
 //instead of
 {
@@ -294,7 +298,7 @@ If you do not have destructing available (with objects):
 //do
 const {spec} = shape;
 {
- [spec]: isRequired.strict[types]
+ [spec]: isRequired.strict[spec]
 }
 ```
 using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
