@@ -1,4 +1,4 @@
-import { stringify, ACCESS_CALLBACK, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, } from '../common';
+import { stringify, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, } from '../common';
 
 const { getPrototypeOf, values, } = Object;
 
@@ -49,15 +49,11 @@ export default class AutoReducer {
   }
 
   get state() {
-    let state;
-    this.__autoreducer_dispatcher__.dispatch({ type: GET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [ACCESS_CALLBACK]: (value) => { state = value; }, });
-    return state;
+    return this.__autoreducer_dispatcher__.dispatch({ type: GET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, });
   }
 
   get prevState() {
-    let prevState;
-    this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [ACCESS_CALLBACK]: (value) => { prevState = value; }, });
-    return prevState;
+    return this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, });
   }
 
   getId() {

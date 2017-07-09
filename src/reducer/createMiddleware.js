@@ -7,31 +7,19 @@ export function createThunk(autoReducer) {
       if (typeof action === 'function') {
         return action(autoReducer, store);
       }
-      const { type, [SUB_REDUCER]: path, } = action;
-      switch (type) {
-        case GET_PREV_STATE:
-        case GET_STATE: {
-          const child = findChild(autoReducer, path);
-          if (child) {
-            return type === GET_STATE ? child.__autoreducer_state__ : child.__autoreducer_prevState__;
-          }
-          return invalidReferenceHandler[type](path);
-        }
-        default:
-          return next(action);
-      }
+      return next(action);
     };
   };
 }
 
-export function createAccessCallbackMiddleware(reducer) {
+export function createStateAccessMiddleware(autoReducer) {
   return () => (next) => (action) => {
     const { type, [SUB_REDUCER]: path, } = action;
     switch (type) {
       case GET_PREV_STATE:
       case GET_STATE: {
-        const child = findChild(reducer, path);
-        if (child) {
+        const child = findChild(autoReducer, path);
+        if (child) { // disallow access to removed childrens state
           return type === GET_STATE ? child.__autoreducer_state__ : child.__autoreducer_prevState__;
         }
         return invalidReferenceHandler[type](path);

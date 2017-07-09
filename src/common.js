@@ -3,7 +3,6 @@ export const CLEAR_STATE = 'NONEDUX::CLEAR_STATE';
 export const REMOVE = 'NONEDUX::REMOVE';
 export const GET_STATE = 'NONEDUX::GET_STATE';
 export const GET_PREV_STATE = 'NONEDUX::GET_PREV_STATE';
-export const ACCESS_CALLBACK = 'NONEDUX::ACCESS_CALLBACK';
 export const SUB_REDUCER = 'NONEDUX::SUB_REDUCER';
 export const PARAM = 'NONEDUX::PARAM';
 
