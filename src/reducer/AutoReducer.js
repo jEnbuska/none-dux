@@ -21,8 +21,6 @@ export default class AutoReducer {
     Date: true,
     Error: true,
   };
-
-  __autoreducer_id__;
   __autoreducer_identity__;
   __autoreducer_dispatcher__;
 
@@ -30,7 +28,6 @@ export default class AutoReducer {
     this.__autoreducer_identity__ = identity;
     if (depth>AutoReducer.maxDepth) { AutoReducer.__kill(this); }
     this.__autoreducer_depth__ = depth;
-    this.__autoreducer_id__ = id;
     this.__autoreducer_dispatcher__ = dispatcher;
     for (const k in state) {
       if (AutoReducer.couldBeParent(state[k])) {
@@ -40,50 +37,71 @@ export default class AutoReducer {
   }
 
   get state() {
-    return this.__autoreducer_dispatcher__.dispatch({ type: GET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, });
+    const identity = this.getIdentity();
+    if (identity) {
+      return this.__autoreducer_dispatcher__.dispatch({ type: GET_STATE, [SUB_REDUCER]: identity, });
+    }
+    return AutoReducer.onAccessingRemovedNode(this.getId(), 'state');
   }
 
   get prevState() {
-    return this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, });
+    const identity = this.getIdentity();
+    if (identity) {
+      return this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: identity, });
+    }
+    AutoReducer.onAccessingRemovedNode(this.getId(), 'prevState')
   }
 
   getId() {
-    return this.__autoreducer_id__;
+    return this.__autoreducer_identity__.getId();
   }
 
   getIdentity() {
-    return this.__autoreducer_identity__;
+    return this.__autoreducer_identity__._knotlist_path();
   }
 
   setState(value) {
-    if (value instanceof AutoReducer) {
-      throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
+    const identity = this.getIdentity();
+    if (!identity) {
+      throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
+    } else if (value instanceof AutoReducer) {
+      throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     } else if (!AutoReducer.couldBeParent(value)) {
-      throw new Error('AutoReducer does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
+      throw new Error('AutoReducer does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: SET_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: value, });
+    this.__autoreducer_dispatcher__.dispatch({ type: SET_STATE, [SUB_REDUCER]: identity, [PARAM]: value, });
     return this;
   }
 
   clearState(value) {
-    if (value instanceof AutoReducer) {
-      throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity: "${this.__autoreducer_identity__.join(', ')}"`);
+    const identity = this.getIdentity();
+    if (!identity) {
+      throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
+    } else if (value instanceof AutoReducer) {
+      throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: value, });
+    this.__autoreducer_dispatcher__.dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: identity, [PARAM]: value, });
     return this;
   }
 
   remove(...keys) {
-    if (keys[0] instanceof Array) {
+    const identity = this.getIdentity();
+    if (!identity) {
+      throw new Error('Cannot call remove to removed Node. Got:', `${keys}. Id: "${this.getId()}"`);
+    } else if (keys[0] instanceof Array) {
       keys = keys[0];
     }
-    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: this.__autoreducer_identity__, [PARAM]: keys, });
+    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: identity, [PARAM]: keys, });
     return this;
   }
 
   removeSelf() {
-    const [ _, ...parentIdentityReversed ] = [ ...this.__autoreducer_identity__, ].reverse();
-    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: parentIdentityReversed.reverse(), [PARAM]: [ this.__autoreducer_id__, ], });
+    const identity = this.getIdentity();
+    if (!identity) {
+      throw new Error('Cannot call removeSelf to removed Node. Id:'+this.getId());
+    }
+    const [ _, ...parentIdentity ]= identity.reverse();
+    this.__autoreducer_dispatcher__.dispatch({ type: REMOVE, [SUB_REDUCER]: parentIdentity.reverse(), [PARAM]: [ this.getId(), ], });
     return this;
   }
 
@@ -98,10 +116,9 @@ export default class AutoReducer {
       if (child) {
         if (subState !== prevState[k]) {
           if (AutoReducer.couldBeParent(subState)) {
-            child.__applyClearState(subState,
-                prevState[k]);
+            child.__applyClearState(subState, prevState[k]);
           } else {
-            delete this[k];
+            this._onRemoveChild(k);
           }
         }
       } else if (AutoReducer.couldBeParent(subState)) {
@@ -122,11 +139,11 @@ export default class AutoReducer {
             if (AutoReducer.couldBeParent(next)) {
               child.__applyClearState(next, prevState[k]);
             } else {
-              delete this[k];
+              this._onRemoveChild(k);
             }
           }
         } else {
-          delete this[k];
+          this._onRemoveChild(k);
         }
       } else if (AutoReducer.couldBeParent(next)) {
         this._createAutoReducer(next, k);
@@ -149,15 +166,14 @@ export default class AutoReducer {
       const { length, } = nextState;
       if (toBeRemoved[i]) {
         if (this[i]) {
-          delete this[i];
+          this._onRemoveChild(i);
         }
       } else {
         if (i !== length && this[i]) {
           const target = this[i];
           this[length] = target;
+          this.__autoreducer_identity__[i]._knotlist_replace_key(length);
           delete this[i];
-          target.__autoreducer_identity__[target.__autoreducer_identity__.length - 1] = length;
-          target.__autoreducer_id__ = length;
         }
         nextState.push(state[i]);
       }
@@ -170,7 +186,7 @@ export default class AutoReducer {
     for (const k of keys) {
       delete nextState[k];
       if (this[k]) {
-        delete this[k];
+        this._onRemoveChild(k)
       }
     }
     return nextState;
@@ -183,9 +199,17 @@ export default class AutoReducer {
   getChildren() {
     return Object.values(this).filter(v => v && v instanceof AutoReducer);
   }
+  _onRemoveChild(k) {
+    delete this[k];
+    this.__autoreducer_identity__._knotlist_remove(k);
+  }
 
   _createAutoReducer(initialState, k) {
-    this[k] = new AutoReducer(initialState, k, this.__autoreducer_depth__ + 1, [ ...this.__autoreducer_identity__, k, ], this.__autoreducer_dispatcher__);
+    this[k] = new AutoReducer(initialState, k, this.__autoreducer_depth__ + 1, this.__autoreducer_identity__._knotlist_add(k), this.__autoreducer_dispatcher__);
+  }
+
+  static onAccessingRemovedNode(id, property) {
+    console.error('Accessing '+property+' of remove node '+id);
   }
 
   static couldBeParent(value) {

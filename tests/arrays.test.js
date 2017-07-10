@@ -1,8 +1,18 @@
 import { createStoreWithNonedux, } from './utils';
+import AutoReducer from '../src/reducer/AutoReducer';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays as state', () => {
+  let invalidAccessCalls = [];
   beforeAll(() => {
+    Object.defineProperty(AutoReducer, 'onAccessingRemovedNode', {
+      configurable: true,
+      writable: true,
+      value: (id, propertyName) => {
+        invalidAccessCalls.push({ id, name: propertyName, });
+      },
+    });
+
     Object.assign(invalidReferenceHandler,
       {
         [SET_STATE]: () => { },
@@ -13,6 +23,8 @@ describe('arrays as state', () => {
       }
     );
   });
+
+  beforeEach(() => { invalidAccessCalls = []; });
 
   test('sub state should stay as array', () => {
     const subject = createStoreWithNonedux({ a: [ 1, 2, 3, ], });
@@ -58,10 +70,8 @@ describe('arrays as state', () => {
   test('kill old references', () => {
     const subject = createStoreWithNonedux([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
     expect(subject.state).toEqual([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
-    const fourth = subject[3];
     subject.setState([ 1, 2, [], ]);
     expect(subject.state).toEqual([ 1, 2, [], ]);
-    expect(fourth.__subsubject_parent__).toEqual(undefined);
     expect(subject[3]).toEqual(undefined);
   });
 
@@ -75,11 +85,8 @@ describe('arrays as state', () => {
   test('object to array should not merge', () => {
     const subject = createStoreWithNonedux({ 0: 1, 1: { b: 2, }, 2: { c: 3, }, });
     expect(subject.state).toEqual({ 0: 1, 1: { b: 2, }, 2: { c: 3, }, });
-    const last = subject[2];
     subject.setState([ 3, 2, ]);
     expect(subject.state).toEqual([ 3, 2, ]);
-    expect(last.state).toEqual(undefined);
-    expect(last.prevState).toEqual({ c: 3, });
   });
 
   test('array to array should not merge', () => {
@@ -104,8 +111,8 @@ describe('arrays as state', () => {
     const third = subject[2];
     subject.remove(2);
     expect(subject.state).toEqual([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
-    expect(third.state).toEqual(3);
-    expect(third.prevState).toEqual({ toBeRemoved: 2, });
+    expect(third.state).toEqual(undefined);
+    expect(third.prevState).toEqual(undefined);
     expect(subject.state[2]).toEqual(3);
     expect(subject[3].state).toEqual({ toBeKept: 4, });
   });
