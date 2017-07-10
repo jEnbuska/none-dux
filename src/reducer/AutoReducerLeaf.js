@@ -35,6 +35,18 @@ export class AutoReducerArrayLeaf {
     seal(this);
   }
 
+  [Symbol.iterator]() {
+    let index = 0;
+    return {
+      next: () => {
+        return {
+          value: this[index++],
+          done: index===this.length+1,
+        };
+      },
+    };
+  }
+
   get length() {
     return values(this).length;
   }
@@ -110,7 +122,7 @@ export class AutoReducerArrayLeaf {
   splice() {
     onThrow('splice');
   }
-  toString()	{
+  toString() {
     return values(this).toString();
   }
   unshift() {

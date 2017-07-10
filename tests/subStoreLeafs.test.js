@@ -22,6 +22,15 @@ describe('Leafs', () => {
     expect(leaf.some((n, i) => n instanceof Array)).toEqual(false);
   });
 
+  test('iterate leaf', () => {
+    const leaf = createLeaf([ 1, 2, 3, 4, [ { a: 1, }, ], ]);
+    expect([ ...leaf, ]).toEqual([ 1, 2, 3, 4, [ { a: 1, }, ], ]);
+    expect([ ...leaf, 5, ]).toEqual([ 1, 2, 3, 4, [ { a: 1, }, ], 5, ]);
+    const [ first, ...rest ] = leaf;
+    expect(first).toBe(1);
+    expect(rest).toEqual([ 2, 3, 4, [ { a: 1, }, ], ]);
+  });
+
   test('creating subject with AutoReducerObjectLeaf & AutoReducerArrayLeafs', () => {
     const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: { x: 1, }, d: 2, }), e: createLeaf([ { f: 1, }, 2, ]), }, });
     expect(subject.state).toEqual({ a: { b: new AutoReducerObjectLeaf({ c: { x: 1, }, d: 2, }), e: new AutoReducerArrayLeaf([ { f: 1, }, 2, ]), }, });
