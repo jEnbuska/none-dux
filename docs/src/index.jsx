@@ -1,11 +1,6 @@
-import 'styles';
 import React from 'react';
-import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
-import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
-import { applyMiddleware, createStore, } from 'redux';
-import nonedux, { shape, } from '../../src';
-import validators from './validators';
+import { BrowserRouter } from 'react-router-dom';
 import App from './components/App';
 
 console.log('should log3');
@@ -15,17 +10,15 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { reducer, middlewares, subject, } = nonedux(initialState);
+//const { reducer, middlewares, subject, } = nonedux(initialState);
 
-const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
-const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+//const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
+//const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
 
-const Root = () => (
-  <Provider store={store}>
-    <Router history={browserHistory}>
-      <Route path='/' component={App} />
-    </Router>
-  </Provider>
-  );
 
-ReactDOM.render(<Root />, document.getElementById('app'));
+ReactDOM.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>,
+  document.getElementById('app'),
+);
