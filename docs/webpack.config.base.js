@@ -4,7 +4,7 @@ const autoprefixer = require('autoprefixer');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const distPath = path.join(__dirname, 'dist');
+const distPath = path.join(__dirname, '/');
 const context = path.join(__dirname, 'src');
 const getPostCssPlugins = () => [
   autoprefixer({ browsers: [
