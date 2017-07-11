@@ -6,7 +6,7 @@ const App = ({ children, }) => (
   <div>
     <Sidebar />
     <Div className='app-content-wrapper'>
-      {children}
+      React app
     </Div>
   </div>
   );
