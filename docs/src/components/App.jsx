@@ -1,11 +1,13 @@
 import React from 'react';
-import Div from './Div';
-import Sidebar from './Sidebar';
+import { Switch, Route, } from 'react-router-dom';
+import Home from './Home';
+import Example from './Example';
 
 const App = () => (
-  <h1>
-    No children React header
-  </h1>
+  <Switch>
+    <Route exact path='/' component={Home} />
+    <Route exact path='/example' component={Example} />
+  </Switch>
   );
 
 export default App;
