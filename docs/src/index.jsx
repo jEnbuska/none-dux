@@ -8,7 +8,7 @@ import nonedux, { shape, } from '../../src';
 import validators from './validators';
 import App from './components/App';
 
-console.log('should log2')
+console.log('should log2');
 const initialState= {
   users: { content: {}, status: {}, },
   todosByUser: { content: {}, status: {}, },
@@ -23,7 +23,7 @@ const store = createStoreWithMiddleware(reducer, window.devToolsExtension && win
 const Root = () => (
   <Provider store={store}>
     <Router history={browserHistory}>
-      <Route path='/' component={App}/>
+      <Route path='/' component={App} />
     </Router>
   </Provider>
   );
