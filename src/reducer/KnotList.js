@@ -46,6 +46,7 @@ export default class KnotList {
       acc.push(this[_key]);
       return this[_prev]._knotlist_path(acc);
     }
+    //refactor by removing reverse and replace unshift from createReducer to push
     return acc.reverse();
   }
 

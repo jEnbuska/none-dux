@@ -8,6 +8,7 @@ Application state can be changed directly from actions.
 No reducer boilerplate.
 
 No external dependencies
+
 peerDependencies: { redux, react-redux },
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.

@@ -56,4 +56,16 @@ describe('performance', () => {
     expect(state.m === subject.m.state).toBeTruthy();
   });
 
+  //TODO
+  test('get state', () => {
+
+  });
+
+  //TODO
+  test('object setState', () => {
+
+  });
+
+  //TODO
+  test('array setState')
 });

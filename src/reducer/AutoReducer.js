@@ -1,7 +1,8 @@
-import { stringify, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, } from '../common';
+import { SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, } from '../common';
 
 const { getPrototypeOf, } = Object;
 
+// TODO name properties and private functions using Symbol:s
 export default class AutoReducer {
 
   static __kill(target) {
@@ -21,10 +22,12 @@ export default class AutoReducer {
     Date: true,
     Error: true,
   };
+  // TODO hide properties behind Symbol
   __autoreducer_identity__;
   __autoreducer_dispatcher__;
 
-  constructor(state, id, depth, identity, dispatcher) {
+  // TODO remove id from constructor
+  constructor(state, depth, identity, dispatcher) {
     this.__autoreducer_identity__ = identity;
     if (depth>AutoReducer.maxDepth) { AutoReducer.__kill(this); }
     this.__autoreducer_depth__ = depth;
@@ -49,7 +52,7 @@ export default class AutoReducer {
     if (identity) {
       return this.__autoreducer_dispatcher__.dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: identity, });
     }
-    AutoReducer.onAccessingRemovedNode(this.getId(), 'prevState')
+    return AutoReducer.onAccessingRemovedNode(this.getId(), 'prevState');
   }
 
   getId() {
@@ -105,6 +108,7 @@ export default class AutoReducer {
     return this;
   }
 
+  // TODO rename onSetState (Symbol)
   __applySetState(newState, prevState) {
     if (newState instanceof Array || prevState instanceof Array) {
       this.__applyClearState(newState, prevState);
@@ -128,6 +132,7 @@ export default class AutoReducer {
     return { ...prevState, ...newState, };
   }
 
+  // TODO rename onClearState (Symbol)
   __applyClearState(newState, prevState) {
     const merge = { ...prevState, ...newState, };
     for (const k in merge) {
@@ -151,6 +156,7 @@ export default class AutoReducer {
     }
   }
 
+  // TODO rename onRemove (Symbol)
   __applyRemove(keys = [], state) {
     if (state instanceof Array) {
       return this._removeFromArrayState(keys, state);
@@ -158,6 +164,7 @@ export default class AutoReducer {
     return this._removeFromObjectState(keys, state);
   }
 
+  // TODO rename onRemoveFromArray (Symbol)
   _removeFromArrayState(indexes, state) {
     const toBeRemoved = indexes.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
     const nextState = [];
@@ -181,6 +188,7 @@ export default class AutoReducer {
     return nextState;
   }
 
+  // TODO rename onRemoveFromObject (Symbol)
   _removeFromObjectState(keys, state) {
     const nextState = { ...state, };
     for (const k of keys) {
@@ -204,12 +212,13 @@ export default class AutoReducer {
     this.__autoreducer_identity__._knotlist_remove(k);
   }
 
+  // TODO rename createChildReference (Symbol)
   _createAutoReducer(initialState, k) {
-    this[k] = new AutoReducer(initialState, k, this.__autoreducer_depth__ + 1, this.__autoreducer_identity__._knotlist_add(k), this.__autoreducer_dispatcher__);
+    this[k] = new AutoReducer(initialState, this.__autoreducer_depth__ + 1, this.__autoreducer_identity__._knotlist_add(k), this.__autoreducer_dispatcher__);
   }
 
   static onAccessingRemovedNode(id, property) {
-    console.error('Accessing '+property+' of remove node '+id);
+    console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
   }
 
   static couldBeParent(value) {

@@ -16,6 +16,7 @@ export function stringify(obj) {
 
 export function findChild(value, path) {
   let child = value;
+  // TODO path should be in reverse order, Do --i
   for (let i = 0; i<path.length; i++) {
     const key = path[i];
     child = child[key];

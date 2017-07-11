@@ -10,6 +10,7 @@ export default function createReducer(autoReducer) {
         const key = path[i];
         if (child = child[key]) {
           childState = childState[key];
+          // TODO refactor unshift to push and remove KnotList reverse
           pathList.unshift({ key, child, state: childState, });
         } else {
           invalidReferenceHandler[type](path, param);

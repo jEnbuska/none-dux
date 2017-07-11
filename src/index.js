@@ -7,7 +7,7 @@ import createReducer from './reducer/createReducer';
 import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddleware';
 
 export default function initAutoReducer(initialState = {}) {
-  const subject = new AutoReducer(initialState, 'root', 0, new KnotList(), { dispatch: () => { }, });
+  const subject = new AutoReducer(initialState, 0, new KnotList(), { dispatch: () => { }, });
   subject.__autoreducer_state__ = initialState;
   subject.__autoreducer_prevState__= {};
   const thunk = createThunk(subject);
