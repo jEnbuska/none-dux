@@ -8,7 +8,7 @@ import nonedux, { shape, } from '../../src';
 import validators from './validators';
 import App from './components/App';
 
-console.log('should log')
+console.log('should log2')
 const initialState= {
   users: { content: {}, status: {}, },
   todosByUser: { content: {}, status: {}, },
