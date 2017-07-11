@@ -8,7 +8,7 @@
   "scripts": {
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
     "build": "webpack --config webpack.config.production.js",
-    "deploy": "rm -rf css/ && rm bundle.* && rm index.* && rm vendor.* && npm run build && git add . && git commit -m 'update docs' && git push",
+    "deploy": "rm -rf css/ && rm bundle.* index.* vendor.* && npm run build && git add . && git commit -m 'update docs' && git push",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch",
     "start": "webpack-dev-server --config webpack.config.development.js --colors --progress --inline"
