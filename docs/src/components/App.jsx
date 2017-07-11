@@ -2,9 +2,9 @@ import React from 'react';
 import Div from './Div';
 import Sidebar from './Sidebar';
 
-const App = ({ children, }) => (
+const App = () => (
   <h1>
-    React header
+    No children React header
   </h1>
   );
 
