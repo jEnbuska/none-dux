@@ -120,7 +120,7 @@ console.log(target.state.value); //'text'
 {
   const { data } = nonedux.data.setState({obj: {str: 'ok'}})
    
-  console.log(data.obj) //AutoReducer: ...
+  console.log(data.obj) //StateMapper: ...
    
   console.log(data.obj.state) // {str: 'ok'}
 }
