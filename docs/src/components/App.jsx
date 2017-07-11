@@ -3,12 +3,9 @@ import Div from './Div';
 import Sidebar from './Sidebar';
 
 const App = ({ children, }) => (
-  <div>
-    <Sidebar />
-    <Div className='app-content-wrapper'>
-      React app
-    </Div>
-  </div>
+  <h1>
+    React header
+  </h1>
   );
 
 export default App;

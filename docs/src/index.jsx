@@ -22,9 +22,7 @@ const store = createStoreWithMiddleware(reducer, window.devToolsExtension && win
 
 const Root = () => (
   <Provider store={store}>
-    <Router history={browserHistory}>
-      <Route path='/' component={App}/>
-    </Router>
+    <App/>
   </Provider>
   );
 
