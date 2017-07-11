@@ -1,11 +1,11 @@
 import { createStoreWithNonedux, } from './utils';
-import AutoReducer from '../src/reducer/AutoReducer';
+import StateMapper from '../src/reducer/StateMapper';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays as state', () => {
   let invalidAccessCalls = [];
   beforeAll(() => {
-    Object.defineProperty(AutoReducer, 'onAccessingRemovedNode', {
+    Object.defineProperty(StateMapper, 'onAccessingRemovedNode', {
       configurable: true,
       writable: true,
       value: (id, propertyName) => {

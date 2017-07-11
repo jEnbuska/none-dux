@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import AutoReducer from '../src/reducer/AutoReducer';
+import StateMapper from '../src/reducer/StateMapper';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 function verifyErrorOnChange(...params) {
@@ -30,7 +30,7 @@ describe('killSwitch', () => {
       let killSwitchIsTriggered = false;
 
       subject = createStoreWithNonedux({});
-      AutoReducer.__kill = () => { killSwitchIsTriggered = true; };
+      StateMapper.__kill = () => { killSwitchIsTriggered = true; };
       let ref = subject;
       for (let i = 0; i<45; i++) {
         ref.setState({ a: {}, });

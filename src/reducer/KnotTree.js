@@ -5,8 +5,7 @@ const _removed = Symbol('_knotlist_removed');
 const _prev = Symbol('_knotlist_prev');
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 
-// TODO rename to KnotTree
-export default class KnotList {
+export default class KnotTree {
   constructor(key, prev) {
     this[_prev]= prev;
     this[_key] = key;
@@ -15,7 +14,7 @@ export default class KnotList {
 
   [createChild](key) {
     key +='';
-    this[key] = new KnotList(key, this);
+    this[key] = new KnotTree(key, this);
     return this[key];
   }
 

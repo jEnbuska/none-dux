@@ -8,17 +8,17 @@ const createChildReferences = Symbol('createChildReferences');
 
 const { getPrototypeOf, } = Object;
 
-export default class AutoReducer {
+export default class StateMapper {
 
   static __kill(target) {
     console.trace();
-    throw new Error('AutoReducer maximum depth '+AutoReducer.maxDepth+' exceeded by "'+target[resolveIdentity].join(', ')+'"');
+    throw new Error('StateMapper maximum depth '+StateMapper.maxDepth+' exceeded by "'+target[resolveIdentity].join(', ')+'"');
   }
 
   static maxDepth = 45;
-  static invalidAutoReducers = {
-    AutoReducerArrayLeaf: true,
-    AutoReducerObjectLeaf: true,
+  static invalidStateMappers = {
+    StateMapperArrayLeaf: true,
+    StateMapperObjectLeaf: true,
     Number: true,
     String: true,
     RegExp: true,
@@ -30,11 +30,11 @@ export default class AutoReducer {
 
   constructor(state, ownDepth, ownRole, ownDispatcher) {
     this[role] = ownRole;
-    if (ownDepth>AutoReducer.maxDepth) { AutoReducer.__kill(this); }
+    if (ownDepth>StateMapper.maxDepth) { StateMapper.__kill(this); }
     this[depth] = ownDepth;
     this[dispatcher] = ownDispatcher;
     for (const k in state) {
-      if (AutoReducer.couldBeParent(state[k])) {
+      if (StateMapper.couldBeParent(state[k])) {
         this[createChildReferences](state[k], k,);
       }
     }
@@ -45,7 +45,7 @@ export default class AutoReducer {
     if (identity) {
       return this[dispatcher].dispatch({ type: GET_STATE, [SUB_REDUCER]: identity, });
     }
-    return AutoReducer.onAccessingRemovedNode(this.getId(), 'state');
+    return StateMapper.onAccessingRemovedNode(this.getId(), 'state');
   }
 
   get prevState() {
@@ -53,7 +53,7 @@ export default class AutoReducer {
     if (identity) {
       return this[dispatcher].dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: identity, });
     }
-    return AutoReducer.onAccessingRemovedNode(this.getId(), 'prevState');
+    return StateMapper.onAccessingRemovedNode(this.getId(), 'prevState');
   }
 
   getId() {
@@ -68,10 +68,10 @@ export default class AutoReducer {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (value instanceof AutoReducer) {
-      throw new Error('AutoReducer does not take other AutoReducers as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
-    } else if (!AutoReducer.couldBeParent(value)) {
-      throw new Error('AutoReducer does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+    } else if (value instanceof StateMapper) {
+      throw new Error('StateMapper does not take other StateMappers as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+    } else if (!StateMapper.couldBeParent(value)) {
+      throw new Error('StateMapper does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     this[dispatcher].dispatch({ type: SET_STATE, [SUB_REDUCER]: identity, [PARAM]: value, });
     return this;
@@ -81,8 +81,8 @@ export default class AutoReducer {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (value instanceof AutoReducer) {
-      throw new Error('AutoReducer does not take other AutoReducers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+    } else if (value instanceof StateMapper) {
+      throw new Error('StateMapper does not take other StateMappers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     this[dispatcher].dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: identity, [PARAM]: value, });
     return this;
@@ -120,13 +120,13 @@ export default class AutoReducer {
       const subState = newState[k];
       if (child) {
         if (subState !== prevState[k]) {
-          if (AutoReducer.couldBeParent(subState)) {
+          if (StateMapper.couldBeParent(subState)) {
             child[onClearState](subState, prevState[k]);
           } else {
             this[onRemoveChild](k);
           }
         }
-      } else if (AutoReducer.couldBeParent(subState)) {
+      } else if (StateMapper.couldBeParent(subState)) {
         this[createChildReferences](subState, k);
       }
     }
@@ -142,7 +142,7 @@ export default class AutoReducer {
       if (child) {
         if (newState.hasOwnProperty(k)) {
           if (next !== prevState[k]) {
-            if (AutoReducer.couldBeParent(next)) {
+            if (StateMapper.couldBeParent(next)) {
               child[onClearState](next, prevState[k]);
             } else {
               this[onRemoveChild](k);
@@ -151,7 +151,7 @@ export default class AutoReducer {
         } else {
           this[onRemoveChild](k);
         }
-      } else if (AutoReducer.couldBeParent(next)) {
+      } else if (StateMapper.couldBeParent(next)) {
         this[createChildReferences](next, k);
       }
     }
@@ -206,7 +206,7 @@ export default class AutoReducer {
   }
 
   getChildren() {
-    return Object.values(this).filter(v => v && v instanceof AutoReducer);
+    return Object.values(this).filter(v => v && v instanceof StateMapper);
   }
   [onRemoveChild](k) {
     delete this[k];
@@ -215,7 +215,7 @@ export default class AutoReducer {
 
   // TODO rename createChildReference (Symbol)
   [createChildReferences](initialState, k) {
-    this[k] = new AutoReducer(initialState, this[depth] + 1, this[role][createChild](k), this[dispatcher]);
+    this[k] = new StateMapper(initialState, this[depth] + 1, this[role][createChild](k), this[dispatcher]);
   }
 
   static onAccessingRemovedNode(id, property) {
@@ -223,7 +223,7 @@ export default class AutoReducer {
   }
 
   static couldBeParent(value) {
-    return value && value instanceof Object && !AutoReducer.invalidAutoReducers[getPrototypeOf(value).constructor.name];
+    return value && value instanceof Object && !StateMapper.invalidStateMappers[getPrototypeOf(value).constructor.name];
   }
 }
 

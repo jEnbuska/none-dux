@@ -1,5 +1,5 @@
 import { Validator, spec, any, number, strict, isRequired, string, bool, } from '../src/shape/common';
-import createValidator from '../src/shape/buildValidator';
+import createValidator from '../src/shape/createValidator';
 
 function reParse(val) {
   return JSON.parse(JSON.stringify(val));

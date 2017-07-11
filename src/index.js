@@ -1,15 +1,17 @@
-import createLeaf from './reducer/AutoReducerLeaf';
+import createLeaf from './reducer/StateMapperLeaf';
 import shape from './shape';
-
-import AutoReducer from './reducer/AutoReducer';
-import KnotList from './reducer/KnotList';
+import { reducerPrivates, } from './common';
+import StateMapper from './reducer/StateMapper';
+import KnotTree from './reducer/KnotTree';
 import createReducer from './reducer/createReducer';
 import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddleware';
 
-export default function initAutoReducer(initialState = {}) {
-  const subject = new AutoReducer(initialState, 0, new KnotList(), { dispatch: () => { }, });
-  subject.__autoreducer_state__ = initialState;
-  subject.__autoreducer_prevState__= {};
+const { propState, propPrevState, } = reducerPrivates;
+
+export default function initStateMapper(initialState = {}) {
+  const subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, });
+  subject[propState] = initialState;
+  subject[propPrevState]= {};
   const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
   const reducer = createReducer(subject);

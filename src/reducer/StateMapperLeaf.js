@@ -1,21 +1,21 @@
 const { assign, freeze, seal, values, } = Object;
 
-// If you have an object that you be an AutoReducer
+// If you have an object that you be an StateMapper
 /*
 * const judgeStaticData = {....}
 * */
-// target.setState({resources: new AutoReducerLeaf(judgeStaticData)})
+// target.setState({resources: new StateMapperLeaf(judgeStaticData)})
 export default function createLeaf(obj) {
   if (obj instanceof Object) {
     if (obj instanceof Array) {
-      return new AutoReducerArrayLeaf(obj);
+      return new StateMapperArrayLeaf(obj);
     }
-    return new AutoReducerObjectLeaf(obj);
+    return new StateMapperObjectLeaf(obj);
   }
   throw new Error('createLeaf expected to receive on object as parameter but received '+obj);
 }
 
-export class AutoReducerObjectLeaf {
+export class StateMapperObjectLeaf {
 
   constructor(obj) {
     assign(this, obj);
@@ -25,10 +25,10 @@ export class AutoReducerObjectLeaf {
 }
 
 function onThrow(func) {
-  throw new Error('AutoReducerArrayLeaf does not implement "'+ func+'"');
+  throw new Error('StateMapperArrayLeaf does not implement "'+ func+'"');
 }
 
-export class AutoReducerArrayLeaf {
+export class StateMapperArrayLeaf {
   constructor(arr = []) {
     assign(this, arr);
     freeze(this);

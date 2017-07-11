@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import createLeaf, { AutoReducerObjectLeaf, AutoReducerArrayLeaf, } from '../src/reducer/AutoReducerLeaf';
+import createLeaf, { StateMapperObjectLeaf, StateMapperArrayLeaf, } from '../src/reducer/StateMapperLeaf';
 
 describe('Leafs', () => {
   test('create autoreducer array leaf', () => {
@@ -31,17 +31,17 @@ describe('Leafs', () => {
     expect(rest).toEqual([ 2, 3, 4, [ { a: 1, }, ], ]);
   });
 
-  test('creating subject with AutoReducerObjectLeaf & AutoReducerArrayLeafs', () => {
+  test('creating subject with StateMapperObjectLeaf & StateMapperArrayLeafs', () => {
     const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: { x: 1, }, d: 2, }), e: createLeaf([ { f: 1, }, 2, ]), }, });
-    expect(subject.state).toEqual({ a: { b: new AutoReducerObjectLeaf({ c: { x: 1, }, d: 2, }), e: new AutoReducerArrayLeaf([ { f: 1, }, 2, ]), }, });
-    expect(subject.a.state).toEqual({ b: new AutoReducerObjectLeaf({ c: { x: 1, }, d: 2, }), e: new AutoReducerArrayLeaf([ { f: 1, }, 2, ]), });
+    expect(subject.state).toEqual({ a: { b: new StateMapperObjectLeaf({ c: { x: 1, }, d: 2, }), e: new StateMapperArrayLeaf([ { f: 1, }, 2, ]), }, });
+    expect(subject.a.state).toEqual({ b: new StateMapperObjectLeaf({ c: { x: 1, }, d: 2, }), e: new StateMapperArrayLeaf([ { f: 1, }, 2, ]), });
     expect(subject.a.b).toBeUndefined();
     expect(subject.a.e).toBeUndefined();
     expect(subject.a.state.b).toEqual({ c: { x: 1, }, d: 2, });
-    expect(subject.a.state.e).toEqual(new AutoReducerArrayLeaf([ { f: 1, }, 2, ]));
+    expect(subject.a.state.e).toEqual(new StateMapperArrayLeaf([ { f: 1, }, 2, ]));
   });
 
-  test('setState with AutoReducerObjectLeaf', () => {
+  test('setState with StateMapperObjectLeaf', () => {
     const subject = createStoreWithNonedux({ a: { b: {}, }, });
     expect(subject.state).toEqual({ a: { b: { }, }, });
     expect(subject.a.b.state).toEqual({});
@@ -54,7 +54,7 @@ describe('Leafs', () => {
     expect(subject.a.state).toEqual({ b: { c: 1, d: 2, }, e: { f: 3, g: 4, }, });
   });
 
-  test('clearState with AutoReducerObjectLeaf', () => {
+  test('clearState with StateMapperObjectLeaf', () => {
     const subject = createStoreWithNonedux({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.state).toEqual({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.a.b.state).toEqual({});
@@ -63,7 +63,7 @@ describe('Leafs', () => {
     expect(subject.a.state).toEqual({ b: { c: 1, d: 2, }, });
   });
 
-  test('remove AutoReducerObjectLeaf', () => {
+  test('remove StateMapperObjectLeaf', () => {
     const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: 1, d: 2, }), }, });
     subject.a.remove('b');
     expect(subject.a.state).toEqual({});

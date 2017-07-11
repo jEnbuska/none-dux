@@ -2,7 +2,7 @@ import { Validator, object, array, spec, any, } from './common';
 
 const { entries, assign, } = Object;
 
-export default function buildValidator(shape, identity = []) {
+export default function createValidator(shape, identity = []) {
   let validator;
   if (shape instanceof Array) {
     const [ first, second, third, ] = shape;
@@ -39,7 +39,7 @@ export default function buildValidator(shape, identity = []) {
   return entries(shape)
     .filter(([ k, v, ]) => !(k === spec || (v instanceof Validator && v[spec].name)))
     .reduce((acc, [ k, v, ]) => {
-      acc[k] = buildValidator(v, [ ...identity, k, ]);
+      acc[k] = createValidator(v, [ ...identity, k, ]);
       return acc;
     }, shape);
 }

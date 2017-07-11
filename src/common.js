@@ -15,21 +15,30 @@ export function stringify(obj) {
 }
 
 export function findChild(value, path) {
-  let child = value;
-  // TODO path should be in reverse order, Do --i
-  for (let i = 0; i<path.length; i++) {
+  for (let i = path.length-1; i>=0; i--) {
     const key = path[i];
-    child = child[key];
-    if (!child) {
-      if (i===path.length-1) {
-        break;
-      } else {
-        return undefined;
-      }
-    }
+    value= value[key];
   }
-  return child;
+  return value;
 }
+export const reducerPrivates = {
+  role: Symbol('role'),
+  depth: Symbol('depth'),
+  propState: Symbol('state'),
+  propPrevState: Symbol('prevState'),
+  onSetState: Symbol('onSetState'),
+  onClearState: Symbol('onClearState'),
+  onRemove: Symbol('onRemove'),
+  dispatcher: Symbol('dispatcher'),
+  onRemoveChild: Symbol('onRemoveChild'),
+};
+
+export const knotTree = {
+  resolveIdentity: Symbol('resolveIdentity'),
+  createChild: Symbol('createChild'),
+  renameSelf: Symbol('renameChild'),
+  removeChild: Symbol('removeChild'),
+};
 
 export const invalidReferenceHandler = {
   [SET_STATE]: (target, param) => {

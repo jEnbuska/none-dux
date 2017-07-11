@@ -4,7 +4,7 @@ import { knotTree, } from '../src/common';
 const { resolveIdentity, createChild, removeChild, } = knotTree;
 
 describe('knotlist', () => {
-  test('make AutoReducers clueless about their identity', () => {
+  test('make StateMappers clueless about their identity', () => {
     const tree = new KnotTree();
     expect(tree[resolveIdentity]()).toEqual([]);
     const a = tree[createChild]('a');
