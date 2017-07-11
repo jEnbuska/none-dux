@@ -1,3 +1,4 @@
+console.log('should log')
 import 'styles';
 import React from 'react';
 import { Provider, } from 'react-redux';
