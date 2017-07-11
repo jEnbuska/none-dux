@@ -1,7 +1,11 @@
+import { knotTree, } from '../common';
+
 const _key = Symbol('_knotlist_key');
 const _removed = Symbol('_knotlist_removed');
 const _prev = Symbol('_knotlist_prev');
+const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 
+// TODO rename to KnotTree
 export default class KnotList {
   constructor(key, prev) {
     this[_prev]= prev;
@@ -9,45 +13,41 @@ export default class KnotList {
     this[_removed] = false;
   }
 
-  _knotlist_add(key) {
-    key = key+'';
-    if (this[key]) {
-      throw new Error(key+' know already exists ');
-    }
+  [createChild](key) {
+    key +='';
     this[key] = new KnotList(key, this);
     return this[key];
   }
 
-  _knotlist_replace_key(key){
-    key = key+'';
-    if(this[_prev]){
-      delete this[_prev][this[_key]]
+  [renameSelf](key) {
+    key +='';
+    if (this[_prev]) {
+      delete this[_prev][this[_key]];
       this[_prev][key] = this;
     }
     this[_key] = key;
   }
 
-  _knotlist_remove(key) {
-    key = key+'';
+  [removeChild](key) {
+    key +='';
     if (this[key]) {
       this[key][_removed]= true;
       delete this[key][_prev];
       delete this[key];
-    }else{
-      throw new Error('removing invalid key'+key)
+    } else {
+      throw new Error('removing invalid key'+key);
     }
   }
 
-  _knotlist_path(acc = []) {
+  [resolveIdentity](acc = []) {
     if (this[_removed]) {
       return false;
     }
     if (this[_key]) {
       acc.push(this[_key]);
-      return this[_prev]._knotlist_path(acc);
+      return this[_prev][resolveIdentity](acc);
     }
-    //refactor by removing reverse and replace unshift from createReducer to push
-    return acc.reverse();
+    return acc;
   }
 
   getId() {

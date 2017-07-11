@@ -11,18 +11,11 @@ module.exports = {
   devtool: 'source-map',
   entry: {// use babel-polyfill to enable new javascript features on old IE:s
     index: [ 'index.js', ],
-    connect: [ 'connect.jsx', ],
-    DevAutoReducer: [ 'DevAutoReducer.js', ],
-    Provider: [ 'Provider.jsx', ],
-    shape: [ 'shape.js', ],
-    AutoReducer: [ 'AutoReducer.js', ],
-    AutoReducerLeaf: [ 'AutoReducerLeaf.js', ],
   },
   output: {
     path: libPath,
     filename: '[name].js',
   },
-  externals: { react: 'react', 'prop-types': 'prop-types', },
   resolve: {
     extensions: [ '.js', '.jsx', ],
     modules: [
@@ -41,7 +34,7 @@ module.exports = {
   plugins: [
     new webpack.NamedModulesPlugin(),
     new webpack.optimize.CommonsChunkPlugin({
-      names: [ 'index', 'connect', 'DevAutoReducer', 'Provider', 'shape', 'AutoReducer', 'AutoReducerLeaf', ],
+      names: [ 'index', ],
     }),
     new CleanWebpackPlugin([ libPath, ]),
     new webpack.EnvironmentPlugin({ NODE_ENV: 'development', }),
