@@ -1,0 +1,27 @@
+$neutralGrey: #a1a1a1;
+$lightBlue: #69c4ff;
+$mediumLightBlue: #0095ff;
+$backgroundPrimary: linear-gradient(175deg, $lightBlue, $mediumLightBlue);
+$backgroundWarning: linear-gradient(175deg, red, #aa0307);
+$defaultTransitionTime: .15s;
+$contentBackground: #f7f7f7;
+
+$itemDefaultTextColor: #000000;
+
+$facebookGray: #f7f7f7;
+$facebookLightBlue: #dfe3ee;
+$facebookBlue: #8b9dc3;
+$facebookDarkBlue: #3b5998;
+
+$itemBorder: solid .1em $facebookBlue;
+$itemContentBorder: solid .1em $facebookLightBlue;
+$itemHoverBackground: $facebookBlue;
+$selectedItemBorder: solid .1em $facebookLightBlue;
+$selectedItemBackground: $facebookDarkBlue;
+$selectedItemTextColor: $facebookGray;
+$brownishYellow: #fefee2;
+
+$linkClickTransitionTime: .2s;
+
+$greenNote: #eafff0;
+$yellowNote: #fdffe6;
