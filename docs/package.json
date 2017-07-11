@@ -1,5 +1,5 @@
 {
-  "name": "react_course",
+  "name": "nonedux-docs",
   "version": "0.0.1",
   "repository": {
     "type": "git",
@@ -8,6 +8,7 @@
   "scripts": {
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",
     "build": "webpack --config webpack.config.production.js",
+    "deploy": "npm run build && git add . && git commit -m 'update docs' && git push",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch",
     "start": "webpack-dev-server --config webpack.config.development.js --colors --progress --inline"
