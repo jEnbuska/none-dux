@@ -15,7 +15,7 @@ Action objects are auto generated and dispatched  when (***setState / clearState
 
 Creates a flexible top level reducer that takes care of immutability.
 
-State can be safely extended without any preset shape
+State can be safely extended without any predefined shape
 ```
 
 function grow() {
@@ -49,7 +49,7 @@ import { createStore, applyMiddleware, } from 'redux';
 import nonedux from 'none-dux';
 
 
-const initialState = { //Sames as the initial state of reducers
+const initialState = { //Sames as the initial state of store
   request: {},
   todosByUser: {},  
   users: {},
@@ -72,7 +72,7 @@ const root = (
 ## Action examples
 
 ```
-// first argument is nonedux root reducer, second one is redux store
+// first argument is nonedux state reference, second one is redux store
 export function removeUser(userId) {
    return function ({users, todosByUser}, {dispatch}) { 
     const user = users[userId];
