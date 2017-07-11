@@ -6,11 +6,7 @@ import s from '../styles/home.style';
 
 export default function Home() {
   const repoReadmeLink = text => (
-    <Interactive
-      as="a"
-      {...s.link}
-      href="https://github.com/rafrex/spa-github-pages#readme"
-    >{text}</Interactive>
+    <div>No thing to reed</div>
   );
 
   return (
