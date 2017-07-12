@@ -3,7 +3,7 @@ export const CLEAR_STATE = 'NONEDUX::CLEAR_STATE';
 export const REMOVE = 'NONEDUX::REMOVE';
 export const GET_STATE = 'NONEDUX::GET_STATE';
 export const GET_PREV_STATE = 'NONEDUX::GET_PREV_STATE';
-export const SUB_REDUCER = 'NONEDUX::SUB_REDUCER';
+export const TARGET = 'NONEDUX::TARGET';
 export const PARAM = 'NONEDUX::PARAM';
 export const APPLY_MANY = 'NONEDUX::APPLY_MANY';
 export const PUBLISH_CHANGES = 'NONEDUX::PUBLISH_CHANGES';
@@ -24,7 +24,7 @@ export function findChild(value, path) {
   }
   return value;
 }
-export const reducerPrivates = {
+export const stateMapperPrivates = {
   role: Symbol('role'),
   depth: Symbol('depth'),
   propState: Symbol('state'),

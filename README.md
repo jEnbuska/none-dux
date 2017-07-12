@@ -309,9 +309,47 @@ function doChangeAndThrowError(){
      })
   }
 }
+```
 
-
-
+## Accessing previous state
+####Child state is global and prevState state is local
+```
+function stateAndPrevStateExample(){
+  function(nonedux){
+     nonedux.setState({a: {b: {c: {} } } } )
+     const {b} = nonedux.a;
+     const {c} = b;
+     
+     //by calling state (getter)
+     const orgState = c.state
+     //an action will be dispatched and returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
+     
+     //prevState on the other hand is instance spesific
+     const orgPrevState = c.prevState;
+     
+     //If other branch of the object is mutated
+     b.setState({d: {}})
+     
+     //... then states will not change due to path copying
+     expect(orgPrevState).toBe(c.prevState);
+     expect(orgState).toBe(c.state);
+     
+     // if state is changed
+     c.setState({e: {}})
+     
+     // old state will move to prevState
+     expect(c.prevState).toBe(orgState);
+     
+     //Accessing prevState after instance has been removed, is possible, but state is undefined
+     const lastState = c.state;
+     c.removeSelf();
+     c.state; // causes console error;
+     expect(c.prevState).toBe(lastState)
+     
+     c.setState({}) // throws Error
+     
+  }
+}
 ```
 
 ## Type checking

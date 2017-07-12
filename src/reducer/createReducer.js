@@ -1,10 +1,10 @@
-import { reducerPrivates, PARAM, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
+import { stateMapperPrivates, PARAM, TARGET, SET_STATE, CLEAR_STATE, REMOVE, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
 
-const { onRemove, onSetState, onClearState, propState, propPrevState, } = reducerPrivates;
+const { onRemove, onSetState, onClearState, propState, propPrevState, } = stateMapperPrivates;
 
 export default function createReducer(root) {
   const initialState = root[propState];
-  return function (state = initialState, { type, [SUB_REDUCER]: path, [PARAM]: param, [APPLY_MANY]: applyMany, }) {
+  return function (state = initialState, { type, [TARGET]: path, [PARAM]: param, [APPLY_MANY]: applyMany, }) {
     if (path) {
       const { child, childState, childList, } = createChildList(root, path);
       const tail = childList[childList.length-1];

@@ -1,6 +1,6 @@
-import { reducerPrivates, knotTree, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, PARAM, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
+import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
 
-const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, } = reducerPrivates;
+const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, propPrevState, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
@@ -39,11 +39,12 @@ export default class StateMapper {
         this[createChildReferences](state[k], k,);
       }
     }
+    this[propPrevState] = state;
   }
 
   transaction(callBack) {
     const publishAfterCall = !this[dispatcher].applyingMany;
-    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [SUB_REDUCER]: [], });
+    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: [], });
     try {
       this[dispatcher].applyingMany = true;
       callBack(this);
@@ -63,17 +64,14 @@ export default class StateMapper {
   get state() {
     const identity = this.getIdentity();
     if (identity) {
-      return this[dispatcher].dispatch({ type: GET_STATE, [SUB_REDUCER]: identity, });
+      return this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: identity, });
     }
     return StateMapper.onAccessingRemovedNode(this.getId(), 'state');
   }
 
+  // prevState is StateMapper specific prevState not application state prevState. It is available even after StateMapper instance has been removed
   get prevState() {
-    const identity = this.getIdentity();
-    if (identity) {
-      return this[dispatcher].dispatch({ type: GET_PREV_STATE, [SUB_REDUCER]: identity, });
-    }
-    return StateMapper.onAccessingRemovedNode(this.getId(), 'prevState');
+    return this[propPrevState];
   }
 
   getId() {
@@ -93,7 +91,7 @@ export default class StateMapper {
     } else if (!StateMapper.couldBeParent(value)) {
       throw new Error('StateMapper does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    this[dispatcher].dispatch({ type: SET_STATE, [SUB_REDUCER]: identity, [PARAM]: value, [APPLY_MANY]: this[dispatcher].applyingMany, });
+    this[dispatcher].dispatch({ type: SET_STATE, [TARGET]: identity, [PARAM]: value, [APPLY_MANY]: this[dispatcher].applyingMany, });
     return this;
   }
 
@@ -104,7 +102,7 @@ export default class StateMapper {
     } else if (value instanceof StateMapper) {
       throw new Error('StateMapper does not take other StateMappers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    this[dispatcher].dispatch({ type: CLEAR_STATE, [SUB_REDUCER]: identity, [PARAM]: value, [APPLY_MANY]: this[dispatcher].applyingMany, });
+    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [APPLY_MANY]: this[dispatcher].applyingMany, });
     return this;
   }
 
@@ -115,7 +113,7 @@ export default class StateMapper {
     } else if (keys[0] instanceof Array) {
       keys = keys[0];
     }
-    this[dispatcher].dispatch({ type: REMOVE, [SUB_REDUCER]: identity, [PARAM]: keys, [APPLY_MANY]: this[dispatcher].applyingMany, });
+    this[dispatcher].dispatch({ type: REMOVE, [TARGET]: identity, [PARAM]: keys, [APPLY_MANY]: this[dispatcher].applyingMany, });
     return this;
   }
 
@@ -125,12 +123,12 @@ export default class StateMapper {
       throw new Error('Cannot call removeSelf to removed Node. Id:'+this.getId());
     }
     const [ _, ...parentIdentity ]= identity;
-    this[dispatcher].dispatch({ type: REMOVE, [SUB_REDUCER]: parentIdentity, [PARAM]: [ this.getId(), ], [APPLY_MANY]: this[dispatcher].applyingMany, });
+    this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [APPLY_MANY]: this[dispatcher].applyingMany, });
     return this;
   }
 
-  // TODO rename onSetState (Symbol)
   [onSetState](newState, prevState) {
+    this[propPrevState] = prevState;
     if (newState instanceof Array || prevState instanceof Array) {
       this[onClearState](newState, prevState);
       return newState;
@@ -153,8 +151,8 @@ export default class StateMapper {
     return { ...prevState, ...newState, };
   }
 
-  // TODO rename onClearState (Symbol)
   [onClearState](newState, prevState) {
+    this[propPrevState] = prevState;
     const merge = { ...prevState, ...newState, };
     for (const k in merge) {
       const child = this[k];
@@ -177,7 +175,6 @@ export default class StateMapper {
     }
   }
 
-  // TODO rename onRemove (Symbol)
   [onRemove](keys = [], state) {
     if (state instanceof Array) {
       return this[onRemoveFromArray](keys, state);
@@ -185,7 +182,6 @@ export default class StateMapper {
     return this[onRemoveFromObject](keys, state);
   }
 
-  // TODO rename onRemoveFromArray (Symbol)
   [onRemoveFromArray](indexes, state) {
     const toBeRemoved = indexes.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
     const nextState = [];
@@ -209,14 +205,13 @@ export default class StateMapper {
     return nextState;
   }
 
-  // TODO rename onRemoveFromObject (Symbol)
   [onRemoveFromObject](keys, state) {
     const nextState = { ...state, };
     for (const k of keys) {
-      delete nextState[k];
       if (this[k]) {
         this[onRemoveChild](k);
       }
+      delete nextState[k];
     }
     return nextState;
   }
@@ -230,8 +225,8 @@ export default class StateMapper {
   }
 
   [onRemoveChild](k) {
-    delete this[k];
     this[role][removeChild](k);
+    delete this[k];
   }
 
   // TODO rename createChildReference (Symbol)

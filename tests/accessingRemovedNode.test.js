@@ -16,25 +16,26 @@ describe('arrays as state', () => {
   beforeEach(() => { invalidAccessCalls = []; });
 
   test('accessing remove object children', () => {
-    const { subject } = createStoreWithNonedux({ a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, });
+    const { subject, } = createStoreWithNonedux({ a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, });
     const { a, } = subject;
     expect(a.state).toBeDefined();
     subject.remove('a');
     expect(invalidAccessCalls.length).toBe(0);
     expect(a.state).toBeUndefined();
+    expect(a.prevState).toEqual([ 1, 2, 3, ]);
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
-    expect(a.prevState).toBeUndefined();
-    expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, { id: 'a', name: 'prevState', }, ]);
+
+    expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
 
     const { d, } = subject.b;
     subject.b.remove('d');
     expect(d.state).toBeUndefined();
-    expect(d.prevState).toBeUndefined();
-    expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, { id: 'a', name: 'prevState', }, { id: 'd', name: 'state', }, { id: 'd', name: 'prevState', }, ]);
+    expect(d.prevState).toEqual({});
+    expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, { id: 'd', name: 'state', }, ]);
   });
 
   test('accessing removed array children', () => {
-    const {subject} = createStoreWithNonedux([ {}, {}, {}, {}, ]);
+    const { subject, } = createStoreWithNonedux([ {}, {}, {}, {}, ]);
     const first = subject[0];
     const second = subject[1];
     const third = subject[2];
@@ -45,15 +46,15 @@ describe('arrays as state', () => {
     expect(first.prevState).toBeDefined();
     expect(invalidAccessCalls.length).toEqual(0);
     expect(second.state).toBeUndefined();
-    expect(second.prevState).toBeUndefined();
-    expect(invalidAccessCalls).toEqual([ { id: '1', name: 'state', }, { id: '1', name: 'prevState', }, ]);
+    expect(second.prevState).toEqual({});
+    expect(invalidAccessCalls).toEqual([ { id: '1', name: 'state', }, ]);
     expect(third.state).toBeDefined();
     expect(fourth.state).toBeDefined();
-    expect(invalidAccessCalls).toEqual([ { id: '1', name: 'state', }, { id: '1', name: 'prevState', }, ]);
+    expect(invalidAccessCalls).toEqual([ { id: '1', name: 'state', }, ]);
   });
 
   test('accessing children of removed value', () => {
-    const { subject } = createStoreWithNonedux({ a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], });
+    const { subject, } = createStoreWithNonedux({ a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], });
 
     const { a: { c, }, } = subject;
     const { d, } =c;
@@ -65,12 +66,12 @@ describe('arrays as state', () => {
 
     firstGroup.forEach(({ state, prevState, }) => {
       expect(state).toBeUndefined();
-      expect(prevState).toBeUndefined();
+      expect(prevState).toBeDefined();
     });
 
     expect(invalidAccessCalls).toEqual(firstGroup
       .reduce((acc, it) => acc
-        .concat([ { id: it.getId(), name: 'state', }, { id: it.getId(), name: 'prevState', }, ]), []));
+        .concat([ { id: it.getId(), name: 'state', }, ]), []));
 
     invalidAccessCalls = [];
     const { x, } = subject;

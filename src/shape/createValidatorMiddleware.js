@@ -1,9 +1,9 @@
 import { any, spec, } from './common';
-import { SUB_REDUCER, SET_STATE, REMOVE, CLEAR_STATE, reducerPrivates, } from '../common';
+import { TARGET, SET_STATE, REMOVE, CLEAR_STATE, stateMapperPrivates, } from '../common';
 import createValidator from './createValidator';
 import validateState from './validateState';
 
-const { propState, propPrevState, } = reducerPrivates;
+const { propState, propPrevState, } = stateMapperPrivates;
 
 const emptyShape = {
   [spec]: {
@@ -19,7 +19,7 @@ export default function createValidatorMiddleware(subject, shape = emptyShape) {
   validateState(subject[propState], subject[propPrevState], subject.getIdentity(), shape);
   return () => (next) => (action) => {
     const result = next(action);
-    const { type, [SUB_REDUCER]: path, } = action;
+    const { type, [TARGET]: path, } = action;
     if (path && triggerTypes.some(t => t === type)) {
       validateState(subject[propState], subject[propPrevState], [], shape);
     }

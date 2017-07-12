@@ -1,12 +1,12 @@
 import createLeaf from './reducer/StateMapperLeaf';
 import shape from './shape';
-import { reducerPrivates, } from './common';
+import { stateMapperPrivates, } from './common';
 import StateMapper from './reducer/StateMapper';
 import KnotTree from './reducer/KnotTree';
 import createReducer from './reducer/createReducer';
 import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddleware';
 
-const { propState, propPrevState, } = reducerPrivates;
+const { propState, propPrevState, } = stateMapperPrivates;
 
 export default function initStateMapper(initialState = {}) {
   const subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, applyingMany: false, });

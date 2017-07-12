@@ -1,6 +1,6 @@
-import { SUB_REDUCER, GET_STATE, GET_PREV_STATE, findChild, reducerPrivates, } from '../common';
+import { TARGET, GET_STATE, GET_PREV_STATE, findChild, stateMapperPrivates, } from '../common';
 
-const { dispatcher, propState, propPrevState, } = reducerPrivates;
+const { dispatcher, propState, propPrevState, } = stateMapperPrivates;
 
 export function createThunk(stateMapper) {
   return (store) => {
@@ -16,7 +16,7 @@ export function createThunk(stateMapper) {
 
 export function createStateAccessMiddleware(stateMapper) {
   return () => (next) => (action) => {
-    const { type, [SUB_REDUCER]: path, } = action;
+    const { type, [TARGET]: path, } = action;
     switch (type) {
       case GET_STATE:
         return findChild(stateMapper[propState], path);
