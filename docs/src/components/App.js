@@ -1,12 +1,14 @@
 import React from 'react';
 import { Switch, Route, } from 'react-router-dom';
+import { connect, } from 'react-redux';
 import Home from './Home';
 import ExampleComponent from './ExampleComponent';
 import PageNotFound from './PageNotFound';
 import Breadcrumbs from './Breadcrumbs';
 import s from '../styles/app.style';
 
-export default function App() {
+function App({users}) {
+  console.log(users)
   return (
     <div style={s.root}>
       <h1 style={s.title}>Single Page Apps for GitHub Pages</h1>
@@ -25,3 +27,4 @@ export default function App() {
     </div>
   );
 }
+export default connect(state => ({users: state.users}))(App)
