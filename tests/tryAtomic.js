@@ -1,6 +1,6 @@
 import { createStoreWithNonedux, } from './utils';
 
-describe('applyMany', () => {
+describe('tryAtomic', () => {
   beforeAll(() => {
 
   });
@@ -13,7 +13,7 @@ describe('applyMany', () => {
     const states = new Set();
     const { store, subject, } = createStoreWithNonedux({ a: {}, b: {}, });
     store.subscribe(() => states.add(store.getState()));
-    subject.applyMany(({ a, b, }) => {
+    subject.tryAtomic(({ a, b, }) => {
       a.setState({ x: 1, });
       b.setState({ y: 2, });
       a.setState({ x: { z: {}, }, });
@@ -31,14 +31,14 @@ describe('applyMany', () => {
     store.subscribe(() => {
       states.add(store.getState());
     });
-    subject.applyMany(({ a, b, }) => {
+    subject.tryAtomic(({ a, b, }) => {
       a.setState({ x: {}, });
       b.setState({ y: {}, });
-      a.applyMany(({ x, }) => x.setState({ i: {}, }));
-      b.applyMany(({ y, }) => y.setState({ j: {}, }));
-      subject.applyMany(({ a, }) => {
-        a.applyMany(({ x, }) => {
-          x.applyMany(({ i, }) => {
+      a.tryAtomic(({ x, }) => x.setState({ i: {}, }));
+      b.tryAtomic(({ y, }) => y.setState({ j: {}, }));
+      subject.tryAtomic(({ a, }) => {
+        a.tryAtomic(({ x, }) => {
+          x.tryAtomic(({ i, }) => {
             i.setState([ 1, 2, 3, 4, 5, ]);
           });
         });
@@ -56,29 +56,29 @@ describe('applyMany', () => {
     store.subscribe(() => states.add(store.getState()));
     for (let index = 11; index<12; index++) {
       try {
-        subject.applyMany(({ a, b, }) => {
+        subject.tryAtomic(({ a, b, }) => {
           index===0 && throwError();
           a.setState({ x: {}, });
           index===1 && throwError();
           b.setState({ y: {}, });
           index===2 && throwError();
-          a.applyMany(({ x, }) => {
+          a.tryAtomic(({ x, }) => {
             index===3 && throwError();
             x.setState({ i: {}, });
             index===4 && throwError();
           });
           index===5 && throwError();
-          b.applyMany(({ y, }) => {
+          b.tryAtomic(({ y, }) => {
             index===6 && throwError();
             y.setState({ j: {}, });
             index===7 && throwError();
           });
           index===8 && throwError();
-          subject.applyMany(({ a, }) => {
+          subject.tryAtomic(({ a, }) => {
             index===9 && throwError();
-            a.applyMany(({ x, }) => {
+            a.tryAtomic(({ x, }) => {
               index===10 && throwError();
-              x.applyMany(({ i, }) => {
+              x.tryAtomic(({ i, }) => {
                 index===11 && throwError();
                 index.setState([ 1, 2, 3, 4, 5, ]);
                 index===12 && throwError();
@@ -102,13 +102,13 @@ describe('applyMany', () => {
     store.subscribe(() => {
       states.add(store.getState());
     });
-    subject.applyMany(({ a, b, }) => {
+    subject.transaction(({ a, b, }) => {
       a.setState({ x: {}, });
       b.setState({ y: {}, });
       try {
-        subject.applyMany(({ a, }) => {
-          a.applyMany(({ x, }) => {
-            x.applyMany(({ i, }) => {
+        subject.transaction(({ a, }) => {
+          a.transaction(({ x, }) => {
+            x.transaction(({ i, }) => {
               i.setState([ 1, 2, 3, 4, 5, ]);
             });
           });

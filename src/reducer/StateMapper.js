@@ -41,11 +41,9 @@ export default class StateMapper {
     }
   }
 
-  applyMany(callBack) {
+  transaction(callBack) {
     const publishAfterCall = !this[dispatcher].applyingMany;
     const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [SUB_REDUCER]: [], });
-    console.log(JSON.stringify(stateBefore, null, 1))
-    console.log(this.getIdentity())
     try {
       this[dispatcher].applyingMany = true;
       callBack(this);

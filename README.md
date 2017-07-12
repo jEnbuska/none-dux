@@ -238,6 +238,82 @@ If your state has circular structures, react components or 3th party library obj
 
 Using custom JavaScript classes in reducer state is not well tested.
 
+## One update from multiple operations
+### It is possible to do multiple changes before publishing nex state to redux state 
+```
+...
+/*in index.js/jsx after store created*/
+const states = new Set();
+states.add(store.getState()); //initialState is `{}`
+store.subscribe(() => states(store.getState()))
+export getDistinctStates= () => states;
+...
+/*in action creator*/
+
+*TRANSACTION*
+function playWithApplyMany(){
+  function(nonedux){
+    const state = nonedux.state;
+    nonedux.transaction(() => {
+      nonedux.setState({a:{}, b: {}})
+      nonedux.setState({c:{}})
+      nonedux.c.setState({d:{}})
+    })
+    const states = [...getDistinctStates()]
+    console.log(states[0]);// {}
+    console.log(states[1]); // {a: {}, b: {}, c: {d: {}}}
+  }
+}
+
+*SIMPLE ROLLBACK*
+function playWithRollback(){
+  function(nonedux){
+    const state = nonedux.state;
+    nonedux.transaction(() => {
+      nonedux.setState({a:{}, b: {}})
+      nonedux.setState({c:{}})
+      nonedux.c.setState({d:{}})
+      throw new Error(); // rollback all
+    })
+    const states = [...getDistinctStates()]
+    console.log(states[0]);// {}
+    console.log(states.length) // 1
+  }
+}
+
+*ADVANCED ROLLBACK*
+function rollbackAdvanced(){
+  function(nonedux, {dispatch}){
+    const state = nonedux.state;
+    nonedux.transaction(() => {
+      nonedux.setState({a:{}}) // this change will not be cancelled because of try catch
+      try{
+        dispatch(doChangeAndThrowError());
+      }catch(ignore){ /* explicitly thrown error */ }
+    })
+    const states = [...getDistinctStates()]
+    console.log(states[0]);// {}
+    console.log(states[1]); // {a: 1}
+  }
+}
+
+function doChangeAndThrowError(){
+  function(nonedux){
+     nonedux.transaction(({a}) => {
+        const prevState = nonedux.state //{a:1} 
+        a.setState({b: {c: { } } })
+        b.transaction(({c}) => {
+          c.setState({d: 1})
+          throw new Error('state should be returned to prevState')
+        })
+     })
+  }
+}
+
+
+
+```
+
 ## Type checking
 
 ```
