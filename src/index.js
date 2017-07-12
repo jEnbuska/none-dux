@@ -9,7 +9,7 @@ import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddl
 const { propState, propPrevState, } = reducerPrivates;
 
 export default function initStateMapper(initialState = {}) {
-  const subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, });
+  const subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, applyingMany: false, });
   subject[propState] = initialState;
   subject[propPrevState]= {};
   const thunk = createThunk(subject);

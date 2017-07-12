@@ -1,9 +1,10 @@
-import { reducerPrivates, PARAM, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, } from '../common';
+import { reducerPrivates, PARAM, SUB_REDUCER, SET_STATE, CLEAR_STATE, REMOVE, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
 
 const { onRemove, onSetState, onClearState, propState, propPrevState, } = reducerPrivates;
 
 export default function createReducer(root) {
-  return function (_, { type, [SUB_REDUCER]: path, [PARAM]: param, }) {
+  const initialState = root[propState];
+  return function (state = initialState, { type, [SUB_REDUCER]: path, [PARAM]: param, [APPLY_MANY]: applyMany, }) {
     if (path) {
       const { child, childState, childList, } = createChildList(root, path);
       const tail = childList[childList.length-1];
@@ -22,10 +23,23 @@ export default function createReducer(root) {
           console.error('Invalid action\n' + JSON.stringify({ type, path, param, }, null, 2));
           return this[propState];
       }
-      this[propPrevState]= this[propState];
+      this[propPrevState]= state;
       this[propState] = createNextState(childList);
+      if (!applyMany) {
+        state = this[propState];
+      }
+      return state;
+    } else if (type === PUBLISH_CHANGES) {
+      return this[propState];
+    } else if (type===ROLLBACK) {
+      console.log('rollback to')
+      JSON.stringify(param, null, 1)
+      root[onClearState](param);
+      if (!applyMany) {
+        state= root[propState];
+      }
     }
-    return this[propState];
+    return state;
   }.bind(root);
 }
 

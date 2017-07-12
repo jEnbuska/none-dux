@@ -9,22 +9,22 @@ describe('performance', () => {
     const odd = data2;
     const firstCompany = keys(even.companies)[0];
     const firstChildOdd = keys(odd)[0];
-    const root = createStoreWithNonedux({});
+    const { subject, }= createStoreWithNonedux({});
     StateMapper.maxDepth = 100;
-    root.setState(even);
+    subject.setState(even);
     const time = new Date();
     for (let i = 0; i < 1000; i++) {
       if (i%7 === 0) {
-        root.clearState({});
+        subject.clearState({});
       }
       if (i % 2 === 0) {
-        root.setState(even);
-        root.companies[firstCompany].setState(odd[firstChildOdd]);
-        root.companies.remove([ firstCompany, ]);
+        subject.setState(even);
+        subject.companies[firstCompany].setState(odd[firstChildOdd]);
+        subject.companies.remove([ firstCompany, ]);
       } else {
-        root.setState(odd);
-        root[firstChildOdd].setState(even.companies[firstCompany]);
-        root.remove([ firstChildOdd, ]);
+        subject.setState(odd);
+        subject[firstChildOdd].setState(even.companies[firstCompany]);
+        subject.remove([ firstChildOdd, ]);
       }
     }
     console.log('~ 1000 node merges, 1000 resets, 1 000  000 subsubject nodes removals, 1 000 000 subsubject nodes created. Took total of: ', new Date() - time, 'ms');
@@ -33,16 +33,15 @@ describe('performance', () => {
   // TODO
   test('get state', () => {
     const data = { a: {}, b: {}, c: {}, };
-    const root = createStoreWithNonedux(data);
-    let children = root.getChildren();
-
+    const { subject, }= createStoreWithNonedux(data);
+    let children = subject.getChildren();
 
     for (let i = 0; i<9; i++) {
       children.forEach(child => child.setState(data));
       children = children.reduce((acc, child) => acc.concat(child.getChildren()), []);
     }
 
-    const allChildren = root.getChildrenRecursively();
+    const allChildren = subject.getChildrenRecursively();
     const time = new Date();
     for (let i = 0; i<10; i++) {
       for (let j = 0; j<allChildren.length; j++) {

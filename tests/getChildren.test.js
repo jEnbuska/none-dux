@@ -4,7 +4,7 @@ describe('get children', () => {
   let subject;
   // noinspection JSAnnotator
   test('should return all immediate children', () => {
-    subject = createStoreWithNonedux({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
+    const { subject }= createStoreWithNonedux({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
     const { a, f, ..._ } = subject;
     const [ first, second, ...rootNone ]= subject.getChildren();
     expect(rootNone.length).toBe(0);
@@ -21,7 +21,7 @@ describe('get children', () => {
   });
 
   test('should return children recursively', () => {
-    subject = createStoreWithNonedux({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
+    const { subject }= createStoreWithNonedux({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
     const [ a, f, ...rootNone ]= subject.getChildren();
     const [ b, ...aNone ] = a.getChildren();
     const [ d, ...bNone ]= b.getChildren();

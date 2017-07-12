@@ -9,6 +9,6 @@ export function createStoreWithNonedux(initialState, shape) {
     middlewares.push(validatorMiddleware(subject, shape));
   }
   const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-  createStoreWithMiddleware(reducer);
-  return subject;
+  const store = createStoreWithMiddleware(reducer);
+  return { subject, store, };
 }

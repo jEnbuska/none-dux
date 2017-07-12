@@ -157,7 +157,7 @@ describe('Validator middleware', () => {
     });
   });
   test('strict error on setState', () => {
-    const subject = createStoreWithNonedux({ }, { ...strict, });
+    const { subject } = createStoreWithNonedux({ }, { ...strict, });
     expect(onStrictErrors.length).toBe(0);
     const { state, } = subject.setState({ a: 1, });
     expect(onStrictErrors.length).toBe(1);

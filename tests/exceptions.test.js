@@ -24,12 +24,11 @@ describe('killSwitch', () => {
       }
     );
   });
-  let subject;
   test('Kill switch should trigger when depth > 100 ',
     () => {
       let killSwitchIsTriggered = false;
 
-      subject = createStoreWithNonedux({});
+      const { subject, }= createStoreWithNonedux({});
       StateMapper.__kill = () => { killSwitchIsTriggered = true; };
       let ref = subject;
       for (let i = 0; i<45; i++) {
@@ -42,7 +41,7 @@ describe('killSwitch', () => {
     });
   test('changing __applyRemoved sub subject should throw an exception',
     () => {
-      subject = createStoreWithNonedux({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
+      const { subject, }= createStoreWithNonedux({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
       const { a, c, } = subject;
       const { d, } = c;
       subject.remove('a');
@@ -51,10 +50,10 @@ describe('killSwitch', () => {
     });
 
   test('accessing remove sub subject should throw an exception', () => {
-    subject = createStoreWithNonedux({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
+    const { subject, }= createStoreWithNonedux({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
     const { a, b, c, } = subject;
     const { d, } = c;
-    subject.remove('a','b','c');
+    subject.remove('a', 'b', 'c');
     expect(() => a.setState({})).toThrow(Error);
     expect(() => b.setState({})).toThrow(Error);
     expect(() => c.setState({})).toThrow(Error);

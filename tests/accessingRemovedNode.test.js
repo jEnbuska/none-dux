@@ -16,7 +16,7 @@ describe('arrays as state', () => {
   beforeEach(() => { invalidAccessCalls = []; });
 
   test('accessing remove object children', () => {
-    const subject = createStoreWithNonedux({ a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, });
+    const { subject } = createStoreWithNonedux({ a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, });
     const { a, } = subject;
     expect(a.state).toBeDefined();
     subject.remove('a');
@@ -34,13 +34,13 @@ describe('arrays as state', () => {
   });
 
   test('accessing removed array children', () => {
-    const arrSubject = createStoreWithNonedux([ {}, {}, {}, {}, ]);
-    const first = arrSubject[0];
-    const second = arrSubject[1];
-    const third = arrSubject[2];
-    const fourth = arrSubject[3];
+    const {subject} = createStoreWithNonedux([ {}, {}, {}, {}, ]);
+    const first = subject[0];
+    const second = subject[1];
+    const third = subject[2];
+    const fourth = subject[3];
 
-    arrSubject.remove('1');
+    subject.remove('1');
     expect(first.state).toBeDefined();
     expect(first.prevState).toBeDefined();
     expect(invalidAccessCalls.length).toEqual(0);
@@ -53,7 +53,7 @@ describe('arrays as state', () => {
   });
 
   test('accessing children of removed value', () => {
-    const subject = createStoreWithNonedux({ a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], });
+    const { subject } = createStoreWithNonedux({ a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], });
 
     const { a: { c, }, } = subject;
     const { d, } =c;

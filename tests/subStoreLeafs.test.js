@@ -32,7 +32,7 @@ describe('Leafs', () => {
   });
 
   test('creating subject with StateMapperObjectLeaf & StateMapperArrayLeafs', () => {
-    const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: { x: 1, }, d: 2, }), e: createLeaf([ { f: 1, }, 2, ]), }, });
+    const { subject } = createStoreWithNonedux({ a: { b: createLeaf({ c: { x: 1, }, d: 2, }), e: createLeaf([ { f: 1, }, 2, ]), }, });
     expect(subject.state).toEqual({ a: { b: new StateMapperObjectLeaf({ c: { x: 1, }, d: 2, }), e: new StateMapperArrayLeaf([ { f: 1, }, 2, ]), }, });
     expect(subject.a.state).toEqual({ b: new StateMapperObjectLeaf({ c: { x: 1, }, d: 2, }), e: new StateMapperArrayLeaf([ { f: 1, }, 2, ]), });
     expect(subject.a.b).toBeUndefined();
@@ -42,7 +42,7 @@ describe('Leafs', () => {
   });
 
   test('setState with StateMapperObjectLeaf', () => {
-    const subject = createStoreWithNonedux({ a: { b: {}, }, });
+    const { subject } = createStoreWithNonedux({ a: { b: {}, }, });
     expect(subject.state).toEqual({ a: { b: { }, }, });
     expect(subject.a.b.state).toEqual({});
     subject.a.setState({ b: createLeaf({ c: 1, d: 2, }), });
@@ -55,7 +55,7 @@ describe('Leafs', () => {
   });
 
   test('clearState with StateMapperObjectLeaf', () => {
-    const subject = createStoreWithNonedux({ a: { b: {}, c: 2, d: {}, }, });
+    const { subject } = createStoreWithNonedux({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.state).toEqual({ a: { b: {}, c: 2, d: {}, }, });
     expect(subject.a.b.state).toEqual({});
     subject.a.clearState({ b: createLeaf({ c: 1, d: 2, }), });
@@ -64,14 +64,14 @@ describe('Leafs', () => {
   });
 
   test('remove StateMapperObjectLeaf', () => {
-    const subject = createStoreWithNonedux({ a: { b: createLeaf({ c: 1, d: 2, }), }, });
+    const { subject } = createStoreWithNonedux({ a: { b: createLeaf({ c: 1, d: 2, }), }, });
     subject.a.remove('b');
     expect(subject.a.state).toEqual({});
   });
 
   test('Add Error type', () => {
     const err = new Error('some error');
-    const subject = createStoreWithNonedux({ a: { err, }, });
+    const { subject } = createStoreWithNonedux({ a: { err, }, });
     expect(subject.a.err).toBeUndefined();
     expect(subject.a.state.err).toEqual(err);
   });
