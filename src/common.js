@@ -15,7 +15,7 @@ export function stringify(obj) {
 }
 
 export function findChild(value, path) {
-  for (let i = path.length-1; i>=0; i--) {
+  for (let i = path.length-1; i>=0; --i) {
     const key = path[i];
     value= value[key];
   }

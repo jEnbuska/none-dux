@@ -35,11 +35,13 @@ describe('performance', () => {
     const data = { a: {}, b: {}, c: {}, };
     const root = createStoreWithNonedux(data);
     let children = root.getChildren();
-    for (let i = 0; i<7; i++) {
+
+
+    for (let i = 0; i<9; i++) {
       children.forEach(child => child.setState(data));
       children = children.reduce((acc, child) => acc.concat(child.getChildren()), []);
     }
-    children.forEach(child => child.setState({ a: {}, b: {}, c: {}, d: {}, e: {}, f: {}, g: {}, h: {}, i: {}, }));
+
     const allChildren = root.getChildrenRecursively();
     const time = new Date();
     for (let i = 0; i<10; i++) {
@@ -47,6 +49,6 @@ describe('performance', () => {
         allChildren[j].state;
       }
     }
-    console.log('Get state ~60000 times. Avg depth ~8. Took total of: ', new Date() - time, 'ms');
+    console.log('Get state 885720 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 });

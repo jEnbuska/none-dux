@@ -6,7 +6,7 @@ const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
 const createChildReferences = Symbol('createChildReferences');
 
-const { getPrototypeOf, } = Object;
+const { getPrototypeOf, values, } = Object;
 
 export default class StateMapper {
 
@@ -202,12 +202,13 @@ export default class StateMapper {
   }
 
   getChildrenRecursively() {
-    return this.getChildren().reduce(onReduceChildren, []);
+    return values(this).reduce(onReduceChildren, []);
   }
 
   getChildren() {
-    return Object.values(this).filter(v => v && v instanceof StateMapper);
+    return values(this);
   }
+
   [onRemoveChild](k) {
     delete this[k];
     this[role][removeChild](k);
