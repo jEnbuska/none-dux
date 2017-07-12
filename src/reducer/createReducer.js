@@ -1,43 +1,38 @@
-import { stateMapperPrivates, PARAM, TARGET, SET_STATE, CLEAR_STATE, REMOVE, APPLY_MANY, PUBLISH_CHANGES, ROLLBACK, } from '../common';
+import { stateMapperPrivates, PARAM, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PUBLISH_NOW, PUBLISH_CHANGES, ROLLBACK, } from '../common';
 
 const { onRemove, onSetState, onClearState, propState, propPrevState, } = stateMapperPrivates;
 
 export default function createReducer(root) {
   const initialState = root[propState];
-  return function (state = initialState, { type, [TARGET]: path, [PARAM]: param, [APPLY_MANY]: applyMany, }) {
+  return function (state = initialState, { type, [TARGET]: path, [PARAM]: param, [PUBLISH_NOW]: publishNow, }) {
     if (path) {
       const { child, childState, childList, } = createChildList(root, path);
-      const tail = childList[childList.length-1];
       switch (type) {
         case SET_STATE:
-          tail.state = child[onSetState](param, childState);
+          childList[childList.length-1].state = child[onSetState](param, childState);
           break;
         case CLEAR_STATE:
           child[onClearState](param, childState);
-          tail.state = param;
+          childList[childList.length-1].state = param;
           break;
         case REMOVE:
-          tail.state = child[onRemove](param, childState);
+          childList[childList.length-1].state = child[onRemove](param, childState);
           break;
         default:
           console.error('Invalid action\n' + JSON.stringify({ type, path, param, }, null, 2));
-          return this[propState];
+          return state;
       }
-      this[propPrevState]= state;
       this[propState] = createNextState(childList);
-      if (!applyMany) {
+      if (publishNow) {
+        this[propPrevState] = state;
         state = this[propState];
       }
       return state;
     } else if (type === PUBLISH_CHANGES) {
+      this[propPrevState] = state;
       return this[propState];
-    } else if (type===ROLLBACK) {
-      console.log('rollback to')
-      JSON.stringify(param, null, 1)
+    } else if (type === ROLLBACK) {
       root[onClearState](param);
-      if (!applyMany) {
-        state= root[propState];
-      }
     }
     return state;
   }.bind(root);

@@ -1,0 +1,25 @@
+.route-change-enter {
+  opacity: 0;
+}
+
+.route-change-enter.route-change-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+
+.route-change-leave {
+  opacity: 1;
+}
+
+.route-change-leave.route-change-leave-active {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+.route-change-appear {
+  opacity: 0;
+}
+
+.route-change-appear.route-change-appear-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}

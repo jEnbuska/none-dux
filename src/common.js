@@ -5,8 +5,8 @@ export const GET_STATE = 'NONEDUX::GET_STATE';
 export const GET_PREV_STATE = 'NONEDUX::GET_PREV_STATE';
 export const TARGET = 'NONEDUX::TARGET';
 export const PARAM = 'NONEDUX::PARAM';
-export const APPLY_MANY = 'NONEDUX::APPLY_MANY';
 export const PUBLISH_CHANGES = 'NONEDUX::PUBLISH_CHANGES';
+export const PUBLISH_NOW = 'NONEDUX::PUBLISH_NOW';
 export const ROLLBACK = 'NONEDUX::ROLLBACK';
 
 export function stringify(obj) {
