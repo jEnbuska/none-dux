@@ -238,8 +238,7 @@ If your state has circular structures, react components or 3th party library obj
 
 Using custom JavaScript classes in reducer state is not well tested.
 
-## One update from multiple operations
-### It is possible to do multiple changes before publishing nex state to redux state 
+## Atomic changes
 ```
 ...
 /*in index.js/jsx after store created*/
