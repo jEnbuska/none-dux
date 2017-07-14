@@ -3,9 +3,11 @@
 
 Small sized React-redux extension that makes state management more flexible
 
+Less verbose alternative for 'react-redux + redux-thunk' stack
+
 Application state can be changed directly from actions.
 
-No reducer boilerplate.
+0 reducer boilerplate.
 
 No external dependencies
 
@@ -39,9 +41,7 @@ function generateMessState(depth = 3, height = 0) {
   };
 })
 ```
-
 ## Configuring store
-
 ```
 import { Provider, connect, } from 'react-redux';
 import { createStore, applyMiddleware, } from 'redux';
@@ -54,7 +54,7 @@ const initialState = { //Sames as the initial state of store
   users: {},
 };
 
-// don't use 'redux-thunk'
+// don't add 'redux-thunk'
 const { reducer, middlewares } = nonedux(initialState);
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(reducer);
@@ -71,7 +71,7 @@ const root = (
 ## Action examples
 
 ```
-// first argument is nonedux state reference, second one is redux store
+// 1st argument is nonedux state reference, 2nd one is redux store
 export function removeUser(userId) {
    //users & todosByUser are created lazily first time they are referenced
    return function ({users, todosByUser}, {dispatch}) {
@@ -228,6 +228,7 @@ function fetchCustomerData(){
 ```
 ### Warnings
 Using custom JavaScript classes in reducer state is not well tested.
+Using non normalized state is not a must but recommended
 
 ## Atomic changes
 ```
