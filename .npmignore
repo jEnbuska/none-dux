@@ -8,6 +8,7 @@ screenShot.png
 webpack.config.js
 .babelrc
 .eslintignore
+.npmignore
 .gitignore
 yarn.lock
 package-lock.json
