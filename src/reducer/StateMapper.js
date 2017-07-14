@@ -6,9 +6,8 @@ const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
 const createChildReferences = Symbol('createChildReferences');
 const children = Symbol('children');
-const notAccessed = Symbol('notAccessed');
 
-const { getPrototypeOf, values, defineProperty, keys, } = Object;
+const { getPrototypeOf, defineProperty, keys, } = Object;
 
 export default class StateMapper {
 
@@ -17,7 +16,6 @@ export default class StateMapper {
     throw new Error('StateMapper maximum depth '+StateMapper.maxDepth+' exceeded by "'+target[resolveIdentity].join(', ')+'"');
   }
 
-  static privateAccess = false;
   static maxDepth = 45;
   static onGoingTransaction = false;
   static invalidStateMappers = {
@@ -93,14 +91,7 @@ export default class StateMapper {
     } else if (!StateMapper.couldBeParent(value)) {
       throw new Error('StateMapper does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    try {
-      StateMapper.privateAccess = true;
-      this[dispatcher].dispatch({ type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-      StateMapper.privateAccess = false;
-    } catch (e) {
-      StateMapper.privateAccess = false;
-      throw e;
-    }
+    this[dispatcher].dispatch({ type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
   }
 
@@ -111,14 +102,7 @@ export default class StateMapper {
     } else if (value instanceof StateMapper) {
       throw new Error('StateMapper does not take other StateMappers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    try {
-      StateMapper.privateAccess = true;
-      this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-      StateMapper.privateAccess = false;
-    } catch (e) {
-      StateMapper.privateAccess = false;
-      throw e;
-    }
+    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
   }
 
@@ -129,14 +113,7 @@ export default class StateMapper {
     } else if (keys[0] instanceof Array) {
       keys = keys[0];
     }
-    try {
-      StateMapper.privateAccess = true;
-      this[dispatcher].dispatch({ type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-      StateMapper.privateAccess = false;
-    } catch (e) {
-      StateMapper.privateAccess = false;
-      throw e;
-    }
+    this[dispatcher].dispatch({ type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
   }
 
@@ -146,14 +123,7 @@ export default class StateMapper {
       throw new Error('Cannot call removeSelf to removed Node. Id:'+this.getId());
     }
     const [ _, ...parentIdentity ]= identity;
-    try {
-      StateMapper.privateAccess = true;
-      this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-      StateMapper.privateAccess = false;
-    } catch (e) {
-      StateMapper.privateAccess = false;
-      throw e;
-    }
+    this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
   }
 
@@ -163,16 +133,16 @@ export default class StateMapper {
       return newState;
     }
     for (const k in newState) {
-      const child = this[k];
+      const child = this[children][k];
       const subState = newState[k];
       if (child) {
         if (subState !== prevState[k]) {
           if (StateMapper.couldBeParent(subState)) {
-            if (child===notAccessed) {
+            if (child.ref) {
+              child.ref[onClearState](subState, prevState[k]);
+            } else {
               delete this[k];
               this[createChildReferences](subState, k);
-            } else {
-              child[onClearState](subState, prevState[k]);
             }
           } else {
             this[onRemoveChild](k);
@@ -185,20 +155,20 @@ export default class StateMapper {
     return { ...prevState, ...newState, };
   }
 
-  [onClearState](newState, prevState) {
+  [onClearState](newState, prevState = {}) {
     const merge = { ...prevState, ...newState, };
     for (const k in merge) {
-      const child = this[k];
+      const child = this[children][k];
       const next = newState[k];
       if (child) {
         if (newState.hasOwnProperty(k)) {
           if (next !== prevState[k]) {
             if (StateMapper.couldBeParent(next)) {
-              if (child===notAccessed) {
+              if (child.ref) {
+                child.ref[onClearState](next, prevState[k]);
+              } else {
                 delete this[k];
                 this[createChildReferences](next, k);
-              } else {
-                child[onClearState](next, prevState[k]);
               }
             } else {
               this[onRemoveChild](k);
@@ -227,19 +197,17 @@ export default class StateMapper {
     for (let i = 0; i<stateLength; i++) {
       const { length, } = nextState;
       if (toBeRemoved[i]) {
-        if (this[i]) {
+        if (this[children][i]) {
           this[onRemoveChild](i);
         }
       } else {
-        if (i !== length && this[i]) {
-          const child = this[i];
-          delete this[i];
-          if (child === notAccessed) {
-            this[createChildReferences](state[i], length);
-          } else {
-            this[length] = child;
+        if (i !== length && this[children][i]) {
+          const child = this[children][i];
+          if (child.ref) {
             this[role][i][renameSelf](length);
           }
+          delete this[i];
+          this[createChildReferences](state[i], length, child.ref);
         }
         nextState.push(state[i]);
       }
@@ -267,14 +235,13 @@ export default class StateMapper {
   }
 
   [onRemoveChild](k) {
-    this[role][removeChild](k);
     delete this[children][k];
     delete this[k];
+    this[role][removeChild](k);
   }
 
-  // TODO rename createChildReference (Symbol)
-  [createChildReferences](initialState, k) {
-    const child = this[children][k] = { ref: undefined, };
+  [createChildReferences](initialState, k, predefinedRef) {
+    const child = this[children][k] = { ref: predefinedRef, };
     const childRole = this[role][createChild](k);
     defineProperty(this, k, {
       configurable: true,
@@ -282,10 +249,9 @@ export default class StateMapper {
       get: () => {
         if (child.ref) {
           return child.ref;
-        } else if (StateMapper.privateAccess) {
-          return notAccessed;
         }
-        return child.ref = new StateMapper(initialState, this[depth] + 1, childRole, this[dispatcher]);
+        child.ref = new StateMapper(initialState, this[depth] + 1, childRole, this[dispatcher]);
+        return child.ref;
       },
     });
   }

@@ -29,9 +29,11 @@ export default class KnotTree {
 
   [removeChild](key) {
     key +='';
-    this[key][_removed]= true;
-    delete this[key][_prev];
-    delete this[key];
+    if(this[key]){
+      this[key][_removed]= true;
+      delete this[key][_prev];
+      delete this[key];
+    }
   }
 
   [resolveIdentity](acc = []) {
