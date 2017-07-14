@@ -384,4 +384,8 @@ const {spec} = shape;
 ```
 using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
+----------------
+
+Please submit any error reports to https://github.com/jEnbuska/none-dux issues  
+
 
