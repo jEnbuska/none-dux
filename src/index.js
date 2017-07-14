@@ -20,7 +20,7 @@ export default function initStateMapper(initialState = {}) {
     middlewares: [ thunk, stateAccess, ],
     subject,
     get thunk() {
-      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call');
+      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at https://github.com/jEnbuska/none-dux');
     },
     dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
   };
