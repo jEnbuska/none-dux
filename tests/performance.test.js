@@ -30,7 +30,6 @@ describe('performance', () => {
     console.log('~ 1000 node merges, 1000 resets, 1 000  000 subsubject nodes removals, 1 000 000 subsubject nodes created. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
-  // TODO
   test('get state', () => {
     const data = { a: {}, b: {}, c: {}, };
     const { subject, }= createStoreWithNonedux(data);
@@ -49,5 +48,32 @@ describe('performance', () => {
       }
     }
     console.log('Get state 885720 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
+  }, 15000);
+  test('removeSelf naive performance', () => {
+    const { subject, }= createStoreWithNonedux({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+    const h = subject.a.b.c.d.e.f.g.h;
+    for (let i = 0; i<5000; i++) {
+      h.setState({ [i]: { a: 1, }, });
+    }
+    const time = new Date();
+    const { ...all } = h;
+    Object.entries(all).filter(([ k, { state, }, ]) => true)
+      .forEach(([ k, value, ]) => value.removeSelf());
+
+    console.log('Remove self naive. Took total of: ', new Date() - time, 'ms');
+  }, 15000);
+
+  test('remove children good performance', () => {
+    const { subject, }= createStoreWithNonedux({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+    const h = subject.a.b.c.d.e.f.g.h;
+    for (let i = 0; i<5000; i++) {
+      h.setState({ [i]: { a: 1, }, });
+    }
+    const time = new Date();
+    const toBeRemoved = Object.entries(h.state).filter(([ k, v, ]) => true)
+      .map(([ k, value, ]) => k);
+    h.remove(toBeRemoved)
+
+    console.log('Remove children  good performance. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 });
