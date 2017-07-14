@@ -211,7 +211,7 @@ by
 
 ## Large non changing objects
 
-if you have data that will only be set, removed or replaced, you can increase performance by creating 'leafs'':
+Children are generated lazily so dumping a big non changing object to you state should not cause any overhead
 ```
 import { createLeaf } from 'none-dux'
 
@@ -219,23 +219,17 @@ import { createLeaf } from 'none-dux'
 
 function fetchCustomerData(){
   function({statistics}){
+    //if children are not accessed previously they are created first time the are accessed
     fetchUserData()
       .then(({data}) => {
         let { transactions, associations } = data;
-        transactions = createLeaf(transactions);
-        associations = createLeaf(associations);
-        statistics.setState({transactions, associations}).
-        //objects are created only in state
-        //createLeaf works with both arrays and objects
-        console.log(statistics.transactions) //undefined
-        console.log(statistics.state.transactions !== undefined); // true  
+        statistics.setState({transactions, associations}). //no children created;
+        const {transactions: t, associations: s} = statistics; // children 'transaction' and 'associations' were created        
       })
   }
 }
 ```
 ### Warnings
-If your state has circular structures, react components or 3th party library objects like `moment`:s, then use 'createLeaf' to avoid those objects being destructed recursively.
-
 Using custom JavaScript classes in reducer state is not well tested.
 
 ## Atomic changes
@@ -310,8 +304,7 @@ function doChangeAndThrowError(){
 }
 ```
 
-## Accessing previous state
-####Child state is global
+####Child state fetch lazily from redux when accessed
 ```
 function stateExample(){
   function(nonedux){
