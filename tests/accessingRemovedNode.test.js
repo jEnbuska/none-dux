@@ -22,7 +22,6 @@ describe('arrays as state', () => {
     subject.remove('a');
     expect(invalidAccessCalls.length).toBe(0);
     expect(a.state).toBeUndefined();
-    expect(a.prevState).toEqual([ 1, 2, 3, ]);
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
 
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
@@ -30,7 +29,6 @@ describe('arrays as state', () => {
     const { d, } = subject.b;
     subject.b.remove('d');
     expect(d.state).toBeUndefined();
-    expect(d.prevState).toEqual({});
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, { id: 'd', name: 'state', }, ]);
   });
 
@@ -43,10 +41,8 @@ describe('arrays as state', () => {
 
     subject.remove('1');
     expect(first.state).toBeDefined();
-    expect(first.prevState).toBeDefined();
     expect(invalidAccessCalls.length).toEqual(0);
     expect(second.state).toBeUndefined();
-    expect(second.prevState).toEqual({});
     expect(invalidAccessCalls).toEqual([ { id: '1', name: 'state', }, ]);
     expect(third.state).toBeDefined();
     expect(fourth.state).toBeDefined();
@@ -64,10 +60,7 @@ describe('arrays as state', () => {
     expect(invalidAccessCalls).toEqual([]);
     c.removeSelf();
 
-    firstGroup.forEach(({ state, prevState, }) => {
-      expect(state).toBeUndefined();
-      expect(prevState).toBeDefined();
-    });
+    firstGroup.forEach(({ state, }) => expect(state).toBeUndefined());
 
     expect(invalidAccessCalls).toEqual(firstGroup
       .reduce((acc, it) => acc

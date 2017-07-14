@@ -1,8 +1,8 @@
 import { knotTree, } from '../common';
 
-const _key = Symbol('_knotlist_key');
-const _removed = Symbol('_knotlist_removed');
-const _prev = Symbol('_knotlist_prev');
+const _key = Symbol('_knotset_key');
+const _removed = Symbol('_knotset_removed');
+const _prev = Symbol('_knotset_prev');
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 
 export default class KnotTree {
@@ -29,13 +29,9 @@ export default class KnotTree {
 
   [removeChild](key) {
     key +='';
-    if (this[key]) {
-      this[key][_removed]= true;
-      delete this[key][_prev];
-      delete this[key];
-    } else {
-      throw new Error('removing invalid key'+key);
-    }
+    this[key][_removed]= true;
+    delete this[key][_prev];
+    delete this[key];
   }
 
   [resolveIdentity](acc = []) {

@@ -34,9 +34,11 @@ describe('killSwitch', () => {
       for (let i = 0; i<45; i++) {
         ref.setState({ a: {}, });
         ref = ref.a;
+        ref.state
         expect(killSwitchIsTriggered).toBeFalsy();
       }
       ref.setState({ a: {}, });
+      ref.a.state
       expect(killSwitchIsTriggered).toBeTruthy();
     });
   test('changing __applyRemoved sub subject should throw an exception',

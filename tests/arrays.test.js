@@ -112,7 +112,6 @@ describe('arrays as state', () => {
     subject.remove(2);
     expect(subject.state).toEqual([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
     expect(third.state).toEqual(undefined);
-    expect(third.prevState).toEqual({ toBeRemoved: 2, });
     expect(subject.state[2]).toEqual(3);
     expect(subject[3].state).toEqual({ toBeKept: 4, });
   });
