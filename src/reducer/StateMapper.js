@@ -237,12 +237,13 @@ export default class StateMapper {
   [onRemoveChild](k) {
     delete this[children][k];
     delete this[k];
-    this[role][removeChild](k);
+    if (this[role][k]) {
+      this[role][removeChild](k);
+    }
   }
 
   [createChildReferences](initialState, k, predefinedRef) {
     const child = this[children][k] = { ref: predefinedRef, };
-    const childRole = this[role][createChild](k);
     defineProperty(this, k, {
       configurable: true,
       enumerable: true,
@@ -250,7 +251,7 @@ export default class StateMapper {
         if (child.ref) {
           return child.ref;
         }
-        child.ref = new StateMapper(initialState, this[depth] + 1, childRole, this[dispatcher]);
+        child.ref = new StateMapper(initialState, this[depth] + 1, this[role][createChild](k), this[dispatcher]);
         return child.ref;
       },
     });
