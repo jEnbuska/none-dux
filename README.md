@@ -17,7 +17,6 @@ Creates a flexible top level reducer that takes care of immutability.
 
 State can be safely extended without any predefined shape
 ```
-
 function grow() {
   return function (nonedux) {
     console.log(nonedux.state); // {}
@@ -67,14 +66,15 @@ const root = (
         ...
 ```
 ##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
-##### Actual state of object is inside ***state*** variable
+##### Actual state of object is inside lazy ***state*** variable
 
 ## Action examples
 
 ```
 // first argument is nonedux state reference, second one is redux store
 export function removeUser(userId) {
-   return function ({users, todosByUser}, {dispatch}) { 
+   //users & todosByUser are created lazily first time they are referenced
+   return function ({users, todosByUser}, {dispatch}) {
     const user = users[userId];
     const usersTodos = todosByUser[userId]
     user.setState({ verified: false, });
@@ -156,7 +156,7 @@ target[3].removeSelf();
 ```
 
 ##### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
-happy path: (assuming you do not have circular structures, custom Javascript classes or React.Components in our redux state)
+happy path:
 
 
 #### 1. Initializing store
@@ -165,8 +165,8 @@ replace
   ...
   import thunk from 'redux-thunk'
   
-  const middleware = [ thunk, ];
-  const createStoreWithMiddleware = applyMiddleware(...middleware)(createStore);
+  const middlewares = [ thunk, ];
+  const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
   const store = createStoreWithMiddleware(reducers);
   
   <Provider store={store}> ... 
@@ -211,12 +211,9 @@ by
 
 ## Large non changing objects
 
-Children are generated lazily so dumping a big non changing object to you state should not cause any overhead
+Children are created until they are referenced for the first time, so dumping a big non changing object to you state should not cause any overhead
 ```
-import { createLeaf } from 'none-dux'
-
 ...
-
 function fetchCustomerData(){
   function({statistics}){
     //if children are not accessed previously they are created first time the are accessed
@@ -224,7 +221,7 @@ function fetchCustomerData(){
       .then(({data}) => {
         let { transactions, associations } = data;
         statistics.setState({transactions, associations}). //no children created;
-        const {transactions: t, associations: s} = statistics; // children 'transaction' and 'associations' were created        
+        const {transactions: t, associations: s} = statistics; // children 'transaction' & 'associations' were created        
       })
   }
 }
@@ -244,7 +241,7 @@ export getDistinctStates= () => states;
 /*in action creator*/
 
 *TRANSACTION*
-function playWithApplyMany(){
+function playWithTransaction(){
   function(nonedux){
     const state = nonedux.state;
     nonedux.transaction(() => {
@@ -281,7 +278,7 @@ function rollbackAdvanced(){
     nonedux.transaction(() => {
       nonedux.setState({a:{}}) // this change will not be cancelled because of try catch
       try{
-        dispatch(doChangeAndThrowError());
+        dispatch(doChangesAndThrowError());
       }catch(ignore){ /* explicitly thrown error */ }
     })
     const states = [...getDistinctStates()]
@@ -290,7 +287,7 @@ function rollbackAdvanced(){
   }
 }
 
-function doChangeAndThrowError(){
+function doChangesAndThrowError(){
   function(nonedux){
      nonedux.transaction(({a}) => {
         const orgState = nonedux.state //{a:1} 
@@ -304,7 +301,7 @@ function doChangeAndThrowError(){
 }
 ```
 
-####Child state fetch lazily from redux when accessed
+####State
 ```
 function stateExample(){
   function(nonedux){
@@ -322,15 +319,10 @@ function stateExample(){
      //... then states will not change due to path copying
      expect(orgState).toBe(c.state);
      
-     // if state is changed
-     c.setState({e: {}})
-     
-     const lastState = c.state;
+     //After remove
      c.removeSelf();
      c.state; // causes console error;
-     
      c.setState({}) // throws Error
-     
   }
 }
 ```
@@ -377,7 +369,7 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
   request: {...isRequired}
 };
 ```
-If you do not have destructing available (with objects specs):
+If you do not have object spread available (with objects shape):
 ```
 //instead of
 {
