@@ -27,7 +27,7 @@ describe('performance', () => {
         subject.remove([ firstChildOdd, ]);
       }
     }
-    console.log('~ 1000 node merges, 1000 resets, 1 000  000 subsubject nodes removals, 1 000 000 subsubject nodes created. Took total of: ', new Date() - time, 'ms');
+    console.log('~ 1000 node merges, 1000 resets,,. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('get state', () => {

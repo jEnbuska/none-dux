@@ -19,8 +19,6 @@ export default class StateMapper {
   static maxDepth = 45;
   static onGoingTransaction = false;
   static invalidStateMappers = {
-    StateMapperArrayLeaf: true,
-    StateMapperObjectLeaf: true,
     Number: true,
     String: true,
     RegExp: true,
