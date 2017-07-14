@@ -132,7 +132,8 @@ export default class StateMapper {
       this[onClearState](newState, prevState);
       return newState;
     }
-    for (const k in newState) {
+    for (let k in newState) {
+      k = '' + k;
       const child = this[children][k];
       const subState = newState[k];
       if (child) {
@@ -157,7 +158,8 @@ export default class StateMapper {
 
   [onClearState](newState, prevState = {}) {
     const merge = { ...prevState, ...newState, };
-    for (const k in merge) {
+    for (let k in merge) {
+      k = '' + k;
       const child = this[children][k];
       const next = newState[k];
       if (child) {
@@ -191,10 +193,11 @@ export default class StateMapper {
   }
 
   [onRemoveFromArray](indexes, state) {
-    const toBeRemoved = indexes.reduce(function (acc, i) { acc[i] = true; return acc; }, {});
+    const toBeRemoved = createPoorMap(indexes);
     const nextState = [];
     const stateLength = state.length;
     for (let i = 0; i<stateLength; i++) {
+      i = '' + i;
       const { length, } = nextState;
       if (toBeRemoved[i]) {
         if (this[children][i]) {
@@ -215,22 +218,34 @@ export default class StateMapper {
     return nextState;
   }
 
-  [onRemoveFromObject](keys, state) {
-    const nextState = { ...state, };
-    for (const k of keys) {
-      if (this[k]) {
+  [onRemoveFromObject](toBeRemoved, state = {}) {
+    const poorMap = createPoorMap(toBeRemoved);
+    const nextState = {};
+    for (const k in state) {
+      if (poorMap[k]) {
         this[onRemoveChild](k);
+      } else {
+        nextState[k] = state[k];
       }
-      delete nextState[k];
     }
     return nextState;
   }
 
+  static getChildrenRecursiveWarned = false;
   getChildrenRecursively() {
+    if (StateMapper.getChildrenRecursiveWarned) {
+      console.warn('getChildrenRecursively, force initializes the children and can be extremely heavy on big objects.\nUse this for debugging purposes only');
+      StateMapper.getChildrenRecursiveWarned = true;
+    }
     return keys(this[children]).map(k => this[k]).reduce(onReduceChildren, []);
   }
 
+  static getChildrenWarned = false;
   getChildren() {
+    if (StateMapper.getChildrenWarned) {
+      console.warn('getChildren is deprecated, it force initializes the children.\nYou need to perform this, you can achieve the same result with Object spread + Object+values');
+      StateMapper.getChildrenWarned = true;
+    }
     return keys(this[children]).map(k => this[k]);
   }
 
@@ -264,6 +279,14 @@ export default class StateMapper {
   static couldBeParent(value) {
     return value && value instanceof Object && !StateMapper.invalidStateMappers[getPrototypeOf(value).constructor.name];
   }
+}
+
+function createPoorMap(arr) {
+  return arr.reduce(poorMapMapper, {});
+}
+function poorMapMapper(acc, k) {
+  acc[k+''] = true;
+  return acc;
 }
 
 function onReduceChildren(acc, child) {
