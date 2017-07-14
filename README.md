@@ -1,9 +1,9 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-Small sized React-redux extension that makes state management more flexible
+Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
-Less verbose alternative for 'react-redux + redux-thunk' stack
+Alternative for 'react-redux + redux-thunk' stack
 
 Application state can be changed directly from actions.
 
