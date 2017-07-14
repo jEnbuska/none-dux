@@ -228,7 +228,10 @@ function fetchCustomerData(){
 ```
 ### Warnings
 Using custom JavaScript classes in reducer state is not well tested.
+
 Using non normalized state is not a must but recommended
+
+All keys must be strings or numbers
 
 ## Atomic changes
 ```
@@ -386,6 +389,38 @@ using shape makes the performance slower so check process.end.NODE_ENV before ad
 
 ----------------
 
-Please submit any error reports to https://github.com/jEnbuska/none-dux issues  
+## Performance
+
+If you have a object with thousands of entries and you are looping through them in an action, avoid the following first pattern:
+```
+function removeOldEntries_worstPerformance(){
+  return function({bigData}){
+    const {...dataEntries} = bigData;               //force init every non lazy child
+    const shouldBeRemoved = (entry) => entry.date < Date.now()
+    Object.values(dataEntries)
+      .filter((e) => shouldBeRemoved(e.state))      // get every value separatelly (this is quite fast) 
+      .forEach(e => e.removeSelf())                 // remove each separatelly
+     //If there was 5000 entries and all of them where removed, the whole operation could take > 1500ms on macbook pro
+  }
+}
+
+function removeOldEntries_bestPerformance(){
+  return function({bigData}){
+    const {state} = bigData;                           //ask state only ones
+    const shouldBeRemoved = ([k, value]) => value.date < Date.now()
+    const oldEntries = Object.entries(dataEntries)
+      .filter(shouldBeRemoved)                         // use plain object state
+      .map(([k])=> k)                                  // select keys
+      bigData.remove(oldEntries);                      // remove all at ones
+     //This should be about 60x faster.
+  }
+}
+
+Note that removing from arrays can be significanly slower
+All performance tips are wellcome
+```
+
+
+Please submit reports to https://github.com/jEnbuska/none-dux issues  
 
 
