@@ -13,13 +13,11 @@ export default class KnotTree {
   }
 
   [createChild](key) {
-    key +='';
     this[key] = new KnotTree(key, this);
     return this[key];
   }
 
   [renameSelf](key) {
-    key +='';
     if (this[_prev]) {
       delete this[_prev][this[_key]];
       this[_prev][key] = this;
@@ -28,7 +26,6 @@ export default class KnotTree {
   }
 
   [removeChild](key) {
-    key +='';
     this[key][_removed]= true;
     delete this[key][_prev];
     delete this[key];

@@ -9,6 +9,9 @@ const children = Symbol('children');
 
 const { getPrototypeOf, defineProperty, keys, } = Object;
 
+let getChildrenWarned;
+let getChildrenRecursiveWarned;
+
 export default class StateMapper {
 
   static __kill(target) {
@@ -17,8 +20,8 @@ export default class StateMapper {
   }
 
   static maxDepth = 45;
-  static onGoingTransaction = false;
   static invalidStateMappers = {
+    StateMapper: true,
     Number: true,
     String: true,
     RegExp: true,
@@ -36,7 +39,7 @@ export default class StateMapper {
     this[children] = {};
     for (const k in state) {
       if (StateMapper.couldBeParent(state[k])) {
-        this[createChildReferences](state[k], k,);
+        this[createChildReferences](state[k], k+'',);
       }
     }
   }
@@ -84,8 +87,6 @@ export default class StateMapper {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (value instanceof StateMapper) {
-      throw new Error('StateMapper does not take other StateMappers as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     } else if (!StateMapper.couldBeParent(value)) {
       throw new Error('StateMapper does not take other leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
@@ -97,8 +98,6 @@ export default class StateMapper {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (value instanceof StateMapper) {
-      throw new Error('StateMapper does not take other StateMappers as resetState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
@@ -133,22 +132,22 @@ export default class StateMapper {
     for (let k in newState) {
       k = '' + k;
       const child = this[children][k];
-      const subState = newState[k];
+      const newSubState = newState[k];
       if (child) {
-        if (subState !== prevState[k]) {
-          if (StateMapper.couldBeParent(subState)) {
+        if (newSubState !== prevState[k]) {
+          if (StateMapper.couldBeParent(newSubState)) {
             if (child.ref) {
-              child.ref[onClearState](subState, prevState[k]);
+              child.ref[onClearState](newSubState, prevState[k]);
             } else {
               delete this[k];
-              this[createChildReferences](subState, k);
+              this[createChildReferences](newSubState, k);
             }
           } else {
             this[onRemoveChild](k);
           }
         }
-      } else if (StateMapper.couldBeParent(subState)) {
-        this[createChildReferences](subState, k);
+      } else if (StateMapper.couldBeParent(newSubState)) {
+        this[createChildReferences](newSubState, k);
       }
     }
     return { ...prevState, ...newState, };
@@ -158,17 +157,15 @@ export default class StateMapper {
     const merge = { ...prevState, ...newState, };
     for (let k in merge) {
       k = '' + k;
-      const child = this[children][k];
-      const next = newState[k];
-      if (child) {
-        if (newState.hasOwnProperty(k)) {
-          if (next !== prevState[k]) {
-            if (StateMapper.couldBeParent(next)) {
-              if (child.ref) {
-                child.ref[onClearState](next, prevState[k]);
+      if (this[children][k]) {
+        if (newState[k]) {
+          if (newState[k] !== prevState[k]) {
+            if (StateMapper.couldBeParent(newState[k])) {
+              if (this[children][k].ref) {
+                this[children][k].ref[onClearState](newState[k], prevState[k]);
               } else {
                 delete this[k];
-                this[createChildReferences](next, k);
+                this[createChildReferences](newState[k], k);
               }
             } else {
               this[onRemoveChild](k);
@@ -177,8 +174,8 @@ export default class StateMapper {
         } else {
           this[onRemoveChild](k);
         }
-      } else if (StateMapper.couldBeParent(next)) {
-        this[createChildReferences](next, k);
+      } else if (StateMapper.couldBeParent(newState[k])) {
+        this[createChildReferences](newState[k], k);
       }
     }
   }
@@ -205,10 +202,10 @@ export default class StateMapper {
         if (i !== length && this[children][i]) {
           const child = this[children][i];
           if (child.ref) {
-            this[role][i][renameSelf](length);
+            this[role][i][renameSelf](length+'');
           }
           delete this[i];
-          this[createChildReferences](state[i], length, child.ref);
+          this[createChildReferences](state[i], length+'', child.ref);
         }
         nextState.push(state[i]);
       }
@@ -219,7 +216,8 @@ export default class StateMapper {
   [onRemoveFromObject](toBeRemoved, state = {}) {
     const poorMap = createPoorMap(toBeRemoved);
     const nextState = {};
-    for (const k in state) {
+    for (let k in state) {
+      k = k + ''
       if (poorMap[k]) {
         this[onRemoveChild](k);
       } else {
@@ -229,20 +227,18 @@ export default class StateMapper {
     return nextState;
   }
 
-  static getChildrenRecursiveWarned = false;
   getChildrenRecursively() {
-    if (StateMapper.getChildrenRecursiveWarned) {
+    if (getChildrenRecursiveWarned) {
       console.warn('getChildrenRecursively, force initializes the children and can be extremely heavy on big objects.\nUse this for debugging purposes only');
-      StateMapper.getChildrenRecursiveWarned = true;
+      getChildrenRecursiveWarned = true;
     }
     return keys(this[children]).map(k => this[k]).reduce(onReduceChildren, []);
   }
 
-  static getChildrenWarned = false;
   getChildren() {
-    if (StateMapper.getChildrenWarned) {
+    if (getChildrenWarned) {
       console.warn('getChildren is deprecated, it force initializes the children.\nYou need to perform this, you can achieve the same result with Object spread + Object+values');
-      StateMapper.getChildrenWarned = true;
+      getChildrenWarned = true;
     }
     return keys(this[children]).map(k => this[k]);
   }
