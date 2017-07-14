@@ -73,7 +73,7 @@ export default class StateMapper {
   }
 
   get prevState() {
-    console.error('prevState is deprecated and will always return undefined')
+    console.warn('prevState is deprecated and will always return undefined');
   }
 
   getId() {
@@ -96,8 +96,10 @@ export default class StateMapper {
     try {
       StateMapper.privateAccess = true;
       this[dispatcher].dispatch({ type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    } finally {
       StateMapper.privateAccess = false;
+    } catch (e) {
+      StateMapper.privateAccess = false;
+      throw e;
     }
     return this;
   }
@@ -112,8 +114,10 @@ export default class StateMapper {
     try {
       StateMapper.privateAccess = true;
       this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    } finally {
       StateMapper.privateAccess = false;
+    } catch (e) {
+      StateMapper.privateAccess = false;
+      throw e;
     }
     return this;
   }
@@ -128,8 +132,10 @@ export default class StateMapper {
     try {
       StateMapper.privateAccess = true;
       this[dispatcher].dispatch({ type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    } finally {
       StateMapper.privateAccess = false;
+    } catch (e) {
+      StateMapper.privateAccess = false;
+      throw e;
     }
     return this;
   }
@@ -143,8 +149,10 @@ export default class StateMapper {
     try {
       StateMapper.privateAccess = true;
       this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    } finally {
       StateMapper.privateAccess = false;
+    } catch (e) {
+      StateMapper.privateAccess = false;
+      throw e;
     }
     return this;
   }
