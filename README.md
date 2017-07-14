@@ -73,20 +73,24 @@ const root = (
 ```
 // 1st argument is nonedux state reference, 2nd one is redux store
 export function removeUser(userId) {
-   //users & todosByUser are created lazily first time they are referenced
-   return function ({users, todosByUser}, {dispatch}) {
-    const user = users[userId];
-    const usersTodos = todosByUser[userId]
-    user.setState({ verified: false, });
-    api.deleteUser(userId)
-      .then(()=> {
-        users.remove(userId);
-        userTodos.removeSelf();        
-      }); 
-  }
+   return function (nonedux, {dispatch}) {
+      const {users, todosByUser} = nonedux;
+      //users & todosByUser are created lazily first time they are referenced
+      
+      const user = users[userId]; //lazy
+      const usersTodos = todosByUser[userId] //lazy
+      
+      user.setState({ verified: false, });
+      
+      api.deleteUser(userId)
+        .then(()=> {
+          users.remove(userId);
+          userTodos.removeSelf();
+        });
+    }
 }
 
-function createTransaction(userId, data){
+function createPayment(userId, data){
   return function({users, transactions}){
   const user = users[userId];
   if(!user.state.pendingPayment){
@@ -100,6 +104,26 @@ function createTransaction(userId, data){
     }
   }
 }
+
+export function removeUserTranactional(userId) {
+   return function (nonedux, {dispatch}) {
+      const {users, todosByUser} = nonedux;
+      const user = users[userId];
+      const usersTodos = todosByUser[userId]
+      
+      user.setState({ verified: false, });
+      
+      api.deleteUser(userId)
+        .then(()=> {
+          nonedux.transaction(() => { // only 1 update to store
+            users.remove(userId);
+            userTodos.removeSelf();
+          })
+        });
+    }
+}
+
+
 ```
 String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
 ```
