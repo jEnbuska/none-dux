@@ -211,7 +211,7 @@ by
 
 ## Large non changing objects
 
-Children are created until they are referenced for the first time, so dumping a big non changing object to you state should not cause any overhead
+Children aren't created until they are referenced for the first time, so dumping a big non changing object to you state should not cause any overhead
 ```
 ...
 function fetchCustomerData(){
