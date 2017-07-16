@@ -1,0 +1,17 @@
+.auth-error{
+  color: red;
+  position: absolute;
+  font-size: .7em;
+  animation: .6s errorAppear;
+}
+
+@keyframes errorAppear{
+  0%{
+    font-size: 0;
+    opacity: 0;
+  }
+  100%{
+    font-size: .7em;
+    opacity: 1;
+   }
+}

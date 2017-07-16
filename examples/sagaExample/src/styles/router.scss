@@ -1,0 +1,35 @@
+@import "common";
+
+.activity-window {
+  top: 1%;
+  bottom: 1%;
+  position: absolute;
+  overflow: auto;
+  padding: 2em;
+  display: flex;
+  transition: all $defaultTransitionTime;
+  border: 1px solid white;
+}
+
+.route-change-default{
+  opacity: 1;
+  animation: .5s appear-view ease-in-out
+}
+.route-change-enter {
+  @extend .route-change-default
+}
+.route-change-leave {
+  @extend .route-change-default
+}
+
+@keyframes appear-view {
+  0%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+
+
+

@@ -1,39 +1,29 @@
 import React from 'react';
 import { CSSTransitionGroup, } from 'react-transition-group';
-import { withRouter, Switch, Route, Redirect, } from 'react-router-dom';
+import { withRouter, Switch, Route, } from 'react-router-dom';
 import { connect, } from 'react-redux';
-import Auth from '../components/Auth'
-import Sidebar from './Sidebar';
+import Auth from '../components/Auth';
+import Content from './Content';
 
-@connect(({auth}) => ({auth}))
 @withRouter
+@connect(({ blockContentInteraction, }) => ({ blockContentInteraction, }))
 export default class App extends React.Component {
 
-  state = {};
-
   render() {
-    const { auth, location, children, } = this.props;
-    const { pathname, } = location;
+    const { blockContentInteraction: block, location, } = this.props;
     return (
-      <div>
-        <Sidebar />
         <CSSTransitionGroup
           transitionName='route-change'
-          transitionEnter
-          transitionLeave
           transitionEnterTimeout={500}
           transitionLeaveTimeout={500}>
-          <div className='activity-window' key={pathname}>
+          <div className={`block-interaction${block ? '-active': '-inactive'}`} />
+          <div className='activity-window' key={location.pathname}>
             <Switch>
-              {!auth.user &&
-              !pathname.includes('auth') &&
-              (<Redirect to='/auth' />)}
-              <Route path='/auth' component={}/>
-              <Route component={() => 'hey'} />
+              <Route path='/auth' component={Auth} />
+              <Route path='/' component={Content} />
             </Switch>
           </div>
         </CSSTransitionGroup >
-      </div>
     );
   }
 }

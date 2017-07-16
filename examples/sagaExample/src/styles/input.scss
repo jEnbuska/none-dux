@@ -2,6 +2,7 @@
 
 .input-default {
   transition: all $defaultTransitionTime;
+  display: block;
   padding: 0.25em;
   border-radius: 0.25em;
   font-size: inherit;
@@ -16,33 +17,36 @@
   }
 }
 
-.input-label{
-  padding: .5em;
-  display: inline-block;
-}
-.input-wrapper{
-  display: block;
-}
-
-.invalid-input{
-  @extend .input-default;
+.input-invalid{
   background: #ffecec;
+  animation: .2s pop-focus;
+}
+.input-required{
+  animation: .3s shudder;
 }
 
-.validate-input-container{
-  display: flex;
-  align-items: center;
-  height: 50px;
+@keyframes pop-focus {
+  0%   { transform: scale(1.0);; }
+  50%   { transform: scale(1.1);; }
+  100%   { transform: scale(1.0);; }
 }
+@keyframes shudder {
+  10%, 90% {
+    transform: translate(-1px);
+  }
 
-.invalid-indicator-visible{
-  transition:all .4s;
-  height: 50px;
-  transform:rotate(360deg)
-}
-.invalid-indicator-hidden{
-  transition: all .4s;
-  height: 0;
+  20%, 80% {
+    transform: translate(1px);
+  }
+
+
+  30%, 50%, 70% {
+    transform: translate(-1px);
+  }
+
+  40%, 60% {
+    transform: translate(1px);
+  }
 }
 
 @mixin checkbox{
@@ -50,11 +54,12 @@
 }
 input[type='checkbox']{
   @include checkbox;
+  &:disabled{
+    opacity: .2;
+    box-shadow: 2px 2px 2px $neutralGrey;
+  }
 }
 
-input[type=range] #thumb{
-  color:black;
-}
 input[type='range']{
   padding:0;
   box-shadow: 3px 3px 3px $neutralGrey;

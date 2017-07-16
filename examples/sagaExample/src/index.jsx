@@ -1,38 +1,35 @@
+import 'babel-polyfill';
 import 'styles';
 import React from 'react';
 import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
-import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
+import { BrowserRouter, Route, } from 'react-router-dom';
 import { applyMiddleware, createStore, } from 'redux';
-import nonedux, { shape, } from '../../src';
+import createSagaMiddleware from 'redux-saga';
+import nonedux, { shape, } from '../../../src';
+import init from './sagas';
 import validators from './validators';
-import UserProfile from './containers/UserProfile.jsx';
-import BrowseUsers from './containers/BrowseUsers.jsx';
-import Users from './containers/Users.jsx';
-import App from './components/App';
+import App from './containers/App';
 
 const initialState= {
-  users: { content: {}, status: {}, },
-  todosByUser: { content: {}, status: {}, },
-  selections: { user: {}, },
+  auth: { token: null, user: {}, },
+  blockContentInteraction: false,
 };
 
-const { reducer, middlewares, subject, } = nonedux(initialState);
+const { reducer, middlewares, subject, } = nonedux(initialState, true); // true for saga
+middlewares.push(shape.validatorMiddleware(subject, validators));
+const sagaMiddleware = createSagaMiddleware();
+middlewares.push(sagaMiddleware);
 
-const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
+const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+sagaMiddleware.run(init.bind(subject));
 
 const Root = () => (
   <Provider store={store}>
-    <Router history={browserHistory}>
-      <Route path='/' component={App}>
-        <IndexRedirect to='users' />
-        <Route path='/users' component={Users}>
-          <IndexRoute relative component={BrowseUsers} />
-          <Route path=':userId' relative component={UserProfile} />
-        </Route>
-      </Route>
-    </Router>
+    <BrowserRouter >
+      <Route path='/' component={App} />
+    </BrowserRouter>
   </Provider>
   );
 

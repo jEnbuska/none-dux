@@ -1,4 +1,4 @@
-import { shape, } from '../../src';
+import { shape, } from '../../../src';
 
 const { types, any, } = shape;
 const { string, strict, number, bool, isRequired, } = types;
