@@ -1,15 +1,21 @@
-import createLeaf from './reducer/StateMapperLeaf';
+import createLeaf from './reducer/leafs';
 import shape from './shape';
 import { stateMapperPrivates, } from './common';
 import StateMapper from './reducer/StateMapper';
+import StateMapperSaga from './reducer/StateMapperSaga';
 import KnotTree from './reducer/KnotTree';
 import createReducer from './reducer/createReducer';
 import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddleware';
 
 const { propState, propPrevState, } = stateMapperPrivates;
 
-export default function initStateMapper(initialState = {}) {
-  const subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, onGoingTransaction: false, });
+export default function initStateMapper(initialState = {}, saga = false) {
+  let subject;
+  if (saga) {
+    subject = new StateMapperSaga(initialState, 0, new KnotTree(), { dispatch: () => { }, });
+  } else {
+    subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, onGoingTransaction: false, });
+  }
   subject[propState] = initialState;
   subject[propPrevState]= {};
   const thunk = createThunk(subject);

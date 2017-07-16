@@ -233,19 +233,41 @@ by
 
 
 
-## Large non changing objects
+## Very large objects
+When ever creating and object with more than 1000 Object entries consider using createLeaf helper function.
 
-Children aren't created until they are referenced for the first time, so dumping a big non changing object to you state should not cause any overhead
+If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
+
+Children aren't created until they are referenced for the first time.
 ```
 ...
 function fetchCustomerData(){
-  function({statistics}){
+  function(nonedux){
     //if children are not accessed previously they are created first time the are accessed
     fetchUserData()
       .then(({data}) => {
         let { transactions, associations } = data;
-        statistics.setState({transactions, associations}). //no children created;
-        const {transactions: t, associations: s} = statistics; // children 'transaction' & 'associations' were created        
+        nonedux.setState({statistics: {transactions, associations} }) // create pending* child 'statistic' (if not referenced previously)
+        nonedux.statistics.setState({transactions, associations}). // previosly pending* 'statistics' child was created, pending children 'transactions' & 'associations' created;
+        const {transactions: t, associations: s} = statistics; // previously pending children 'transaction' & 'associations' were created with own *pending children
+      })
+  }
+}
+...
+import {createLeaf} from 'none-dux'
+
+function fetchLotOfCustomeData(){
+  function({statistics}){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        transactions = createLeaf(transactions);
+        associations = createLeaf(associations)
+        statistics.setState({transactions, associations}). //no direct refence to children;
+        statistics.transactions //undefined
+        statistics.associations //undefined
+        statistics.state.transactions //!==undefined
+        statistics.state.associations  //!==undefined
       })
   }
 }
@@ -415,28 +437,79 @@ using shape makes the performance slower so check process.end.NODE_ENV before ad
 
 ## Performance
 
-If you have a object with thousands of entries and you are looping through them in an action, avoid the following first pattern:
+If you have a object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
 ```
+cosnt {values} = Object;
+
 function removeOldEntries_worstPerformance(){
   return function({bigData}){
     const {...dataEntries} = bigData;               //force init every non lazy child
     const shouldBeRemoved = (entry) => entry.date < Date.now()
-    Object.values(dataEntries)
+    values(dataEntries)
       .filter((e) => shouldBeRemoved(e.state))      // get every value separatelly (this is quite fast) 
       .forEach(e => e.removeSelf())                 // remove each separatelly
+      
      //If there was 5000 entries and all of them where removed, the whole operation could take > 1500ms on macbook pro
   }
 }
+...
 
-function removeOldEntries_bestPerformance(){
+cosnt {entries} = Object;
+
+function removeOldEntries_badPerformance(){
   return function({bigData}){
     const {state} = bigData;                           //ask state only ones
     const shouldBeRemoved = ([k, value]) => value.date < Date.now()
-    const oldEntries = Object.entries(dataEntries)
+    const oldEntries = entries(state)
       .filter(shouldBeRemoved)                         // use plain object state
       .map(([k])=> k)                                  // select keys
       bigData.remove(oldEntries);                      // remove all at ones
+      
      //This should be about 60x faster.
+  }
+}
+...
+
+cosnt {entries, assign} = Object;
+
+// Assuming bigData children are created by 'createLeaf' (see section about 'Very large objects'):
+/*
+  const bidDataContent = entries(data).reduce((acc, [k, v]) => assign(acc, {[k]: createLeaf(v) }), {})
+  nonedux.bigData.setState(bigDataContent)
+*/
+
+function removeOldEntries_goodPerformance(){
+  return function({bigData}){
+    const {state} = bigData;
+    const shouldBeRemoved = ([k, value]) => value.date < Date.now()
+    const oldEntries = entries(state)
+      .filter(shouldBeRemoved)                         // use plain object state
+      .map(([k])=> k)                                  // select keys
+      
+      bigData.remove(oldEntries);                      // remove all at ones
+      
+     //This should be about 160x faster than slowest.
+  }
+}
+...
+import {createLeaf} from 'none-dux'
+
+cosnt {entries, assign} = Object;
+
+// Assuming bigData is created by 'createLeaf' (see section about 'Very large objects'):
+// nonedux.setState({bigData: createLeaf(data)})
+
+function removeOldEntries_bestPerformance(){
+  return function(nonedux){
+    const {bigData} = nonedux.state;    
+    const shouldBeKept = ([k, value]) => value.date >= Date.now()
+    const nextBigData = entries(bigData)
+      .filter(shouldBeKept)                        
+      .reduce((acc, [k, v]) => assign(acc, {[k]: v}),{})
+      
+    nonedux.setState({bigData: createLeaf(nextBigData)})
+    
+     //Performance should very close to optimal. about 350x faster than slowest
   }
 }
 

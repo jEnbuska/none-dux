@@ -1,14 +1,11 @@
 import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, } from '../common';
-
-const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, } = stateMapperPrivates;
+import createLeaf from './leafs';
+const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
-const createChildReferences = Symbol('createChildReferences');
-const children = Symbol('children');
 
 const { getPrototypeOf, defineProperty, keys, } = Object;
-
 let getChildrenWarned;
 let getChildrenRecursiveWarned;
 
@@ -16,11 +13,14 @@ export default class StateMapper {
 
   static __kill(target) {
     console.trace();
-    throw new Error('StateMapper maximum depth '+StateMapper.maxDepth+' exceeded by "'+target[resolveIdentity].join(', ')+'"');
+    throw new Error('StateMapper maximum depth '+StateMapper.maxDepth+' exceeded by "'+target[role][resolveIdentity].join(', ')+'"');
   }
 
   static maxDepth = 45;
   static invalidStateMappers = {
+    ObjectLeaf: true,
+    ArrayLeaf: true,
+    StateMapperSaga: true,
     StateMapper: true,
     Number: true,
     String: true,
@@ -39,7 +39,7 @@ export default class StateMapper {
     this[children] = {};
     for (const k in state) {
       if (StateMapper.couldBeParent(state[k])) {
-        this[createChildReferences](state[k], k+'',);
+        this._createChild(state[k], k+'',);
       }
     }
   }
@@ -99,7 +99,7 @@ export default class StateMapper {
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     }
-    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
+    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction});
     return this;
   }
 
@@ -140,14 +140,14 @@ export default class StateMapper {
               child.ref[onClearState](newSubState, prevState[k]);
             } else {
               delete this[k];
-              this[createChildReferences](newSubState, k);
+              this._createChild(newSubState, k);
             }
           } else {
             this[onRemoveChild](k);
           }
         }
       } else if (StateMapper.couldBeParent(newSubState)) {
-        this[createChildReferences](newSubState, k);
+        this._createChild(newSubState, k);
       }
     }
     return { ...prevState, ...newState, };
@@ -165,7 +165,7 @@ export default class StateMapper {
                 this[children][k].ref[onClearState](newState[k], prevState[k]);
               } else {
                 delete this[k];
-                this[createChildReferences](newState[k], k);
+                this._createChild(newState[k], k);
               }
             } else {
               this[onRemoveChild](k);
@@ -175,7 +175,7 @@ export default class StateMapper {
           this[onRemoveChild](k);
         }
       } else if (StateMapper.couldBeParent(newState[k])) {
-        this[createChildReferences](newState[k], k);
+        this._createChild(newState[k], k);
       }
     }
   }
@@ -205,7 +205,7 @@ export default class StateMapper {
             this[role][i][renameSelf](length+'');
           }
           delete this[i];
-          this[createChildReferences](state[i], length+'', child.ref);
+          this._createChild(state[i], length+'', child.ref);
         }
         nextState.push(state[i]);
       }
@@ -217,7 +217,7 @@ export default class StateMapper {
     const poorMap = createPoorMap(toBeRemoved);
     const nextState = {};
     for (let k in state) {
-      k = k + ''
+      k += '';
       if (poorMap[k]) {
         this[onRemoveChild](k);
       } else {
@@ -251,7 +251,7 @@ export default class StateMapper {
     }
   }
 
-  [createChildReferences](initialState, k, predefinedRef) {
+  _createChild(initialState, k, predefinedRef) {
     const child = this[children][k] = { ref: predefinedRef, };
     defineProperty(this, k, {
       configurable: true,

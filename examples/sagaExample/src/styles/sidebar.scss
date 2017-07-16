@@ -1,0 +1,27 @@
+@import './common';
+
+.sidebar-wrapper{
+  flex-grow: 0;
+  padding: 0;
+  width: 15%;
+  height: 100%;
+  position: fixed;
+  flex-direction: column;
+}
+
+.sidebar-item{
+  height: 50px;
+  text-align: center;
+  margin: .5em;
+  cursor: pointer;
+  border: 1px solid black;
+}
+
+.sidebar-item-active{
+  @extend .sidebar-item;
+  color:blue;
+}
+.sidebar-item-text{
+  margin-top: .7em;
+  overflow: hidden;
+}

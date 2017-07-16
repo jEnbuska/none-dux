@@ -2,6 +2,8 @@ import { TARGET, GET_STATE, GET_PREV_STATE, findChild, stateMapperPrivates, } fr
 
 const { dispatcher, propState, propPrevState, } = stateMapperPrivates;
 
+// TODO Created saga action reactor
+
 export function createThunk(stateMapper) {
   return (store) => {
     stateMapper[dispatcher].dispatch = action => store.dispatch(action);

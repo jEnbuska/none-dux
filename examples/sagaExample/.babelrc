@@ -1,0 +1,10 @@
+{
+  "presets": [
+    "react", "latest", "stage-0"
+  ],
+  "plugins": [
+    "syntax-async-functions",
+    "transform-async-to-generator",
+    "transform-decorators-legacy"
+  ]
+}
