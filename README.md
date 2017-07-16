@@ -456,7 +456,7 @@ function removeOldEntries_worstPerformance(){
 
 cosnt {entries} = Object;
 
-function removeOldEntries_badPerformance(){
+function removeOldEntries_semiPerformance(){
   return function({bigData}){
     const {state} = bigData;                           //ask state only ones
     const shouldBeRemoved = ([k, value]) => value.date < Date.now()
