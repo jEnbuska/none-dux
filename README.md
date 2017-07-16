@@ -438,6 +438,7 @@ using shape makes the performance slower so check process.end.NODE_ENV before ad
 ## Performance
 
 If you have a object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
+
 ```
 cosnt {values} = Object;
 
@@ -453,6 +454,8 @@ function removeOldEntries_worstPerformance(){
   }
 }
 ...
+
+//Note that if entries are not Objects/Arrays no performance optimization needed
 
 cosnt {entries} = Object;
 
