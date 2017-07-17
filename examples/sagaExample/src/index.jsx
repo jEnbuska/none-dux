@@ -4,7 +4,7 @@ import React from 'react';
 import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, } from 'react-router-dom';
-import { applyMiddleware, createStore, } from 'redux';
+import { applyMiddleware, createStore, combineReducers, } from 'redux';
 import createSagaMiddleware from 'redux-saga';
 import nonedux, { shape, } from '../../../src';
 import init from './sagas';
@@ -16,13 +16,13 @@ const initialState= {
   blockContentInteraction: false,
 };
 
-const { reducer, middlewares, subject, } = nonedux(initialState, true); // true for saga
+const { reducers, middlewares, subject, } = nonedux(initialState, true); // true for saga
 middlewares.push(shape.validatorMiddleware(subject, validators));
 const sagaMiddleware = createSagaMiddleware();
 middlewares.push(sagaMiddleware);
 
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+const store = createStoreWithMiddleware(combineReducers({ ...reducers, }), window.devToolsExtension && window.devToolsExtension());
 sagaMiddleware.run(init.bind(subject));
 
 const Root = () => (
