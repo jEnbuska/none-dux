@@ -13,7 +13,7 @@ Application state can be changed directly from actions.
 
 No external dependencies
 
-peerDependencies: { redux }, ... and optional react-redux
+peerDependencies: redux  and react-redux
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
@@ -183,6 +183,41 @@ target[2].removeSelf();
 target[3].removeSelf();
 ```
 
+##State
+**Root level** reducer variables must be defined at nonedux initialState
+
+<sub>... but the type can be changed</sub>
+
+```
+function stateExample(){
+  function(nonedux){
+     console.log(nonedux.state)//{a: {}}
+     nonedux.setState({a:1})
+     nonedux.setState({a: 'hello none-dux'})
+     nonedux.setState({a: {b: {c: {} } } } )
+     const {b} = nonedux.a;
+     const {c} = b;
+     
+     //by calling state (getter)
+     const orgState = c.state
+     //an action will be dispatched and returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
+     
+     //If other branch of the object is mutated
+     b.setState({d: {}})
+     
+     //... then states will not change due to path copying
+     expect(orgState).toBe(c.state);
+     
+     //After remove
+     c.removeSelf();
+     c.state; // causes console error;
+     c.setState({}) // throws Error
+     
+     nonedux.remove('a'); // Don't do this
+     nonedux.clearState({b: {}}) //Don't do this either
+  }
+}
+```
 ##### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
 happy path:
 
@@ -237,58 +272,105 @@ replace with something like
 ```
 ---------------
 
+## Type checking
 
-
-## Large objects
-When ever creating and object with more than 1000 object children consider using createLeaf helper function.
-
-If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
-
-Children aren't created until they are referenced for the first time, but the promise of creating it later when referenced is work too.
 ```
-...
-function fetchCustomerData(){
-  function(nonedux){
-    fetchUserData()
-      .then(({data}) => {
-        let { transactions, associations } = data;
-        nonedux.setState({statistics: {transactions, associations} })
-        // if child statistics is not accessed previously it is created now
-        nonedux.statistics.setState({transactions, associations}). 
-        // pending children 'transactions' & 'associations' created;
-        const {transactions: t, associations: s} = statistics; 
-        // children 'transaction' & 'associations' were created & their lazy children are now pending
-      })
-  }
-}
-...
-import {createLeaf} from 'none-dux'
+//Provides console errors when something breaks spesifications.
 
-function fetchCustomerData_Lightweight(){
-  function({statistics}){
-    fetchUserData()
-      .then(({data}) => {
-        let { transactions, associations } = data;
-        transactions = createLeaf(transactions);
-        associations = createLeaf(associations)
-        statistics.setState({transactions, associations}). //no direct refence to children;
-        statistics.transactions //undefined
-        statistics.associations //undefined
-        statistics.state.transactions //!==undefined
-        statistics.state.associations  //!==undefined
-      })
-  }
+import nonedux, { shape } from 'none-dux
+
+const { reducer, middlewares, subject, } = nonedux(initialState);
+
+const { types, any, validatorMiddleware } = shape;
+const { isRequired, strict string, bool } = types;
+
+const validator = { ...isRequired.strict  // ! Use destructed when you have Objects shape spesification
+  todosByUser: { ...isRequired,           // Not null not undefined
+    [any]: {                              // byUserIds 
+      [any]: { ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
+        userId: string.isRequired,        // ! No desctructing   
+        id: string.isRequired,
+        description: string.isRequired,
+        done: bool,
+    },
+  },
+  users: {  // by id
+   [any]: {
+    ...strict,
+    //one liner for creating multiple keys with same spec
+    ...string.many('id', 'firstName', 'lastName')  
+    },
+  },
+  
+  //more examples
+  someObjectList: [
+    isRequired,         // ! No desctructing
+    {
+      a: number,
+      b: {},            // Object that can include anything an is not required
+    }
+  ],
+  someStringList: [ string ]
+  request: {...isRequired}
+};
+```
+##### Few key details about type checking that are easy to miss
+```
+//Object shape
+
+Won't work::
+{ strict }
+{ isRequired }
+
+Will work:
+{ ...isRequired }
+{ ...strict }
+{ ...strict.isRequired }
+{ ...isRequired.strict }
+{ isRequired: string } //Assuming key name is actually 'isRequired'
+
+//Array shape
+ 
+Won't work
+[ ...isRequired, number ]
+[ ...strict, {} ]
+[ ...strict.isRequired ]
+[ ...isRequired.strict, [] ]
+
+Will work:
+[ strict, {}]
+[ isRequired, number ]
+[ strict.isRequired, {...isRequired} ]
+[ isRequired.strict, [] ]
+
+any
+Will work:
+{ [any]: number, something: {} } //uses spec object if key is something else uses spec number
+{ [any]: {} }
+{ any: string, } //means that the key name is actually 'any'
+
+Wont work:
+
+{ [any]: any, } //any is not type but identifier
+{ something: any } //same here
+
+```
+
+If you do not have object spread available (with 'objects' shape):
+```
+//instead of
+{
+  ...strict.isRequired
+}
+//do
+const {spec} = shape;
+{
+ [spec]: isRequired.strict[spec]
 }
 ```
-### Warnings
-Using custom JavaScript classes in reducer state is not well tested.
+using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
-Using non normalized state is not a must but recommended
-
-All keys must be strings or numbers
-
-There might be some unknown weak spots with arrays that contain other objects.
-
+----------------
 ## Atomic changes
 ```
 ...
@@ -361,133 +443,6 @@ function doChangesAndThrowError(){
 }
 ```
 
-####State
-```
-function stateExample(){
-  function(nonedux){
-     console.log(nonedux.state)//{a: {}}
-     nonedux.setState({a: {b: {c: {} } } } )
-     const {b} = nonedux.a;
-     const {c} = b;
-     
-     //by calling state (getter)
-     const orgState = c.state
-     //an action will be dispatched and returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
-     
-     //If other branch of the object is mutated
-     b.setState({d: {}})
-     
-     //... then states will not change due to path copying
-     expect(orgState).toBe(c.state);
-     
-     //After remove
-     c.removeSelf();
-     c.state; // causes console error;
-     c.setState({}) // throws Error
-  }
-}
-```
-
-## Type checking
-
-```
-//Provides console errors when something breaks spesifications.
-
-import nonedux, { shape } from 'none-dux
-
-const { reducer, middlewares, subject, } = nonedux(initialState);
-
-const { types, any, validatorMiddleware } = shape;
-const { isRequired, strict string, bool } = types;
-
-const validator = { ...isRequired.strict  // ! Use destructed when you have Objects shape spesification
-  todosByUser: { ...isRequired,           // Not null not undefined
-    [any]: {                              // byUserIds 
-      [any]: { ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
-        userId: string.isRequired,        // ! No desctructing   
-        id: string.isRequired,
-        description: string.isRequired,
-        done: bool,
-    },
-  },
-  users: {  // by id
-   [any]: {
-    ...strict,
-    //one liner for creating multiple keys with same spec
-    ...string.many('id', 'firstName', 'lastName')  
-    },
-  },
-  
-  //more examples
-  someObjectList: [
-    isRequired,         // ! No desctructing
-    {
-      a: number,
-      b: {},            // Object that can include anything an is not required
-    }
-  ],
-  someStringList: [ string ]
-  request: {...isRequired}
-};
-```
-### Few key details about type checking that are easy to miss
-```
-//Object shape
-
-Won't work::
-{ strict }
-{ isRequired }
-
-Will work:
-{ ...isRequired }
-{ ...strict }
-{ ...strict.isRequired }
-{ ...isRequired.strict }
-{ isRequired: string } //Assuming key name is actually 'isRequired'
-
-//Array shape
- 
-Won't work
-[ ...isRequired, number ]
-[ ...strict, {} ]
-[ ...strict.isRequired ]
-[ ...isRequired.strict, [] ]
-
-Will work:
-[ strict, {}]
-[ isRequired, number ]
-[ strict.isRequired, {...isRequired} ]
-[ isRequired.strict, [] ]
-
-any
-Will work:
-{ [any]: number, something: {} } //uses spec object if key is something else uses spec number
-{ [any]: {} }
-{ any: string, } //means that the key name is actually 'any'
-
-Wont work:
-
-{ [any]: any, } //any is not type but identifier
-{ something: any } //same here
-
-```
-
-If you do not have object spread available (with 'objects' shape):
-```
-//instead of
-{
-  ...strict.isRequired
-}
-//do
-const {spec} = shape;
-{
- [spec]: isRequired.strict[spec]
-}
-```
-using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
-
-----------------
-
 ## Performance
 
 If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
@@ -528,7 +483,7 @@ function removeOldEntries_semiPerformance(){
 
 cosnt {entries, assign} = Object;
 
-// Assuming bigData children are created by 'createLeaf' (see section about 'Large objects'):
+// Assuming bigData children are created by 'createLeaf' (see next section about 'Large objects'):
 /*
   const bidDataContent = entries(data).reduce((acc, [k, v]) => assign(acc, {[k]: createLeaf(v) }), {})
   nonedux.bigData.setState(bigDataContent)
@@ -572,6 +527,92 @@ function removeOldEntries_bestPerformance(){
 Note that removing from arrays can be significanly slower
 All performance tips are wellcome
 ```
+
+## Large objects
+When ever creating and object with more than 1000 object children consider using createLeaf helper function.
+
+If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
+
+Children aren't created until they are referred to for the first time, but the promise* of creating them later when referred is work too.
+
+<sub><sub>*(**promise** literally, not JavaScript Promise)</sub></sub>
+```
+...
+function fetchCustomerData(){
+  function(nonedux){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        nonedux.setState({statistics: {transactions, associations} })
+        // if child statistics is not accessed previously it is created now
+        nonedux.statistics.setState({transactions, associations}). 
+        // pending children 'transactions' & 'associations' created;
+        const {transactions: t, associations: s} = statistics; 
+        // children 'transaction' & 'associations' were created & their lazy children are now pending
+      })
+  }
+}
+...
+import {createLeaf} from 'none-dux'
+
+function fetchCustomerData_Lightweight(){
+  function({statistics}){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        transactions = createLeaf(transactions);
+        associations = createLeaf(associations)
+        statistics.setState({transactions, associations}). //no direct refence to children;
+        statistics.transactions //undefined
+        statistics.associations //undefined
+        statistics.state.transactions //!==undefined
+        statistics.state.associations  //!==undefined
+      })
+  }
+}
+```
+## Leaf types:
+Leafs are types that do not have children, nor they cannot be referenced directly but only through state
+```
+...
+const {child} = nonedux;
+child.clearState({
+  numb: 1, str: 'abc', 
+  err: new Error(), date: Date.now(), 
+  regexp: /nonedux/,
+  bool: false,
+  func: () => console.log('im a function')
+  arrLeaf = createLeaf([ 1, {}, [] ]),
+  objLeaf = createLeaf({ a:1, b: {}, c[] })
+})
+const { ...childsChildren } = child;
+Object.keys(childsChildren).length;   // 0
+Object.keys(child.state).length;      // 7
+Object.getPrototypeOf(child.state.arrLeaf).constructor.name // ArrayLeaf
+Object.getPrototypeOf(child.state.objLeaf).constructor.name // ObjectLeaf
+...
+```
+#### Adding custom leaf types
+```
+import { leafs } from 'none-dux'
+
+class MyClass {};
+
+leafs.MyClass = true;
+
+//not leafs[MyClass] = true;
+```
+Define leaf types before they are added to state
+
+--------------
+## Warnings
+Using custom JavaScript classes in reducer state is not well tested.
+
+Using non normalized state is not a must but recommended
+
+All keys must be strings or numbers
+
+There might be some unknown weak spots with Arrays that contain other Objects/Arrays.
 
 
 Please submit reports to https://github.com/jEnbuska/none-dux issues  
