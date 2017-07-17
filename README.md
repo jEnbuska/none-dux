@@ -239,7 +239,7 @@ replace with something like
 
 
 
-## Very large objects
+## Large objects
 When ever creating and object with more than 1000 object children consider using createLeaf helper function.
 
 If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
@@ -365,6 +365,7 @@ function doChangesAndThrowError(){
 ```
 function stateExample(){
   function(nonedux){
+     console.log(nonedux.state)//{a: {}}
      nonedux.setState({a: {b: {c: {} } } } )
      const {b} = nonedux.a;
      const {c} = b;
@@ -429,7 +430,47 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
   request: {...isRequired}
 };
 ```
-If you do not have object spread available (with objects shape):
+### Few key details about type checking that are easy to miss
+```
+//Object shape
+
+Won't work::
+{ strict }
+{ isRequired }
+
+Will work:
+{ ...isRequired }
+{ ...strict }
+{ ...strict.isRequired }
+{ ...isRequired.strict }
+
+//Array shape
+ 
+Won't work
+[ ...isRequired ]
+[ ...strict ]
+[ ...strict.isRequired ]
+[ ...isRequired.strict ]
+
+Will work:
+[ strict ]
+[ isRequired ]
+[ strict.isRequired ]
+[ isRequired.strict ]
+
+any
+Will work:
+{ [any]: number, something: {} } //uses spec object if key is something else uses spec number
+{ [any]: {} }
+
+Wont work:
+{ any: string, } //means that the key name is actually 'any'
+{ [any]: any, } //any is not type but identifier
+{ something: any } //same here
+
+```
+
+If you do not have object spread available (with 'objects' shape):
 ```
 //instead of
 {
