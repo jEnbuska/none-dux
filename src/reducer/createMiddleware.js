@@ -31,7 +31,6 @@ export function createStateAccessMiddleware(stateMapper) {
 export function createStateChanged(root) {
   let state = root[propState];
   return () => (next) => (action) => {
-    console.log('changer')
     const { type, [TARGET]: path, [PARAM]: param, [PUBLISH_NOW]: publishNow, } = action;
     if (path) {
       const { child, childState, childList, } = createChildList(root, path);
