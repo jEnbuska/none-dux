@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "less verbose react handling with redux react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "10.0.0-beta",
+  "version": "10.0.1",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {
@@ -15,7 +15,8 @@
     "redux",
     "react-redux",
     "redux-saga",
-    "redux-thunk"
+    "redux-thunk",
+    "redux-form"
   ],
   "scripts": {
     "lint-fix": "eslint --ext .jsx --ext .js . --fix",

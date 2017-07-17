@@ -1,10 +1,13 @@
 const { assign, freeze, seal, values, } = Object;
 
-// If you have an object that you be an StateMapper
 /*
- * const judgeStaticData = {....}
- * */
-// target.setState({resources: createLeaf(judgeStaticData)})
+*leaf is a lightweight child of StateMapper*
+const judgeStaticData = {....}
+target.setState({resources: createLeaf(judgeStaticData)})
+target.resoureces //undefined
+target.state.resoureces //!==undefined
+See README section 'Performance'
+*/
 export default function createLeaf(obj) {
   if (obj instanceof Object) {
     if (obj instanceof Array) {
@@ -38,12 +41,10 @@ export class ArrayLeaf {
   [Symbol.iterator]() {
     let index = 0;
     return {
-      next: () => {
-        return {
-          value: this[index++],
-          done: index===this.length+1,
-        };
-      },
+      next: () => ({
+        value: this[index++],
+        done: index===this.length+1,
+      }),
     };
   }
 
