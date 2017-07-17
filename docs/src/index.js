@@ -16,7 +16,6 @@ const { reducer, middlewares, subject, } = nonedux(initialState);
 
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
-console.log('should log 4');
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>

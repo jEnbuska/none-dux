@@ -14,7 +14,6 @@ export default class App extends React.Component {
   state = { sidebarCollapsed: false, pathname: undefined, data: {}, };
 
   render() {
-    console.log(this.props.location.pathname)
     const { sidebarCollapsed, pathname, } = this.state;
     return (
       <div>

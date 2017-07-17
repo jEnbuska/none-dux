@@ -8,7 +8,6 @@ import Breadcrumbs from './Breadcrumbs';
 import s from '../styles/app.style';
 
 function App({users}) {
-  console.log(users)
   return (
     <div style={s.root}>
       <h1 style={s.title}>Single Page Apps for GitHub Pages</h1>
