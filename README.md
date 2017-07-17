@@ -61,7 +61,7 @@ const initialState = { //Sames as the initial state of store
 const { reducers, middlewares } = nonedux(initialState);
 console.log(Object.keys(reducers)); //['request', 'todosByUser', 'users']
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-const store = createStoreWithMiddleware(comboneReducers({...reducers})); // can be combined with other reducers like redux-form if needed
+const store = createStoreWithMiddleware(comboneReducers({...reducers})); // can be combined with other reducers like redux-form
 
 const root = (
   <Provider store={store}>
