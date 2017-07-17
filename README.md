@@ -448,16 +448,16 @@ Will work:
 //Array shape
  
 Won't work
-[ ...isRequired ]
-[ ...strict ]
+[ ...isRequired, number ]
+[ ...strict, {} ]
 [ ...strict.isRequired ]
-[ ...isRequired.strict ]
+[ ...isRequired.strict, [] ]
 
 Will work:
-[ strict ]
-[ isRequired ]
-[ strict.isRequired ]
-[ isRequired.strict ]
+[ strict, {}]
+[ isRequired, number ]
+[ strict.isRequired, {...isRequired} ]
+[ isRequired.strict, [] ]
 
 any
 Will work:
