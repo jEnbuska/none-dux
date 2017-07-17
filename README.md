@@ -5,7 +5,7 @@ Small sized React-redux extension, that opens a possibility to remove the most o
 
 Alternative for 'react-redux + redux-thunk' stack
 
-Can also be used with redux-saga, to reduce **reducer** boilerplate: (No documentation: See examples/sagaExample. Some best practice guidelines should be decided)
+Can also be used with redux-saga, to remove all **reducer boilerplate**: (No documentation: See examples/sagaExample. Some best practice guidelines should be decided)
 
 Application state can be changed directly from actions.
 
@@ -13,7 +13,7 @@ Application state can be changed directly from actions.
 
 No external dependencies
 
-peerDependencies: { redux, react-redux },
+peerDependencies: { redux }, ... and optional react-redux
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
