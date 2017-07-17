@@ -59,3 +59,17 @@ export const invalidReferenceHandler = {
     throw new Error('Cannot apply remove to detached child '+target.join(', ')+'\nParam: '+stringify(param));
   },
 };
+
+export const invalidParents = {
+  ObjectLeaf: true,
+  ArrayLeaf: true,
+  StateMapperSaga: true,
+  StateMapper: true,
+  Number: true,
+  String: true,
+  RegExp: true,
+  Boolean: true,
+  Function: true,
+  Date: true,
+  Error: true,
+};
