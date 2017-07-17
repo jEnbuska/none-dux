@@ -186,7 +186,7 @@ target[3].removeSelf();
 ##State
 **Root level** reducer variables must be defined at nonedux initialState
 
-<sub>... but the type can be changed</sub>
+<sub>...  the types can be changed</sub>
 
 ```
 function stateExample(){
