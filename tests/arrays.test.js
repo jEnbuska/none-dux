@@ -32,7 +32,36 @@ describe('arrays as state', () => {
     expect(subject.a.state[0]).toEqual(1);
   });
 
-  test('onRemove from array in arbitrary order', () => {
+  test('remove from array in arbitrary order', () => {
+    const { subject, } = createStoreWithNonedux([ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ]);
+    subject.remove([ 3, 1, 0, 7, ]);
+    expect(subject.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
+    expect(subject[0].state).toEqual({ c: 3, });
+    expect(subject[1].state).toEqual({ e: 5, });
+    expect(subject[2].state).toEqual({ f: 6, });
+    expect(subject[3].state).toEqual({ g: 7, });
+    expect(subject[4]).toEqual(undefined);
+    expect(subject[5]).toEqual(undefined);
+    expect(subject[6]).toEqual(undefined);
+    expect(subject[7]).toEqual(undefined);
+  });
+
+  test('remove preaccessed children from array in arbitrary order', () => {
+    const { subject, } = createStoreWithNonedux([ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ]);
+    subject.getChildren();
+    subject.remove([ 3, 1, 0, 7, ]);
+    expect(subject.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
+    expect(subject[0].state).toEqual({ c: 3, });
+    expect(subject[1].state).toEqual({ e: 5, });
+    expect(subject[2].state).toEqual({ f: 6, });
+    expect(subject[3].state).toEqual({ g: 7, });
+    expect(subject[4]).toEqual(undefined);
+    expect(subject[5]).toEqual(undefined);
+    expect(subject[6]).toEqual(undefined);
+    expect(subject[7]).toEqual(undefined);
+  });
+
+  test('remove from array in arbitrary order, preAccessed children', () => {
     const { subject, } = createStoreWithNonedux([ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ]);
     subject.remove([ 3, 1, 0, 7, ]);
     expect(subject.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
