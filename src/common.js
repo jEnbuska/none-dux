@@ -38,6 +38,7 @@ export const stateMapperPrivates = {
   onRemoveChild: Symbol('onRemoveChild'),
   children: Symbol('children'),
   handleChange: Symbol('handleChange'),
+  pendingState: Symbol('pendingState'),
 };
 
 export const knotTree = {
