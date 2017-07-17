@@ -1,7 +1,8 @@
-import { stateMapperPrivates, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_NOW, } from '../common';
+import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, } from '../common';
 import StateMapper from './StateMapper';
 
 const { role, depth, dispatcher, children, } = stateMapperPrivates;
+const { createChild, } = knotTree;
 
 const { defineProperty, } = Object;
 const bindables = [ 'transaction', 'getId', 'remove', 'removeSelf', 'getIdentity', 'setState', 'clearState', ];
@@ -58,17 +59,13 @@ export default class StateMapperSaga extends StateMapper {
     return { type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: true, };
   }
 
-  _createChild(initialState, k, predefinedRef) {
-    const child = this[children][k] = { ref: predefinedRef, };
+  _createChild(k, childRole = this[role][createChild](k)) {
     defineProperty(this, k, {
       configurable: true,
       enumerable: true,
-      get: () => {
-        if (child.ref) {
-          return child.ref;
-        }
-        child.ref = new StateMapperSaga(initialState, this[depth] + 1, this[role][createChild](k), this[dispatcher]);
-        return child.ref;
+      get: () => this[children][k] || (this[children][k] = new StateMapperSaga(undefined, this[depth] + 1, childRole, this[dispatcher])),
+      set: (child) => {
+        this[children][k] = child;
       },
     });
   }
