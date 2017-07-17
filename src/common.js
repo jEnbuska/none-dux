@@ -8,7 +8,6 @@ export const PARAM = 'NONEDUX::PARAM';
 export const PUBLISH_CHANGES = 'NONEDUX::PUBLISH_CHANGES';
 export const PUBLISH_NOW = 'NONEDUX::PUBLISH_NOW';
 export const ROLLBACK = 'NONEDUX::ROLLBACK';
-export const CREATE_CHILDREN = 'NONEDUX::CREATE_CHILDREN';
 
 export function stringify(obj) {
   try {
