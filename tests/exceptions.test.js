@@ -28,34 +28,34 @@ describe('killSwitch', () => {
     () => {
       let killSwitchIsTriggered = false;
 
-      const { subject, }= createStoreWithNonedux({});
+      const { subject, }= createStoreWithNonedux({ a: {}, });
       StateMapper.__kill = () => { killSwitchIsTriggered = true; };
       let ref = subject;
       for (let i = 0; i<45; i++) {
         ref.setState({ a: {}, });
         ref = ref.a;
-        ref.state
+        ref.state;
         expect(killSwitchIsTriggered).toBeFalsy();
       }
       ref.setState({ a: {}, });
-      ref.a.state
+      ref.a.state;
       expect(killSwitchIsTriggered).toBeTruthy();
     });
   test('changing __applyRemoved sub subject should throw an exception',
     () => {
-      const { subject, }= createStoreWithNonedux({ a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, });
-      const { a, c, } = subject;
+      const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
+      const { a, c, } = root;
       const { d, } = c;
-      subject.remove('a');
-      subject.remove([ 'c', ]);
+      root.remove('a');
+      root.remove([ 'c', ]);
       verifyErrorOnChange(a, c, d);
     });
 
   test('accessing remove sub subject should throw an exception', () => {
-    const { subject, }= createStoreWithNonedux({ a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, });
-    const { a, b, c, } = subject;
+    const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+    const { a, b, c, } = root;
     const { d, } = c;
-    subject.remove('a', 'b', 'c');
+    root.remove('a', 'b', 'c');
     expect(() => a.setState({})).toThrow(Error);
     expect(() => b.setState({})).toThrow(Error);
     expect(() => c.setState({})).toThrow(Error);

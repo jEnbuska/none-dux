@@ -16,30 +16,31 @@ describe('arrays as state', () => {
   beforeEach(() => { invalidAccessCalls = []; });
 
   test('accessing remove object children', () => {
-    const { subject, } = createStoreWithNonedux({ a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, });
-    const { a, } = subject;
+    const { subject, } = createStoreWithNonedux({ root: { a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, }, });
+    const { a, } = subject.root;
     expect(a.state).toBeDefined();
-    subject.remove('a');
+    subject.root.remove('a');
     expect(invalidAccessCalls.length).toBe(0);
     expect(a.state).toBeUndefined();
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
 
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, ]);
 
-    const { d, } = subject.b;
-    subject.b.remove('d');
+    const { d, } = subject.root.b;
+    subject.root.b.remove('d');
     expect(d.state).toBeUndefined();
     expect(invalidAccessCalls).toEqual([ { id: 'a', name: 'state', }, { id: 'd', name: 'state', }, ]);
   });
 
   test('accessing removed array children', () => {
-    const { subject, } = createStoreWithNonedux([ {}, {}, {}, {}, ]);
-    const first = subject[0];
-    const second = subject[1];
-    const third = subject[2];
-    const fourth = subject[3];
+    const { subject, } = createStoreWithNonedux({ root: [ {}, {}, {}, {}, ], });
+    const { root, } = subject;
+    const first = root[0];
+    const second = root[1];
+    const third = root[2];
+    const fourth = root[3];
 
-    subject.remove('1');
+    root.remove('1');
     expect(first.state).toBeDefined();
     expect(invalidAccessCalls.length).toEqual(0);
     expect(second.state).toBeUndefined();
@@ -50,9 +51,9 @@ describe('arrays as state', () => {
   });
 
   test('accessing children of removed value', () => {
-    const { subject, } = createStoreWithNonedux({ a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], });
+    const { subject, } = createStoreWithNonedux({root: { a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], }});
 
-    const { a: { c, }, } = subject;
+    const { a: { c, }, } = subject.root;
     const { d, } =c;
     const { e, } = d;
     const firstGroup = [ c, d, e, ];
@@ -67,7 +68,7 @@ describe('arrays as state', () => {
         .concat([ { id: it.getId(), name: 'state', }, ]), []));
 
     invalidAccessCalls = [];
-    const { x, } = subject;
+    const { x, } = subject.root;
     const xFirst = x[0];
     const { y, } = xFirst;
     const { z, } = y;
@@ -79,7 +80,7 @@ describe('arrays as state', () => {
     expect(invalidAccessCalls).toEqual(secondGroup.map(it => ({ name: 'state', id: it.getId(), })));
 
     invalidAccessCalls = [];
-    const { i, } = subject;
+    const { i, } = subject.root;
     const iFirst = i[0];
     const { j, } = iFirst;
     const thirdGroup = [ i, iFirst, j, ];

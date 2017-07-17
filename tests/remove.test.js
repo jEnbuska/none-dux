@@ -2,23 +2,23 @@ import { createStoreWithNonedux, } from './utils';
 
 describe('remove', () => {
   let subject;
-  test('removing the root subject should be ok',
+
+  test('removing the root subject should throw error',
     () => {
-      const { subject }= createStoreWithNonedux({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.remove([ 'b', ]);
-      expect(subject.state).toEqual({ a: {}, });
+      const { subject, }= createStoreWithNonedux({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      expect(() => subject.remove([ 'b', ])).toThrow(Error);
     });
 
   test('removing leaf from object',
     () => {
-      const { subject }= createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
+      const { subject, }= createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
       subject.b.remove([ 'd', ]);
       expect(subject.state).toEqual({ a: 1, b: { c: 2, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
     });
 
   test('the number of children should match the non removed children',
     () => {
-      const { subject }= createStoreWithNonedux({});
+      const { subject, }= createStoreWithNonedux({ a: {}, b: {}, });
       subject.setState({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: {}, j: { z: -0, }, }, }, }, });
       let children = subject.getChildrenRecursively();
       expect(children.length).toEqual(5);
@@ -29,12 +29,12 @@ describe('remove', () => {
 
   test('remove sub object',
     () => {
-      const { subject }= createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.b.e.h.remove('x');
-      expect(subject.state).toEqual({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, });
-      subject.b.remove([ 'd', ]);
-      subject.remove([ 'b', ]);
-      expect(subject.state).toEqual({ a: 1, });
+      const { subject }= createStoreWithNonedux({root: {a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }});
+      subject.root.b.e.h.remove('x');
+      expect(subject.state).toEqual({root: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, }});
+      subject.root.b.remove([ 'd', ]);
+      subject.root.remove([ 'b', ]);
+      expect(subject.state).toEqual({root: { a: 1, }});
     });
 
   test('should be able to remove an empty child',
@@ -70,9 +70,9 @@ describe('remove', () => {
 
   test('sub subject should be removed',
     () => {
-      const { subject }= createStoreWithNonedux({ a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
-      subject.remove([ 'b', ]);
+      const { subject }= createStoreWithNonedux({root: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }});
+      subject.root.remove([ 'b', ]);
       expect(subject.b).toEqual(undefined);
-      expect(subject.state.b).toEqual(undefined);
+      expect(subject.root.state.b).toEqual(undefined);
     });
 });

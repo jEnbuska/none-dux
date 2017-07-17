@@ -22,25 +22,21 @@ describe('Validator middleware', () => {
     onTypeErrors = [];
   });
 
-  test('create store with validator', () => {
-    expect(() => createStoreWithNonedux({})).not.toThrow();
-  });
-
   test('isRequired error on init', () => {
-    createStoreWithNonedux({}, { a: number.isRequired, });
+    createStoreWithNonedux({ b: {}, }, { a: number.isRequired, });
     expect(onIsRequiredErrors.length).toBe(1);
     expect(onIsRequiredErrors[0]).toEqual({
       identity: [],
       key: 'a',
     });
 
-    createStoreWithNonedux({}, { a: { ...isRequired, }, });
+    createStoreWithNonedux({ b: {}, }, { a: { ...isRequired, }, });
     expect(onIsRequiredErrors.length).toBe(2);
     expect(onIsRequiredErrors[1]).toEqual({
       identity: [],
       key: 'a',
     });
-    createStoreWithNonedux({}, { a: [ isRequired, ], });
+    createStoreWithNonedux({ b: {}, }, { a: [ isRequired, ], });
     expect(onIsRequiredErrors.length).toBe(3);
     expect(onIsRequiredErrors[2]).toEqual({
       identity: [],
@@ -157,7 +153,7 @@ describe('Validator middleware', () => {
     });
   });
   test('strict error on setState', () => {
-    const { subject } = createStoreWithNonedux({ }, { ...strict, });
+    const { subject, } = createStoreWithNonedux({ b: '', }, { ...strict, b: string, });
     expect(onStrictErrors.length).toBe(0);
     const { state, } = subject.setState({ a: 1, });
     expect(onStrictErrors.length).toBe(1);

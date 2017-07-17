@@ -10,22 +10,22 @@ describe('performance', () => {
     const odd = data2;
     const firstCompany = keys(even.companies)[0];
     const firstChildOdd = keys(odd)[0];
-    const { subject, }= createStoreWithNonedux({});
+    const { subject: { root, }, }= createStoreWithNonedux({ root: {}, });
     StateMapper.maxDepth = 100;
-    subject.setState(even);
+    root.setState(even);
     const time = new Date();
     for (let i = 0; i < 3000; i++) {
       if (i%7 === 0) {
-        subject.clearState({});
+        root.clearState({});
       }
       if (i % 2 === 0) {
-        subject.setState(even);
-        subject.companies[firstCompany].setState(odd[firstChildOdd]);
-        subject.companies.remove([ firstCompany, ]);
+        root.setState(even);
+        root.companies[firstCompany].setState(odd[firstChildOdd]);
+        root.companies.remove([ firstCompany, ]);
       } else {
-        subject.setState(odd);
-        subject[firstChildOdd].setState(even.companies[firstCompany]);
-        subject.remove([ firstChildOdd, ]);
+        root.setState(odd);
+        root[firstChildOdd].setState(even.companies[firstCompany]);
+        root.remove([ firstChildOdd, ]);
       }
     }
     // MacBook Pro  2,2 GHz Intel Core i7 --- 500-600ms
@@ -35,10 +35,10 @@ describe('performance', () => {
   test('force init a lot of children', () => {
     const time = Date.now();
     for (let i = 0; i<1000; i++) {
-      const { subject, } = createStoreWithNonedux(data);
-      subject.getChildrenRecursively();
-    }~
-    // MacBook Pro  2,2 GHz Intel Core i7 --- ~5000ms
+      const { subject: { root, }, } = createStoreWithNonedux({ root: data, });
+      root.getChildrenRecursively();
+    }
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 5000-6000ms
     console.log('force init 442000 children: ', new Date() - time, 'ms');
   }, 15000);
 
@@ -47,22 +47,22 @@ describe('performance', () => {
     const odd = data2;
     const firstCompany = keys(even.companies)[0];
     const firstChildOdd = keys(odd)[0];
-    const { subject, }= createStoreWithNonedux({});
+    const { subject: { root, }, }= createStoreWithNonedux({ root: {}, });
     StateMapper.maxDepth = 100;
-    subject.setState(even);
+    root.setState(even);
     const time = new Date();
     for (let i = 0; i < 1500; i++) {
       if (i%7 === 0) {
-        subject.clearState({});
+        root.clearState({});
       }
       if (i % 2 === 0) {
-        const { ...all } = subject.setState(even);
-        const { ...companies } = subject.companies[firstCompany].setState(odd[firstChildOdd]);
-        subject.companies.remove([ firstCompany, ]);
+        const { ...all } = root.setState(even);
+        const { ...companies } = root.companies[firstCompany].setState(odd[firstChildOdd]);
+        root.companies.remove([ firstCompany, ]);
       } else {
-        const { ...all } = subject.setState(odd);
-        const { ...other } = subject[firstChildOdd].setState(even.companies[firstCompany]);
-        subject.remove([ firstChildOdd, ]);
+        const { ...all } = root.setState(odd);
+        const { ...other } = root[firstChildOdd].setState(even.companies[firstCompany]);
+        root.remove([ firstChildOdd, ]);
       }
     }
     // MacBook Pro  2,2 GHz Intel Core i7 --- ~650ms
@@ -71,22 +71,22 @@ describe('performance', () => {
 
   test('get state', () => {
     const data = { a: {}, b: {}, c: {}, };
-    const { subject, }= createStoreWithNonedux(data);
-    let children = subject.getChildren();
+    const { subject: { root, }, }= createStoreWithNonedux({ root: data, });
+    let children = root.getChildren();
 
     for (let i = 0; i<9; i++) {
       children.forEach(child => child.setState(data));
       children = children.reduce((acc, child) => acc.concat(child.getChildren()), []);
     }
 
-    const allChildren = subject.getChildrenRecursively();
+    const allChildren = root.getChildrenRecursively();
     const time = new Date();
     for (let i = 0; i<10; i++) {
       for (let j = 0; j<allChildren.length; j++) {
         allChildren[j].state;
       }
     }
-    // MacBook Pro  2,2 GHz Intel Core i7 --- ~1200ms
+    // MacBook Pro  2,2 GHz Intel Core i7 --- ~1200-1400ms
     console.log('Get state 885720 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
   }, 15000);
   test('removeSelf naive performance', () => {
@@ -97,7 +97,7 @@ describe('performance', () => {
     }
     const time = new Date();
     const { ...all } = h;
-    Object.entries(all).filter(function ([ k, {state}, ]) { return true; })
+    Object.entries(all).filter(function ([ k, { state, }, ]) { return true; })
       .forEach(([ k, value, ]) => value.removeSelf());
     // MacBook Pro  2,2 GHz Intel Core i7 --- 1300-2000ms
     console.log('Remove 5000 children self naive. Took total of: ', new Date() - time, 'ms');
@@ -131,7 +131,7 @@ describe('performance', () => {
     const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
       .map(([ k, ]) => k);
     h.remove(toBeRemoved);
-    // MacBook Pro  2,2 GHz Intel Core i7 --- 50-300ms
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 50-200ms
     console.log('Remove 20000 leaf children, good performance. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
@@ -153,25 +153,25 @@ describe('performance', () => {
   }, 15000);
 
   test('create 50000 lazy children', () => {
-    const { subject, }= createStoreWithNonedux({ });
+    const { subject: { root, }, }= createStoreWithNonedux({ root: {}, });
     const data = {};
     for (let i = 0; i<50000; i++) {
       data[i] = { a: 1, b: {}, c: 3, d: { e: {}, }, };
     }
     const time = new Date();
-    subject.setState(data);
+    root.setState(data);
     // MacBook Pro  2,2 GHz Intel Core i7 --- 130-250ms
     console.log('create 50000 lazy children. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('create 50000 leaf children', () => {
-    const { subject, }= createStoreWithNonedux({ });
+    const { subject: { root, }, }= createStoreWithNonedux({ root: {}, });
     const data = {};
     for (let i = 0; i<50000; i++) {
       data[i] = createLeaf({ a: 1, b: {}, c: 3, d: { e: {}, }, });
     }
     const time = new Date();
-    subject.setState(data);
+    root.setState(data);
     // MacBook Pro  2,2 GHz Intel Core i7 --- 20-67ms
     console.log('create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
   }, 15000);

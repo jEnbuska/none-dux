@@ -54,33 +54,34 @@ describe('immutability', () => {
   });
 
   test('parameters passed to subject should never mutate any values', () => {
-    const initialState = { a: 1, b: { c: 2, d: { e: 3, }, }, };
-    Object.defineProperty(initialState.b.d, 'e', {
+    const initialState = { val: { a: 1, b: { c: 2, d: { e: 3, }, }, }, };
+    const { val: valState, } = initialState;
+    Object.defineProperty(valState.b.d, 'e', {
       writable: false,
-      value: initialState.b.d.e,
+      value: initialState.val.b.d.e,
     });
-    Object.defineProperty(initialState, 'a', {
+    Object.defineProperty(valState, 'a', {
       writable: false,
-      value: initialState.a,
+      value: initialState.val.a,
     });
-    Object.defineProperty(initialState.b, 'c', {
+    Object.defineProperty(valState.b, 'c', {
       writable: false,
-      value: initialState.b.c,
+      value: initialState.val.b.c,
     });
-    Object.defineProperty(initialState.b, 'd', {
+    Object.defineProperty(valState.b, 'd', {
       writable: false,
-      value: initialState.b.d,
+      value: initialState.val.b.d,
     });
-    Object.defineProperty(initialState, 'b', {
+    Object.defineProperty(valState, 'b', {
       writable: false,
-      value: initialState.b,
+      value: initialState.val.b,
     });
-    expect(() => initialState.b.d.e='').toThrow(Error);
-    expect(() => initialState.b.d='').toThrow(Error);
-    expect(() => initialState.b.c='').toThrow(Error);
-    expect(() => initialState.b='').toThrow(Error);
-    expect(() => initialState.a='').toThrow(Error);
-    const { subject, } = createStoreWithNonedux(initialState);
+    expect(() => valState.b.d.e='').toThrow(Error);
+    expect(() => valState.b.d='').toThrow(Error);
+    expect(() => valState.b.c='').toThrow(Error);
+    expect(() => valState.b='').toThrow(Error);
+    expect(() => valState.a='').toThrow(Error);
+    const { subject: { val, }, } = createStoreWithNonedux(initialState);
     const nextState = { a: 2, b: { c: { x: 1, }, d: 1, }, e: 3, };
     Object.defineProperty(nextState, 'a', {
       writable: false,
@@ -111,44 +112,44 @@ describe('immutability', () => {
     expect(() => nextState.b.c.x='').toThrow(Error);
     expect(() => nextState.b.d='').toThrow(Error);
     expect(() => nextState.b='').toThrow(Error);
-    subject.setState(nextState);
+    val.setState(nextState);
 
-    Object.defineProperty(subject.state.b.c, 'x', {
+    Object.defineProperty(val.state.b.c, 'x', {
       writable: false,
-      value: subject.state.b.c.x,
+      value: val.state.b.c.x,
     });
-    Object.defineProperty(subject.state.b, 'c', {
+    Object.defineProperty(val.state.b, 'c', {
       writable: false,
-      value: subject.state.b.c,
+      value: val.state.b.c,
     });
-    Object.defineProperty(subject.state, 'b', {
+    Object.defineProperty(val.state, 'b', {
       writable: false,
-      value: subject.state.b,
+      value: val.state.b,
     });
-    subject.b.c.remove('x');
+    val.b.c.remove('x');
 
-    Object.defineProperty(subject.state, 'e', {
+    Object.defineProperty(val.state, 'e', {
       writable: false,
-      value: subject.state.e,
+      value: val.state.e,
     });
-    subject.remove('e');
+    val.remove('e');
 
-    Object.defineProperty(subject.state.b.c, 'x', {
+    Object.defineProperty(val.state.b.c, 'x', {
       writable: false,
-      value: subject.state.b.c.x,
+      value: val.state.b.c.x,
     });
-    Object.defineProperty(subject.state.b, 'd', {
+    Object.defineProperty(val.state.b, 'd', {
       writable: false,
-      value: subject.state.b.d,
+      value: val.state.b.d,
     });
-    Object.defineProperty(subject.state.b, 'c', {
+    Object.defineProperty(val.state.b, 'c', {
       writable: false,
-      value: subject.state.b.c,
+      value: val.state.b.c,
     });
-    Object.defineProperty(subject.state, 'b', {
+    Object.defineProperty(val.state, 'b', {
       writable: false,
-      value: subject.state.b,
+      value: val.state.b,
     });
-    subject.setState({ b: { c: 1, }, });
+    val.setState({ b: { c: 1, }, });
   });
 });
