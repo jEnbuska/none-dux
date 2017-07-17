@@ -29,7 +29,6 @@
   "dependencies": {},
   "peerDependencies": {
     "react-redux": "x",
-    "redux-saga": "x",
     "redux": "x"
   },
   "devDependencies": {
