@@ -1,6 +1,6 @@
 import createLeaf from './reducer/leafs';
 import shape from './shape';
-import { stateMapperPrivates, } from './common';
+import { stateMapperPrivates, _README_URL_} from './common';
 import StateMapper from './reducer/StateMapper';
 import StateMapperSaga from './reducer/StateMapperSaga';
 import KnotTree from './reducer/KnotTree';
@@ -41,7 +41,10 @@ export default function initNonedux(initialState = {}, saga = false) {
     middlewares: [ stateAccess, thunk, noneduxStateChanger, ],
     subject,
     get thunk() {
-      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at https://github.com/jEnbuska/none-dux');
+      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at '+_README_URL_);
+    },
+    get reducer(){
+      throw new Error('Nonedux reducer is deprecated\nInstead user reducers with combineReducers\nSee README part: "Configuring store" at '+_README_URL_);
     },
     dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
   };
