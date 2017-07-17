@@ -26,6 +26,8 @@ export function findChild(value, path) {
   return value;
 }
 export const stateMapperPrivates = {
+  acquireChild: Symbol('acquireChild'),
+  pending: Symbol('pending'),
   role: Symbol('role'),
   depth: Symbol('depth'),
   propState: Symbol('state'),
@@ -35,7 +37,8 @@ export const stateMapperPrivates = {
   onRemove: Symbol('onRemove'),
   dispatcher: Symbol('dispatcher'),
   onRemoveChild: Symbol('onRemoveChild'),
-  children: Symbol('children')
+  children: Symbol('children'),
+  handleChange: Symbol('handleChange'),
 };
 
 export const knotTree = {

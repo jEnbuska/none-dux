@@ -1,7 +1,6 @@
 import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, } from '../common';
-import createLeaf from './leafs';
 
-const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, } = stateMapperPrivates;
+const { acquireChild, onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, handleChange, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
@@ -18,7 +17,7 @@ export default class StateMapper {
   }
 
   static maxDepth = 45;
-  static invalidStateMappers = {
+  static invalidParents = {
     ObjectLeaf: true,
     ArrayLeaf: true,
     StateMapperSaga: true,
@@ -32,15 +31,16 @@ export default class StateMapper {
     Error: true,
   };
 
-  constructor(state, ownDepth, ownRole, ownDispatcher) {
-    this[role] = ownRole;
-    if (ownDepth>StateMapper.maxDepth) { StateMapper.__kill(this); }
-    this[depth] = ownDepth;
-    this[dispatcher] = ownDispatcher;
+  constructor(state, _depth, _role, _dispatcher) {
+    this[role] = _role;
+    if (_depth>StateMapper.maxDepth) { StateMapper.__kill(this); }
+    this[depth] = _depth;
+    this[dispatcher] = _dispatcher;
     this[children] = {};
+    state = state || _dispatcher.dispatch({ type: GET_STATE, [TARGET]: _role[resolveIdentity](), });
     for (const k in state) {
       if (StateMapper.couldBeParent(state[k])) {
-        this._createChild(state[k], k+'',);
+        this._createChild(k+'',);
       }
     }
   }
@@ -65,7 +65,7 @@ export default class StateMapper {
   }
 
   get state() {
-    const identity = this.getIdentity();
+    const identity = this[role][resolveIdentity]();
     if (identity) {
       return this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: identity, });
     }
@@ -127,56 +127,31 @@ export default class StateMapper {
 
   [onSetState](newState, prevState) {
     if (newState instanceof Array || prevState instanceof Array) {
-      this[onClearState](newState, prevState);
+      this[handleChange](newState, prevState);
       return newState;
     }
-    for (let k in newState) {
-      k = '' + k;
-      const child = this[children][k];
-      const newSubState = newState[k];
-      if (child) {
-        if (newSubState !== prevState[k]) {
-          if (StateMapper.couldBeParent(newSubState)) {
-            if (child.ref) {
-              child.ref[onClearState](newSubState, prevState[k]);
-            } else {
-              delete this[k];
-              this._createChild(newSubState, k);
-            }
-          } else {
-            this[onRemoveChild](k);
-          }
-        }
-      } else if (StateMapper.couldBeParent(newSubState)) {
-        this._createChild(newSubState, k);
-      }
-    }
+    this[handleChange](newState, prevState, newState);
     return { ...prevState, ...newState, };
   }
 
-  [onClearState](newState, prevState = {}) {
-    const merge = { ...prevState, ...newState, };
-    for (let k in merge) {
+  [onClearState](newState, prevState) {
+    this[handleChange](newState, prevState);
+  }
+
+  [handleChange](newState, prevState = {}, iterable = { ...prevState, ...newState, }) {
+    for (let k in iterable) {
       k = '' + k;
-      if (this[children][k]) {
-        if (newState[k]) {
-          if (newState[k] !== prevState[k]) {
-            if (StateMapper.couldBeParent(newState[k])) {
-              if (this[children][k].ref) {
-                this[children][k].ref[onClearState](newState[k], prevState[k]);
-              } else {
-                delete this[k];
-                this._createChild(newState[k], k);
-              }
-            } else {
-              this[onRemoveChild](k);
-            }
+      const next = newState[k];
+      if (this[role][k]) {
+        if (StateMapper.couldBeParent(next)) {
+          if (this[children][k] && next !== prevState[k]) {
+            this[children][k][handleChange](next, prevState[k]);
           }
         } else {
           this[onRemoveChild](k);
         }
-      } else if (StateMapper.couldBeParent(newState[k])) {
-        this._createChild(newState[k], k);
+      } else if (StateMapper.couldBeParent(next)) {
+        this._createChild(k);
       }
     }
   }
@@ -196,19 +171,21 @@ export default class StateMapper {
       i = '' + i;
       const { length, } = nextState;
       if (toBeRemoved[i]) {
-        if (this[children][i]) {
+        if (this[role][i]) {
           this[onRemoveChild](i);
         }
       } else {
-        if (i !== length && this[children][i]) {
+        if (StateMapper.couldBeParent(state[i]) && i !== length && this[role][i]) {
           const child = this[children][i];
-          if (child.ref) {
-            this[role][i][renameSelf](length+'');
+          if (child) {
+            child[role][renameSelf](length+'');
+            this[length] = child;
+          } else {
+            this[children][length] = this[children][i];
+            this._createChild(length+'');
           }
+          this[children][i] = undefined;
           delete this[i];
-          this[children][length] = this[children][i];
-          delete this[children][i];
-          this._createChild(state[i], length+'', child.ref);
         }
         nextState.push(state[i]);
       }
@@ -222,7 +199,9 @@ export default class StateMapper {
     for (let k in state) {
       k += '';
       if (set[k]) {
-        this[onRemoveChild](k);
+        if (this[role][k]) {
+          this[onRemoveChild](k);
+        }
       } else {
         nextState[k] = state[k];
       }
@@ -235,7 +214,7 @@ export default class StateMapper {
       console.warn('getChildrenRecursively, force initializes the children and can be extremely heavy on big objects.\nUse this for debugging purposes only');
       getChildrenRecursiveWarned = true;
     }
-    return keys(this[children]).map(k => this[k]).reduce(onReduceChildren, []);
+    return keys(this[role]).map(k => this[k]).reduce(onReduceChildren, []);
   }
 
   getChildren() {
@@ -243,30 +222,30 @@ export default class StateMapper {
       console.warn('getChildren is deprecated, it force initializes the children.\nYou need to perform this, you can achieve the same result with Object spread + Object+values');
       getChildrenWarned = true;
     }
-    return keys(this[children]).map(k => this[k]);
+    return keys(this[role]).map(k => this[k]);
   }
 
   [onRemoveChild](k) {
-    delete this[children][k];
-    delete this[k];
-    if (this[role][k]) {
-      this[role][removeChild](k);
+    this[role][removeChild](k);
+    if (this[children][k]) {
+      delete this[children][k];
     }
+    delete this[k];
   }
 
-  _createChild(initialState, k, predefinedRef) {
-    const child = this[children][k] = { ref: predefinedRef, };
+  _createChild(k, childRole = this[role][createChild](k)) {
     defineProperty(this, k, {
       configurable: true,
       enumerable: true,
-      get: () => {
-        if (child.ref) {
-          return child.ref;
-        }
-        child.ref = new StateMapper(initialState, this[depth] + 1, this[role][createChild](k), this[dispatcher]);
-        return child.ref;
+      get: () => this[children][k] || (this[children][k] = new StateMapper(undefined, this[depth] + 1, childRole, this[dispatcher])),
+      set: (child) => {
+        this[children][k] = child;
       },
     });
+  }
+
+  [acquireChild](id) {
+
   }
 
   static onAccessingRemovedNode(id, property) {
@@ -274,7 +253,7 @@ export default class StateMapper {
   }
 
   static couldBeParent(value) {
-    return value && value instanceof Object && !StateMapper.invalidStateMappers[getPrototypeOf(value).constructor.name];
+    return value && value instanceof Object && !StateMapper.invalidParents[getPrototypeOf(value).constructor.name];
   }
 }
 

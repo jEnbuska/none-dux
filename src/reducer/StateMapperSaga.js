@@ -1,34 +1,14 @@
-import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_NOW, } from '../common';
+import { stateMapperPrivates, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_NOW, } from '../common';
 import StateMapper from './StateMapper';
 
 const { role, depth, dispatcher, children, } = stateMapperPrivates;
-const { createChild, resolveIdentity, } = knotTree;
 
 const { defineProperty, } = Object;
 const bindables = [ 'transaction', 'getId', 'remove', 'removeSelf', 'getIdentity', 'setState', 'clearState', ];
 
-//Saga state mapper does not dispatch its own actions, instead it should be used like:
-// yield call(target.setState, {a:1,b: {}})
+// Saga state mapper does not dispatch its own actions, instead it should be used like:
+// yield put(target.setState, {a:1,b: {}})
 export default class StateMapperSaga extends StateMapper {
-
-  static __kill(target) {
-    console.trace();
-    throw new Error('StateMapper maximum depth '+StateMapper.maxDepth+' exceeded by "'+target[role][resolveIdentity].join(', ')+'"');
-  }
-
-  static maxDepth = 45;
-  static invalidStateMappers = {
-    ObjectLeaf: true,
-    ArrayLeaf: true,
-    StateMapper: true,
-    Number: true,
-    String: true,
-    RegExp: true,
-    Boolean: true,
-    Function: true,
-    Date: true,
-    Error: true,
-  };
 
   constructor(state, ownDepth, ownRole, dispatched) {
     super(state, ownDepth, ownRole, dispatched);
@@ -39,18 +19,6 @@ export default class StateMapperSaga extends StateMapper {
 
   transaction() {
     throw new Error('Cannot do transaction witch StateMapperSaga');
-  }
-
-  get state() {
-    const identity = this.getIdentity();
-    if (identity) {
-      return this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: identity, });
-    }
-    return StateMapper.onAccessingRemovedNode(this.getId(), 'state');
-  }
-
-  get prevState() {
-    console.warn('prevState is deprecated and will always return undefined');
   }
 
   setState(value) {

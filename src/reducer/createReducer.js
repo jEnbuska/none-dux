@@ -9,7 +9,7 @@ export default function createReducer(root) {
       const { child, childState, childList, } = createChildList(root, path);
       switch (type) {
         case SET_STATE:
-          childList[childList.length-1].state = child[onSetState](param, childState);
+          childList[childList.length-1].state = child[onSetState](param, childState)
           break;
         case CLEAR_STATE:
           child[onClearState](param, childState);

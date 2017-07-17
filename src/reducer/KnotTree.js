@@ -9,7 +9,6 @@ export default class KnotTree {
   constructor(key, prev) {
     this[_prev]= prev;
     this[_key] = key;
-    this[_removed] = false;
   }
 
   [createChild](key) {

@@ -14,7 +14,7 @@ describe('performance', () => {
     StateMapper.maxDepth = 100;
     subject.setState(even);
     const time = new Date();
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 3000; i++) {
       if (i%7 === 0) {
         subject.clearState({});
       }
@@ -28,8 +28,18 @@ describe('performance', () => {
         subject.remove([ firstChildOdd, ]);
       }
     }
-    // 187
-    console.log('~ 1000 node merges, 1000 resets, 1000 removes Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 500-600ms
+    console.log('~ 3000 nodes merges, 3000 resets, 3000 removes Took total of: ', new Date() - time, 'ms');
+  }, 15000);
+
+  test('force init a lot of children', () => {
+    const time = Date.now();
+    for (let i = 0; i<1000; i++) {
+      const { subject, } = createStoreWithNonedux(data);
+      subject.getChildrenRecursively();
+    }~
+    // MacBook Pro  2,2 GHz Intel Core i7 --- ~5000ms
+    console.log('force init 442000 children: ', new Date() - time, 'ms');
   }, 15000);
 
   test('setState & remove and init lazy immediate children', () => {
@@ -41,7 +51,7 @@ describe('performance', () => {
     StateMapper.maxDepth = 100;
     subject.setState(even);
     const time = new Date();
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 1500; i++) {
       if (i%7 === 0) {
         subject.clearState({});
       }
@@ -55,8 +65,8 @@ describe('performance', () => {
         subject.remove([ firstChildOdd, ]);
       }
     }
-    // 180
-    console.log('~ 500 node merges, 500 resets, 500 removes, init of 8250 lazy children. Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- ~650ms
+    console.log('~ 1500 nodes merges, 1500 resets, 1500 removes, init of 8250x3 lazy children. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('get state', () => {
@@ -76,7 +86,7 @@ describe('performance', () => {
         allChildren[j].state;
       }
     }
-    // 1259
+    // MacBook Pro  2,2 GHz Intel Core i7 --- ~1200ms
     console.log('Get state 885720 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
   }, 15000);
   test('removeSelf naive performance', () => {
@@ -87,56 +97,59 @@ describe('performance', () => {
     }
     const time = new Date();
     const { ...all } = h;
-    Object.entries(all).filter(([ k, { state, }, ]) => true)
+    Object.entries(all).filter(function ([ k, {state}, ]) { return true; })
       .forEach(([ k, value, ]) => value.removeSelf());
-    // 1348
-    console.log('Remove self naive. Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 1300-2000ms
+    console.log('Remove 5000 children self naive. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('remove children semi performance', () => {
     const { subject, }= createStoreWithNonedux({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
     const h = subject.a.b.c.d.e.f.g.h;
-    for (let i = 0; i<5000; i++) {
-      h.setState({ [i]: { a: 1, }, });
+    const data = {};
+    for (let i = 0; i<20000; i++) {
+      data[i] = { a: 1, };
     }
+    h.setState(data);
     const time = new Date();
-    const toBeRemoved = Object.entries(h.state).filter(([ k, v, ]) => true)
+    const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
       .map(([ k, ]) => k);
     h.remove(toBeRemoved);
-
-    // 39
-    console.log('Remove children semi performance. Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 53-156ms
+    console.log('Remove 20000 children semi performance. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('remove children good performance', () => {
     const { subject, }= createStoreWithNonedux({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
     const h = subject.a.b.c.d.e.f.g.h;
-    for (let i = 0; i<5000; i++) {
-      h.setState({ [i]: createLeaf({ a: 1, }), });
+    const data = {};
+    for (let i = 0; i<20000; i++) {
+      data[i] = { a: 1, };
     }
+    h.setState(data);
     const time = new Date();
-    const toBeRemoved = Object.entries(h.state).filter(([ k, v, ]) => true)
+    const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
       .map(([ k, ]) => k);
     h.remove(toBeRemoved);
-    // 9
-    console.log('Remove leaf children, good performance. Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 50-300ms
+    console.log('Remove 20000 leaf children, good performance. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('remove children best performance', () => {
     const { subject, }= createStoreWithNonedux({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
     const g = subject.a.b.c.d.e.f.g;
     const data = {};
-    for (let i = 0; i<5000; i++) {
+    for (let i = 0; i<20000; i++) {
       data[i] ={ a: 1, };
     }
     g.setState({ h: createLeaf(data), });
     const h = g.state.h;
     const time = new Date();
-    const toBeKept = Object.entries(h).filter(([ k, v, ]) => false)
+    const toBeKept = Object.entries(h).filter(function ([ k, v, ]) { return false; })
       .reduce((acc, [ k, v, ]) => Object.assign(acc, { [k]: v, }), {});
     g.setState({ h: createLeaf(toBeKept), });
-    // 4
-    console.log('Remove leaf children, best performance. Took total of: ', new Date() - time, 'ms');
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 18-33ms
+    console.log('Remove 20000 leaf children, best performance. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
   test('create 50000 lazy children', () => {
@@ -147,6 +160,7 @@ describe('performance', () => {
     }
     const time = new Date();
     subject.setState(data);
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 130-250ms
     console.log('create 50000 lazy children. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 
@@ -158,7 +172,7 @@ describe('performance', () => {
     }
     const time = new Date();
     subject.setState(data);
-    // 147
+    // MacBook Pro  2,2 GHz Intel Core i7 --- 20-67ms
     console.log('create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
   }, 15000);
 });
