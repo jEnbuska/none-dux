@@ -86,11 +86,8 @@ export default class Login extends React.Component {
       .reduce(poorMap, {});
 
     if (isEmpty(invalids) && isEmpty(missing)) {
-      console.log('dispatch');
       this.props.dispatch({ type: LOGIN_REQUEST, ...texts, });
     } else {
-      console.log('else');
-      console.log({ invalids, missing, });
       this.setState({ invalids, missing, });
     }
   }

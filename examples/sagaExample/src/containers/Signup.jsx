@@ -103,7 +103,6 @@ export default class Signup extends React.Component {
 
     if (isEmpty(invalids) && isEmpty(missing)) {
       const {rePassword, ...rest} = texts;
-      console.log({rest})
       this.props.dispatch({ type: SIGNUP_REQUEST, ...rest, });
     } else {
       this.setState({ invalids, missing, });
