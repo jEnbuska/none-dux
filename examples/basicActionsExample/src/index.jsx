@@ -3,8 +3,9 @@ import React from 'react';
 import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
-import { applyMiddleware, createStore, } from 'redux';
+import { applyMiddleware, createStore, combineReducers, } from 'redux';
 import nonedux, { shape, } from '../../../src';
+
 import validators from './validators';
 import UserProfile from './containers/UserProfile.jsx';
 import BrowseUsers from './containers/BrowseUsers.jsx';
@@ -17,10 +18,11 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { reducer, middlewares, subject, } = nonedux(initialState);
+const { reducers, middlewares, subject, } = nonedux(initialState);
+console.log({ reducers, });
 
 const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
-const store = createStoreWithMiddleware(reducer, window.devToolsExtension && window.devToolsExtension());
+const store = createStoreWithMiddleware(combineReducers({ ...reducers, }), window.devToolsExtension && window.devToolsExtension());
 
 const Root = () => (
   <Provider store={store}>
