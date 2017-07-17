@@ -490,7 +490,7 @@ using shape makes the performance slower so check process.end.NODE_ENV before ad
 
 ## Performance
 
-If you have a object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
+If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
 
 ```
 cosnt {values} = Object;
