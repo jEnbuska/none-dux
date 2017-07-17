@@ -1,3 +1,5 @@
+import { _README_URL_, } from '../common';
+
 export const spec = '__type_spec__';
 export const any = '__target_any__'; // any KEY (not value)
 
@@ -71,10 +73,10 @@ export const array = new Validator('Array');
 
 export default {
   get object() {
-    throw new Error('Object types are not set explicitly. Just use curly braces instead\nExample: { ...isRequired, age: number, [any]: { ... } }\nREADME section: "Type checking" at https://github.com/jEnbuska/none-dux');
+    throw new Error('Object types are not set explicitly. Just use curly braces instead\nExample: { ...isRequired, age: number, [any]: { ... } }\nREADME section: "Type checking" at '+_README_URL_);
   },
   get array() {
-    throw new Error('Array types are not set explicitly, just use [ /*definition here*/ ] instead\nREADME section: "Type checking" at https://github.com/jEnbuska/none-dux');
+    throw new Error('Array types are not set explicitly, just use [ /*definition here*/ ] instead\nREADME section: "Type checking" at '+_README_URL_);
   },
   string,
   number,
