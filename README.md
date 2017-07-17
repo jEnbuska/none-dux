@@ -616,6 +616,6 @@ All keys must be strings or numbers
 There might be some unknown weak spots with Arrays that contain other Objects/Arrays.
 
 
-Please submit reports to https://github.com/jEnbuska/none-dux issues  
+#### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
 
 
