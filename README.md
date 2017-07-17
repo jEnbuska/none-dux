@@ -109,7 +109,7 @@ function createPayment(userId, data){
   }
 }
 
-export function removeUserTranactional(userId) {
+export function removeUserTransactional(userId) {
    return function (nonedux, {dispatch}) {
       const {users, todosByUser} = nonedux;
       const user = users[userId];
@@ -119,7 +119,7 @@ export function removeUserTranactional(userId) {
       
       api.deleteUser(userId)
         .then(()=> {
-          nonedux.transaction(() => { // only 1 update to store
+          nonedux.transaction(() => { // only 1 update to store, if one of them fails both changes are cancelled
             users.remove(userId);
             userTodos.removeSelf();
           })
@@ -163,7 +163,7 @@ console.log(target.state) // { a: 2, b: {}, c: 3 }
 // setState does shallow merge
  ... 
  
- //clear state removes the outer join of the state
+ //clear state removes the previous states outer join
  console.log(target.state); //{ a: 1, b: { } }
  target.clearState({ b: 2 });
  console.log(target.state); // { b: 2 }
@@ -208,14 +208,15 @@ by
   import nonedux from 'none-dux'
   
   // (Do not use 'redux-thunk')
-  const { reducer, middlewares, } = nonedux(initialState);
+  const { reducers, middlewares, } = nonedux(initialState);
   const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-  const store = createStoreWithMiddleware(reducer);
+  const store = createStoreWithMiddleware(combineReducers({...reducers}));
   
   <Provider store={store}> ...   
   ```
-  ### 2. Actions
-  replace with something like
+  
+### 2. Actions
+replace with something like
   ```
  //actions redux-thunk
  function updateUser(id, changes){
@@ -238,29 +239,31 @@ by
 
 
 ## Very large objects
-When ever creating and object with more than 1000 Object entries consider using createLeaf helper function.
+When ever creating and object with more than 1000 object children consider using createLeaf helper function.
 
 If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
 
-Children aren't created until they are referenced for the first time.
+Children aren't created until they are referenced for the first time, but the promise of creating it later when referenced is work too.
 ```
 ...
 function fetchCustomerData(){
   function(nonedux){
-    //if children are not accessed previously they are created first time the are accessed
     fetchUserData()
       .then(({data}) => {
         let { transactions, associations } = data;
-        nonedux.setState({statistics: {transactions, associations} }) // create pending* child 'statistic' (if not referenced previously)
-        nonedux.statistics.setState({transactions, associations}). // previosly pending* 'statistics' child was created, pending children 'transactions' & 'associations' created;
-        const {transactions: t, associations: s} = statistics; // previously pending children 'transaction' & 'associations' were created with own *pending children
+        nonedux.setState({statistics: {transactions, associations} })
+        // if child statistics is not accessed previously it is created now
+        nonedux.statistics.setState({transactions, associations}). 
+        // pending children 'transactions' & 'associations' created;
+        const {transactions: t, associations: s} = statistics; 
+        // children 'transaction' & 'associations' were created & their lazy children are now pending
       })
   }
 }
 ...
 import {createLeaf} from 'none-dux'
 
-function fetchLotOfCustomeData(){
+function fetchCustomerData_Lightweight(){
   function({statistics}){
     fetchUserData()
       .then(({data}) => {
@@ -481,7 +484,7 @@ function removeOldEntries_semiPerformance(){
 
 cosnt {entries, assign} = Object;
 
-// Assuming bigData children are created by 'createLeaf' (see section about 'Very large objects'):
+// Assuming bigData children are created by 'createLeaf' (see section about 'Large objects'):
 /*
   const bidDataContent = entries(data).reduce((acc, [k, v]) => assign(acc, {[k]: createLeaf(v) }), {})
   nonedux.bigData.setState(bigDataContent)
