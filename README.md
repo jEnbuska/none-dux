@@ -17,25 +17,26 @@ peerDependencies: { redux, react-redux },
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
-Creates a flexible top level reducer that takes care of immutability.
+Immutability is taken care of by middlewares and published by child reducers
 
 State can be safely extended without any predefined shape
 ```
 function grow() {
   return function (nonedux) {
-    console.log(nonedux.state); // {}
-    let child = nonedux;
+    console.log(nonedux.state); // {someSubState: {}}
+    let child = nonedux.someSubState;
     [1,2,3].forEach(n => {
       child.setState({[n]: {}});
       child = child[n];
     })
-    console.log(nonedux.state) // {1: {2: {3: {}}}}
+    console.log(nonedux.state) // {someSubState: {1: {2: {3: {}}}}}
   };
 }
 function generateMessState(depth = 3, height = 0) {
-  return function (nonedux, { dispatch, }) {
+  return function (nonedux, { dispatch, }) { 
+    /* initialState = {mess: {}, ...}*/
     const { mess, } = nonedux;
-    let child = mess || nonedux.setState({ mess: {}, }).mess;
+    let child = mess;
     for (let i = 0; i<depth && child; i++) {
       child = child.setState({ [height]: dispatch(generateMessState(i, index+1)) })[height]
     }
@@ -46,7 +47,7 @@ function generateMessState(depth = 3, height = 0) {
 ## Configuring store
 ```
 import { Provider, connect, } from 'react-redux';
-import { createStore, applyMiddleware, } from 'redux';
+import { createStore, applyMiddleware, combineReducers, } from 'redux';
 import nonedux from 'none-dux';
 
 
@@ -57,9 +58,10 @@ const initialState = { //Sames as the initial state of store
 };
 
 // don't add 'redux-thunk'
-const { reducer, middlewares } = nonedux(initialState);
+const { reducers, middlewares } = nonedux(initialState);
+console.log(Object.keys(reducers)); //['request', 'todosByUser', 'users']
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
-const store = createStoreWithMiddleware(reducer);
+const store = createStoreWithMiddleware(comboneReducers({...reducers})); // can be combined with other reducers like redux-form if needed
 
 const root = (
   <Provider store={store}>
@@ -280,6 +282,8 @@ Using custom JavaScript classes in reducer state is not well tested.
 Using non normalized state is not a must but recommended
 
 All keys must be strings or numbers
+
+There might be some unknown weak spots with arrays that contain other objects.
 
 ## Atomic changes
 ```
