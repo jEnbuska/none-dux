@@ -1,3 +1,4 @@
+export const _README_URL_ = 'https://github.com/jEnbuska/none-dux';
 export const SET_STATE = 'NONEDUX::SET_STATE';
 export const CLEAR_STATE = 'NONEDUX::CLEAR_STATE';
 export const REMOVE = 'NONEDUX::REMOVE';
