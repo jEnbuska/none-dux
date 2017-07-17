@@ -71,10 +71,10 @@ export const array = new Validator('Array');
 
 export default {
   get object() {
-    throw new Error('Object types are not explicitly, just use "isRequired" and "strict" instead');
+    throw new Error('Object types are not set explicitly. Just use curly braces instead\nExample: { ...isRequired, age: number, [any]: { ... } }\nREADME section: "Type checking" at https://github.com/jEnbuska/none-dux');
   },
   get array() {
-    throw new Error('Array types are not explicitly, just use "isRequired" instead');
+    throw new Error('Array types are not set explicitly, just use [ /*definition here*/ ] instead\nREADME section: "Type checking" at https://github.com/jEnbuska/none-dux');
   },
   string,
   number,
