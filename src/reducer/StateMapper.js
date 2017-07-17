@@ -1,6 +1,6 @@
-import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, } from '../common';
+import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, invalidParents, } from '../common';
 
-const { acquireChild, onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, handleChange, } = stateMapperPrivates;
+const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, handleChange, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
@@ -17,19 +17,6 @@ export default class StateMapper {
   }
 
   static maxDepth = 45;
-  static invalidParents = {
-    ObjectLeaf: true,
-    ArrayLeaf: true,
-    StateMapperSaga: true,
-    StateMapper: true,
-    Number: true,
-    String: true,
-    RegExp: true,
-    Boolean: true,
-    Function: true,
-    Date: true,
-    Error: true,
-  };
 
   constructor(state, _depth, _role, _dispatcher) {
     this[role] = _role;
@@ -244,16 +231,12 @@ export default class StateMapper {
     });
   }
 
-  [acquireChild](id) {
-
-  }
-
   static onAccessingRemovedNode(id, property) {
     console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
   }
 
   static couldBeParent(value) {
-    return value && value instanceof Object && !StateMapper.invalidParents[getPrototypeOf(value).constructor.name];
+    return value && value instanceof Object && !invalidParents[getPrototypeOf(value).constructor.name];
   }
 }
 

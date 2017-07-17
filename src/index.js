@@ -4,12 +4,15 @@ import { stateMapperPrivates, } from './common';
 import StateMapper from './reducer/StateMapper';
 import StateMapperSaga from './reducer/StateMapperSaga';
 import KnotTree from './reducer/KnotTree';
-import createReducer from './reducer/createReducer';
-import { createStateAccessMiddleware, createThunk, } from './reducer/createMiddleware';
+import { createStateAccessMiddleware, createThunk, createStateChanged, } from './reducer/createMiddleware';
 
+const { assign, keys, defineProperty, } = Object;
 const { propState, propPrevState, } = stateMapperPrivates;
 
-export default function initStateMapper(initialState = {}, saga = false) {
+export default function initNonedux(initialState = {}, saga = false) {
+  if (!StateMapper.couldBeParent(initialState) ||!keys(initialState).length) {
+    throw new Error('Expected initial state to contain at least one child, state but got '+ JSON.stringify(initialState));
+  }
   let subject;
   if (saga) {
     subject = new StateMapperSaga(initialState, 0, new KnotTree(), { dispatch: () => { }, });
@@ -18,12 +21,24 @@ export default function initStateMapper(initialState = {}, saga = false) {
   }
   subject[propState] = initialState;
   subject[propPrevState]= {};
+  const onCreateChild = subject._createChild.bind(subject);
+  defineProperty(subject, '_createChild', {
+    enumerable: false,
+    value: (key, role) => {
+      if (initialState.hasOwnProperty(key)) {
+        onCreateChild(key, role);
+      } else {
+        console.error('Cannot add new to root level state after initialization');
+      }
+    },
+  });
   const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
-  const reducer = createReducer(subject);
+  const noneduxStateChanger = createStateChanged(subject);
+  const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
   return {
-    reducer,
-    middlewares: [ thunk, stateAccess, ],
+    reducers,
+    middlewares: [ stateAccess, thunk, noneduxStateChanger, ],
     subject,
     get thunk() {
       throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at https://github.com/jEnbuska/none-dux');
@@ -32,3 +47,7 @@ export default function initStateMapper(initialState = {}, saga = false) {
   };
 }
 export { createLeaf, shape, };
+
+function createDummyReducer(key, root) {
+  return () => root[propState][key];
+}

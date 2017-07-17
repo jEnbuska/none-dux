@@ -4,7 +4,7 @@ const { assign, freeze, seal, values, } = Object;
 /*
  * const judgeStaticData = {....}
  * */
-// target.setState({resources: new StateMapperLeaf(judgeStaticData)})
+// target.setState({resources: createLeaf(judgeStaticData)})
 export default function createLeaf(obj) {
   if (obj instanceof Object) {
     if (obj instanceof Array) {
