@@ -592,15 +592,16 @@ Object.getPrototypeOf(child.state.arrLeaf).constructor.name // ArrayLeaf
 Object.getPrototypeOf(child.state.objLeaf).constructor.name // ObjectLeaf
 ...
 ```
-#### Adding custom leaf types
+#### Defining leaf types
 ```
 import { leafs } from 'none-dux'
 
-class MyClass {};
-
 leafs.MyClass = true;
 
-//not leafs[MyClass] = true;
+...
+
+nonedux.subState.setState({child: new MyClass()};)
+nonedux.subState.child; //undefined
 ```
 Define leaf types before they are added to state
 
