@@ -443,6 +443,7 @@ Will work:
 { ...strict }
 { ...strict.isRequired }
 { ...isRequired.strict }
+{ isRequired: string } //Assuming key name is actually 'isRequired'
 
 //Array shape
  
@@ -462,9 +463,10 @@ any
 Will work:
 { [any]: number, something: {} } //uses spec object if key is something else uses spec number
 { [any]: {} }
+{ any: string, } //means that the key name is actually 'any'
 
 Wont work:
-{ any: string, } //means that the key name is actually 'any'
+
 { [any]: any, } //any is not type but identifier
 { something: any } //same here
 
