@@ -215,7 +215,8 @@ by
   <Provider store={store}> ...   
   ```
   
-### 2. Actions
+#### 2. Actions
+
 replace with something like
   ```
  //actions redux-thunk
