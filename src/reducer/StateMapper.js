@@ -1,5 +1,6 @@
 import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, } from '../common';
 import createLeaf from './leafs';
+
 const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
@@ -99,7 +100,7 @@ export default class StateMapper {
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     }
-    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction});
+    this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
     return this;
   }
 
@@ -188,7 +189,7 @@ export default class StateMapper {
   }
 
   [onRemoveFromArray](indexes, state) {
-    const toBeRemoved = createPoorMap(indexes);
+    const toBeRemoved = poorSet(indexes);
     const nextState = [];
     const stateLength = state.length;
     for (let i = 0; i<stateLength; i++) {
@@ -205,6 +206,8 @@ export default class StateMapper {
             this[role][i][renameSelf](length+'');
           }
           delete this[i];
+          this[children][length] = this[children][i];
+          delete this[children][i];
           this._createChild(state[i], length+'', child.ref);
         }
         nextState.push(state[i]);
@@ -214,11 +217,11 @@ export default class StateMapper {
   }
 
   [onRemoveFromObject](toBeRemoved, state = {}) {
-    const poorMap = createPoorMap(toBeRemoved);
+    const set = poorSet(toBeRemoved);
     const nextState = {};
     for (let k in state) {
       k += '';
-      if (poorMap[k]) {
+      if (set[k]) {
         this[onRemoveChild](k);
       } else {
         nextState[k] = state[k];
@@ -275,10 +278,10 @@ export default class StateMapper {
   }
 }
 
-function createPoorMap(arr) {
-  return arr.reduce(poorMapMapper, {});
+function poorSet(arr) {
+  return arr.reduce(poorSetMapper, {});
 }
-function poorMapMapper(acc, k) {
+function poorSetMapper(acc, k) {
   acc[k+''] = true;
   return acc;
 }
