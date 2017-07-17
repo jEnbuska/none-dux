@@ -607,7 +607,7 @@ Define leaf types before they are added to state
 
 --------------
 ## Warnings
-Using custom JavaScript classes in reducer state is not well tested.
+Using custom non-leaf JavaScript classes in reducer state is not well tested.
 
 Using non normalized state is not a must but recommended
 
