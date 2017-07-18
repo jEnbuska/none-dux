@@ -523,10 +523,8 @@ function removeOldEntries_bestPerformance(){
      //Performance should very close to optimal. about 350x faster than slowest
   }
 }
-
-Note that removing from arrays can be significanly slower
-All performance tips are wellcome
 ```
+#####In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects
 
 ## Large objects
 When ever creating and object with more than 1000 object children consider using createLeaf helper function.
@@ -613,7 +611,24 @@ Using non normalized state is not a must but recommended
 
 All keys must be strings or numbers
 
-There might be some unknown weak spots with Arrays that contain other Objects/Arrays.
+There is grey areas with Arrays that contain other Objects/Arrays, because it's not efficient enough to merge them in a more logical way.
+```
+const first = {a:1}, second = {b:2}, third = {c:3}
+someArray.setState([ first, second, third, ]);
+const { 0: firstChild, 1: secondChild, 2: thirdChild, } = subject;
+subject.setState([ third, first, second, ]);  //switch order
+
+/* One might expect that 'firstChild' state, 
+would still points to 'first' value but it doesn't */
+firstChild.state; // { c: 3, };
+secondChild.state; // { a: 1, };
+thirdChild.state; // { b: 2, };
+
+//From 'setState:s' point of view the previous says:
+someArray.setState({0: first, 1: second, 2: third });
+...
+someArray.setState({0: third, 1: first, 2:second });
+```
 
 
 #### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
