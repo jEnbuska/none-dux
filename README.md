@@ -611,7 +611,7 @@ Using non normalized state is not a must but recommended
 
 All keys must be strings or numbers
 
-There is grey areas with Arrays that contain other Objects/Arrays, because it's not efficient enough to merge them in a more logical way.
+There is grey areas with Arrays that contain other Objects/Arrays.
 ```
 const first = {a:1}, second = {b:2}, third = {c:3}
 someArray.setState([ first, second, third, ]);
