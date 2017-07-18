@@ -442,6 +442,17 @@ function doChangesAndThrowError(){
   }
 }
 ```
+##Arrays
+Arrays are not shallow merged like objects
+```
+myArray.setState([1, {}, 'str'])
+//results to same as
+myArray.clearState([1, {}, 'str'])
+```
+Having **arrays that have objects or other arrays as children** can make it very **inefficient** to perform updates
+
+This is pretty much the same reason, why React is advices to not use index as 'key':s for component when creating list of components
+
 
 ## Performance
 
@@ -524,7 +535,7 @@ function removeOldEntries_bestPerformance(){
   }
 }
 ```
-#####In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects
+**In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects**
 
 ## Large objects
 When ever creating and object with more than 1000 object children consider using createLeaf helper function.
