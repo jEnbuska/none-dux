@@ -4,7 +4,7 @@ import { Provider, } from 'react-redux';
 import ReactDOM from 'react-dom';
 import { Router, Route, IndexRoute, browserHistory, IndexRedirect, } from 'react-router';
 import { applyMiddleware, createStore, combineReducers, } from 'redux';
-import nonedux, { shape, } from '../../../src';
+import nonedux, { shape, } from 'none-dux';
 
 import validators from './validators';
 import UserProfile from './containers/UserProfile.jsx';

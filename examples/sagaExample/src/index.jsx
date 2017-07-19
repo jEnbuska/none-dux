@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, } from 'react-router-dom';
 import { applyMiddleware, createStore, combineReducers, } from 'redux';
 import createSagaMiddleware from 'redux-saga';
-import nonedux, { shape, } from '../../../src';
+import nonedux, { shape, } from 'none-dux';
 import init from './sagas';
 import validators from './validators';
 import App from './containers/App';
