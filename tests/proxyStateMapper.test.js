@@ -1,47 +1,35 @@
-import Mapper from '../src/reducer/ProxyStateMapper';
-import { createStoreWithNonedux } from './utils';
-import { stateMapperPrivates } from '../src/common';
-import Tree from '../src/reducer/KnotTree';
+import { createStoreWithNonedux, } from './utils';
+import StateMapper from '../src/reducer/StateMapper';
 
-const { createProxy } = stateMapperPrivates;
+describe('arrays as state', () => {
+  let invalidAccessCalls = [];
 
-describe('proxy', () => {
+  [ 'proxy' ].forEach(name => {
+    const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
+    describe('run ' + name +' configuration', () => {
+      beforeAll(() => {
+        Object.defineProperty(StateMapper, 'onAccessingRemovedNode', {
+          configurable: true,
+          writable: true,
+          value: (id, propertyName) => {
+            invalidAccessCalls.push({ id, name: propertyName, });
+          },
+        });
+      });
+      beforeEach(() => { invalidAccessCalls = []; });
 
-  test('create proxy without crash',
-    () => {
-      const mapper = new Mapper(1, new Tree(), { dispatch: () => { }, })[createProxy]();
-      mapper.a;
+      test('accessing remove object children', () => {
+        const { subject, } = init({ root: { a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, }, });
+        const { a, } = subject.root;
+        expect(a.state).toBeDefined();
+        console.log('-----------REMOVE A')
+        subject.root.remove('a');
+        expect(invalidAccessCalls.length).toBe(0);
+        console.log('do access invalid')
+        expect(a.state).toBeUndefined();
+        console.log('--------------')
+      });
     });
-
-  test('create proxy with util',
-    () => {
-      const { subject } = createStoreWithNonedux({ a: 1, b: { c: 1, d: { e: 1 } } }, undefined, false, true);
-    });
-
-  test('access proxy children', () => {
-    const { subject } = createStoreWithNonedux({ a: 1, b: { c: 1, d: { e: 1 } } }, undefined, false, true);
-    subject.a;
-    const { b } = subject;
-    const { c, d }= b;
-    const { e } = d;
-    expect(e.x).toBeUndefined();
-  });
-
-  test('access proxy states', () => {
-    const { subject } = createStoreWithNonedux({ a: 1, b: { c: 1, d: { e: 1 } } }, undefined, false, true);
-    expect(subject.state).toEqual({ a: 1, b: { c: 1, d: { e: 1 } } });
-    expect(subject.a.state).toEqual(1);
-    const { b } = subject;
-    expect(b.state).toEqual({ c: 1, d: { e: 1 } });
-    const { c, d }= b;
-    expect(c.state).toEqual(1);
-    expect(d.state).toEqual({ e: 1 });
-    const { e } = d;
-    expect(e.state).toEqual(1);
-  });
-
-  test('apply setState', () => {
-    const { subject } = createStoreWithNonedux({ a: 1, b: { c: 1, d: { e: 1 } } }, undefined, false, true);
-    subject.setState({ a: 2 });
   });
 });
+

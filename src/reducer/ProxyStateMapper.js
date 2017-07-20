@@ -1,23 +1,16 @@
+import StateMapper from './StateMapper';
 import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, invalidParents, has, } from '../common';
 
-const { propState, propPrevState, pendingState, onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, handleChange, createProxy } = stateMapperPrivates;
-const { createChild, removeChild, resolveIdentity, } = knotTree;
-const onRemoveFromArray = Symbol('onRemoveFromArray');
-const onRemoveFromObject = Symbol('onRemoveFromObject');
-const { entries } = Object;
+const { role, depth, dispatcher, createProxy, propState, propPrevState, pendingState } = stateMapperPrivates;
+const { createChild, resolveIdentity, } = knotTree;
+
+const proxy = Symbol('proxy');
+const { keys } = Object;
 
 export default class ProxyStateMapper {
 
-  static __kill(target) {
-    console.trace();
-    throw new Error('StateMapper maximum depth '+ProxyStateMapper.maxDepth+' exceeded by "'+target[role][resolveIdentity].join(', ')+'"');
-  }
-
-  static maxDepth = 45;
-
   constructor(_depth, _role, _dispatcher) {
     this[role] = _role;
-    if (_depth>ProxyStateMapper.maxDepth) { ProxyStateMapper.__kill(this); }
     this[depth] = _depth;
     this[dispatcher] = _dispatcher;
   }
@@ -27,7 +20,7 @@ export default class ProxyStateMapper {
     const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: [], });
     try {
       this[dispatcher].onGoingTransaction = true;
-      callBack(this);
+      callBack(this[proxy]);
       if (publishAfterDone) {
         this[dispatcher].dispatch({ type: PUBLISH_CHANGES, });
       }
@@ -46,7 +39,6 @@ export default class ProxyStateMapper {
   }
 
   getIdentity() {
-    console.log(this[role]);
     return this[role][resolveIdentity]();
   }
 
@@ -56,7 +48,7 @@ export default class ProxyStateMapper {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     }
     this[dispatcher].dispatch({ type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    return this;
+    return this[proxy];
   }
 
   clearState(value) {
@@ -65,7 +57,7 @@ export default class ProxyStateMapper {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     }
     this[dispatcher].dispatch({ type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    return this;
+    return this[proxy];
   }
 
   remove(...keys) {
@@ -76,7 +68,7 @@ export default class ProxyStateMapper {
       keys = keys[0];
     }
     this[dispatcher].dispatch({ type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    return this;
+    return this[proxy];
   }
 
   removeSelf() {
@@ -86,88 +78,69 @@ export default class ProxyStateMapper {
     }
     const [ _, ...parentIdentity ]= identity;
     this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-    return this;
-  }
-
-  [onSetState](newState, prevState) {
-    this[handleChange](newState, prevState, newState);
-    return { ...prevState, ...newState, };
-  }
-
-  [onClearState](newState, prevState) {
-    this[handleChange](newState, prevState);
-  }
-
-  [onRemove](keys = [], state) {
-    if (state instanceof Array) {
-      return this[onRemoveFromArray](keys, state);
-    }
-    return this[onRemoveFromObject](keys, state);
-  }
-
-  [onRemoveChild](k) {
-    this[role][removeChild](k);
   }
 
   _createChild(k, childRole = this[role][createChild](k)) {
-    console.log('create child '+k);
-    console.log(childRole[resolveIdentity]());
     const child = new ProxyStateMapper(this[depth] + 1, childRole, this[dispatcher]);
-    return child[createProxy]();
+    return child._createProxy();
   }
 
-  [createProxy]() {
-    return new Proxy(this,
+  _getChildren() {
+    const state = this[proxy].state;
+    return keys(state).filter(k => StateMapper.couldBeParent(state[k])).map(k => this[k] || this.setState({ [k]: state[k] })[k]);
+  }
+
+  _getChildrenRecursively() {
+    return this[proxy]._getChildren().reduce(StateMapper._onReduceChildren, []);
+  }
+
+  _createProxy() {
+    this[proxy] = new Proxy(this,
       {
-        get(target, key) {
-          switch (key) {
+        get(target, k) {
+          if (typeof k ==='symbol') {
+            switch (k) {
+              case propState:
+              case propPrevState:
+              case pendingState:
+                return target[k];
+              default:
+                return k;
+            }
+          }
+          k +='';
+          switch (k) {
             case 'setState':
             case 'clearState':
             case 'remove':
+            case 'transaction':
             case 'getIdentity':
             case 'getId':
-              return target[key].bind(target);
+            case 'removeSelf':
+            case '_getChildren':
+            case '_getChildrenRecursively':
+              return target[k].bind(target);
             case 'state': {
               const identity = target[role][resolveIdentity]();
               if (identity) {
                 return target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: identity, });
               }
-              return undefined;
+              return StateMapper.onAccessingRemovedNode(target[role].getId(), 'state');
             }
             default: {
               const identity = target[role][resolveIdentity]();
               if (identity) {
                 const state = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: identity, });
-                if (state && has.call(state, key)) {
-                  return target._createChild(key);
+                if (StateMapper.couldBeParent(state[k])) {
+                  return target._createChild(k, target[role][k]);
                 }
               }
             }
           }
           return undefined;
         },
-        apply(target, that, args) {
-          console.log('apply');
-          console.log(target);
-          console.log(that);
-          console.log(args);
-        }
+        apply(target, that, args) { }
       });
+    return this[proxy];
   }
-
-  static onAccessingRemovedNode(id, property) {
-    console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
-  }
-}
-
-function poorSet(arr) {
-  return arr.reduce(poorSetMapper, {});
-}
-function poorSetMapper(acc, k) {
-  acc[k+''] = true;
-  return acc;
-}
-
-function onReduceChildren(acc, child) {
-  return [ ...acc, child, ...child.getChildrenRecursively(), ];
 }

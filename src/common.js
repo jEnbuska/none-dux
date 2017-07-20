@@ -77,3 +77,11 @@ export const invalidParents = {
   Date: true,
   Error: true,
 };
+
+export function poorSet(arr) {
+  return arr.reduce(poorSetMapper, {});
+}
+function poorSetMapper(acc, k) {
+  acc[k+''] = true;
+  return acc;
+}

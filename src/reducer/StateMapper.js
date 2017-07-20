@@ -1,4 +1,4 @@
-import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, invalidParents, } from '../common';
+import { stateMapperPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, invalidParents, poorSet} from '../common';
 
 const { onSetState, onClearState, onRemove, role, depth, dispatcher, onRemoveChild, children, handleChange, } = stateMapperPrivates;
 const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
@@ -127,7 +127,7 @@ export default class StateMapper {
 
   [handleChange](newState, prevState = {}, iterable = { ...prevState, ...newState, }) {
     for (let k in iterable) {
-      k = '' + k;
+      k += '';
       const next = newState[k];
       if (this[role][k]) {
         if (StateMapper.couldBeParent(next)) {
@@ -155,7 +155,7 @@ export default class StateMapper {
     const nextState = [];
     const stateLength = state.length;
     for (let i = 0; i<stateLength; i++) {
-      i = '' + i;
+      i += '';
       const { length, } = nextState;
       if (toBeRemoved[i]) {
         if (this[role][i]) {
@@ -196,28 +196,16 @@ export default class StateMapper {
     return nextState;
   }
 
-  getChildrenRecursively() {
-    if (getChildrenRecursiveWarned) {
-      console.warn('getChildrenRecursively, force initializes the children and can be extremely heavy on big objects.\nUse this for debugging purposes only');
-      getChildrenRecursiveWarned = true;
-    }
-    return keys(this[role]).map(k => this[k]).reduce(onReduceChildren, []);
-  }
-
-  getChildren() {
-    if (getChildrenWarned) {
-      console.warn('getChildren is deprecated, it force initializes the children.\nYou need to perform this, you can achieve the same result with Object spread + Object+values');
-      getChildrenWarned = true;
-    }
-    return keys(this[role]).map(k => this[k]);
-  }
-
   [onRemoveChild](k) {
     this[role][removeChild](k);
     if (this[children][k]) {
       delete this[children][k];
     }
     delete this[k];
+  }
+
+  static onAccessingRemovedNode(id, property) {
+    console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
   }
 
   _createChild(k, childRole = this[role][createChild](k)) {
@@ -231,23 +219,18 @@ export default class StateMapper {
     });
   }
 
-  static onAccessingRemovedNode(id, property) {
-    console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
+  _getChildren() {
+    return keys(this[role]).map(k => this[k]);
   }
 
+  _getChildrenRecursively() {
+    return keys(this[role]).map(k => this[k]).reduce(StateMapper._onReduceChildren, []);
+  }
+
+  static _onReduceChildren(acc, child){
+    return [ ...acc, child, ...child._getChildrenRecursively(), ];
+  }
   static couldBeParent(value) {
     return value && value instanceof Object && !invalidParents[getPrototypeOf(value).constructor.name];
   }
-}
-
-function poorSet(arr) {
-  return arr.reduce(poorSetMapper, {});
-}
-function poorSetMapper(acc, k) {
-  acc[k+''] = true;
-  return acc;
-}
-
-function onReduceChildren(acc, child) {
-  return [ ...acc, child, ...child.getChildrenRecursively(), ];
 }

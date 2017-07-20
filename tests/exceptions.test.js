@@ -24,48 +24,37 @@ describe('killSwitch', () => {
       }
     );
   });
-  test('Kill switch should trigger when depth > 100 ',
-    () => {
-      let killSwitchIsTriggered = false;
 
-      const { subject, }= createStoreWithNonedux({ a: {}, });
-      StateMapper.__kill = () => { killSwitchIsTriggered = true; };
-      let ref = subject;
-      for (let i = 0; i<45; i++) {
-        ref.setState({ a: {}, });
-        ref = ref.a;
-        ref.state;
-        expect(killSwitchIsTriggered).toBeFalsy();
-      }
-      ref.setState({ a: {}, });
-      ref.a.state;
-      expect(killSwitchIsTriggered).toBeTruthy();
+  [ 'legacy', 'proxy' ].forEach(name => {
+    const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
+    describe('run ' + name + ' configuration', () => {
+      test('changing removed child subject should throw an exception',
+        () => {
+          const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
+          const { a, c, } = root;
+          const { d, } = c;
+          root.remove('a');
+          root.remove([ 'c', ]);
+          verifyErrorOnChange(a, c, d);
+        });
+
+      test('accessing remove sub subject should throw an exception', () => {
+        const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { a, b, c, } = root;
+        const { d, } = c;
+        root.remove('a', 'b', 'c');
+        expect(() => a.setState({})).toThrow(Error);
+        expect(() => b.setState({})).toThrow(Error);
+        expect(() => c.setState({})).toThrow(Error);
+        expect(() => a.clearState({})).toThrow(Error);
+        expect(() => b.clearState({})).toThrow(Error);
+        expect(() => c.clearState({})).toThrow(Error);
+
+        expect(() => a.remove('b')).toThrow(Error);
+        expect(() => b.remove('val')).toThrow(Error);
+        expect(() => c.remove('d')).toThrow(Error);
+        expect(() => d.remove('val')).toThrow(Error);
+      });
     });
-  test('changing __applyRemoved sub subject should throw an exception',
-    () => {
-      const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
-      const { a, c, } = root;
-      const { d, } = c;
-      root.remove('a');
-      root.remove([ 'c', ]);
-      verifyErrorOnChange(a, c, d);
-    });
-
-  test('accessing remove sub subject should throw an exception', () => {
-    const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
-    const { a, b, c, } = root;
-    const { d, } = c;
-    root.remove('a', 'b', 'c');
-    expect(() => a.setState({})).toThrow(Error);
-    expect(() => b.setState({})).toThrow(Error);
-    expect(() => c.setState({})).toThrow(Error);
-    expect(() => a.clearState({})).toThrow(Error);
-    expect(() => b.clearState({})).toThrow(Error);
-    expect(() => c.clearState({})).toThrow(Error);
-
-    expect(() => a.remove('b')).toThrow(Error);
-    expect(() => b.remove('val')).toThrow(Error);
-    expect(() => c.remove('d')).toThrow(Error);
-    expect(() => d.remove('val')).toThrow(Error);
   });
 });
