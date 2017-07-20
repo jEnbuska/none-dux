@@ -531,7 +531,7 @@ function removeOldEntries_bestPerformance(){
       
     nonedux.setState({bigData: createLeaf(nextBigData)})
     
-     //Performance should very close to optimal. about 350x faster than slowest
+     //Performance should be very close to optimal. about 350x faster than slowest
   }
 }
 ```
