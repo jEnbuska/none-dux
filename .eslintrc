@@ -42,7 +42,7 @@
     "no-trailing-spaces": ["warn", { "skipBlankLines": true }],
     "eol-last": 0,
     "no-extra-semi": "warn",
-    "react/no-multi-comp": "warn",
+    "react/no-multi-comp": 0,
     "arrow-spacing": ["warn", { "before": true, "after": true }],
     "no-plusplus": 0,
     "jsx-quotes": ["warn", "prefer-single"],

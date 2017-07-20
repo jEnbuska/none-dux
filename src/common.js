@@ -18,6 +18,8 @@ export function stringify(obj) {
   }
 }
 
+export const has = Object.prototype.hasOwnProperty;
+
 export function findChild(value, path) {
   for (let i = path.length-1; i>=0; --i) {
     const key = path[i];
@@ -26,7 +28,7 @@ export function findChild(value, path) {
   return value;
 }
 export const stateMapperPrivates = {
-  acquireChild: Symbol('acquireChild'),
+  resolveDiff: Symbol('resolveDiff'),
   pending: Symbol('pending'),
   role: Symbol('role'),
   depth: Symbol('depth'),
@@ -40,6 +42,7 @@ export const stateMapperPrivates = {
   children: Symbol('children'),
   handleChange: Symbol('handleChange'),
   pendingState: Symbol('pendingState'),
+  createProxy: Symbol('createProxy')
 };
 
 export const knotTree = {
