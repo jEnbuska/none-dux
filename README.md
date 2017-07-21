@@ -186,7 +186,7 @@ target[3].removeSelf();
 ##State
 **Root level** reducer variables must be defined at nonedux initialState
 
-<sub>...  the types can be changed</sub>
+...  the types can be changed
 
 ```
 function stateExample(){
@@ -458,7 +458,7 @@ This is pretty much the same reason, why React is advices to not use index as 'k
 
 If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
 
-<sub><sub>If you require further performance improvement **v11 (beta)** is 2-10 faster in most cases, and even 1000 faster in some cases like cleaning up removed references. It's performance benefits are turned off at old browsers like ie11 </sub></sub>
+If you require further performance improvement **v11 (beta)** is 2-10 faster in most cases, and even 1000 faster in some cases like cleaning up removed references. It's performance benefits are turned off at old browsers like ie11
 
 ```
 cosnt {values} = Object;
@@ -546,7 +546,7 @@ If entries are only leaf: (string,  numbers, etc.) there should not be any need 
 
 Children aren't created until they are referred to for the first time, but the promise* of creating them later when referred is work too.
 
-<sub><sub>*(**promise** literally, not JavaScript Promise)</sub></sub>
+*(**promise** literally, not JavaScript Promise)
 ```
 ...
 function fetchCustomerData(){
