@@ -28,12 +28,10 @@ export function findChild(value, path) {
   return value;
 }
 export const branchPrivates = {
-  resolveDiff: Symbol('resolveDiff'),
-  pending: Symbol('pending'),
   identity: Symbol('identity'),
-  depth: Symbol('depth'),
-  propState: Symbol('state'),
-  propPrevState: Symbol('prevState'),
+  accessState: Symbol('state'),
+  accessPrevState: Symbol('prevState'),
+  accessPendingState: Symbol('accessPendingState'),
   onSetState: Symbol('onSetState'),
   onClearState: Symbol('onClearState'),
   onRemove: Symbol('onRemove'),
@@ -41,8 +39,6 @@ export const branchPrivates = {
   onRemoveChild: Symbol('onRemoveChild'),
   children: Symbol('children'),
   handleChange: Symbol('handleChange'),
-  pendingState: Symbol('pendingState'),
-  createProxy: Symbol('createProxy'),
   actual: Symbol('actual'),
 };
 
@@ -66,10 +62,11 @@ export const invalidReferenceHandler = {
 };
 
 export const invalidParents = {
+  LegacyBranch: true,
+  ProxyBranch: true,
+  SagaLegacyBranch: true,
   ObjectLeaf: true,
   ArrayLeaf: true,
-  StateMapperSaga: true,
-  StateMapper: true,
   Number: true,
   String: true,
   RegExp: true,
@@ -80,9 +77,9 @@ export const invalidParents = {
 };
 
 export function poorSet(arr) {
-  return arr.reduce(poorSetMapper, {});
+  return arr.reduce(poorSetReducer, {});
 }
-function poorSetMapper(acc, k) {
+function poorSetReducer(acc, k) {
   acc[k+''] = true;
   return acc;
 }

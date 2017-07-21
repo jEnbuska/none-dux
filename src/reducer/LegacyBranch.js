@@ -4,7 +4,7 @@ import Branch from './Branch';
 import { branchPrivates, knotTree, } from '../common';
 
 const { identity, dispatcher, children, } = branchPrivates;
-const { createChild, resolve, } = knotTree;
+const { createChild, } = knotTree;
 
 const { defineProperty, keys, } = Object;
 
@@ -35,20 +35,12 @@ export default class BranchLegacy extends Legacy {
   _createChild(k, childRole = this[identity][createChild](k)) {
     defineProperty(this, k, {
       configurable: true,
-      enumerable: true,
+      enumerable: false,
       get: () => this[children][k] || (this[children][k] = new BranchLegacy(childRole, this[dispatcher])),
       set: (child) => {
         this[children][k] = child;
       },
     });
-  }
-
-  _getChildren() {
-    return keys(this[identity]).map(k => this[k]);
-  }
-
-  _getChildrenRecursively() {
-    return keys(this[identity]).map(k => this[k]).reduce(Branch._onReduceChildren, []);
   }
 
 }

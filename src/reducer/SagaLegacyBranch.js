@@ -30,7 +30,7 @@ export default class SagaBranchLegacy extends Legacy {
   _createChild(k, childRole = this[identity][createChild](k)) {
     defineProperty(this, k, {
       configurable: true,
-      enumerable: true,
+      enumerable: false,
       get: () => this[children][k] || (this[children][k] = new SagaBranchLegacy(childRole, this[dispatcher])),
       set: (child) => {
         this[children][k] = child;

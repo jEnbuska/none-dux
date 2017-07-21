@@ -1,7 +1,8 @@
 const { assign, freeze, seal, values, } = Object;
 
 /*
-*leaf is a lightweight child of StateMapper*
+*leaf is a lightweight child of Branch
+ Performance benefits can be noticed when running legacy mode
 const judgeStaticData = {....}
 target.setState({resources: createLeaf(judgeStaticData)})
 target.resoureces //undefined
@@ -28,7 +29,7 @@ export class ObjectLeaf {
 }
 
 function onThrow(func) {
-  throw new Error('StateMapperArrayLeaf does not implement "'+ func+'"');
+  throw new Error('ArrayLeaf does not implement "'+ func+'"');
 }
 
 export class ArrayLeaf {

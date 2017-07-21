@@ -109,7 +109,7 @@ export default class Legacy extends Branch {
     delete this[k];
   }
 
-  _getChildren() {
+  getChildren() {
     return keys(this[identity]).map(k => this[k]);
   }
 

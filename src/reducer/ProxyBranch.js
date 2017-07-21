@@ -1,5 +1,5 @@
 import Branch from './Branch';
-import { branchPrivates, knotTree, TARGET, REMOVE, GET_STATE, PARAM, PUBLISH_CHANGES, PUBLISH_NOW, ROLLBACK, } from '../common';
+import { branchPrivates, knotTree, TARGET, REMOVE, GET_STATE, PARAM, PUBLISH_NOW, } from '../common';
 
 const { identity, dispatcher, actual, } = branchPrivates;
 const { createChild, resolve, } = knotTree;
@@ -15,30 +15,11 @@ const stateBranchMethods = {
   getIdentity: true,
   getId: true,
   removeSelf: true,
-  _getChildren: true,
+  getChildren: true,
   _getChildrenRecursively: true,
 };
 
 export default class ProxyBranch extends Branch {
-
-  transaction(callBack) {
-    const publishAfterDone = !this[dispatcher].onGoingTransaction;
-    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: [], });
-    try {
-      this[dispatcher].onGoingTransaction = true;
-      callBack(this[proxy]);
-      if (publishAfterDone) {
-        this[dispatcher].dispatch({ type: PUBLISH_CHANGES, });
-      }
-    } catch (Exception) {
-      this[dispatcher].dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
-      throw Exception;
-    } finally {
-      if (publishAfterDone) {
-        this[dispatcher].onGoingTransaction = false;
-      }
-    }
-  }
 
   getId() {
     return this[identity].getId();
@@ -80,13 +61,13 @@ export default class ProxyBranch extends Branch {
     return child._createProxy();
   }
 
-  _getChildren() {
+  getChildren() {
     const state = this[proxy].state;
     return keys(state).filter(k => Branch.couldBeParent(state[k])).map(k => this[proxy][k]);
   }
 
   _getChildrenRecursively() {
-    return this[proxy]._getChildren().reduce(Branch._onReduceChildren, []);
+    return this.getChildren().reduce(Branch._onReduceChildren, []);
   }
 
   _createProxy() {

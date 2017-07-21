@@ -2,7 +2,7 @@ import { TARGET, GET_STATE, GET_PREV_STATE, PARAM, PUBLISH_NOW, findChild, branc
 import Branch from './Branch';
 import { proxy, } from './ProxyBranch';
 
-const { identity, dispatcher, onRemove, onSetState, onClearState, propState, propPrevState, pendingState, } = branchPrivates;
+const { identity, dispatcher, onRemove, onSetState, onClearState, accessState, accessPrevState, accessPendingState, } = branchPrivates;
 const { removeChild, renameSelf, } = knotTree;
 
 const { entries, } = Object;
@@ -18,14 +18,14 @@ export function createThunk(rootBranch) {
   };
 }
 
-export function createStateAccessMiddleware(stateMapper) {
+export function createStateAccessMiddleware(rootBranch) {
   return () => (next) => (action) => {
     const { type, [TARGET]: path, } = action;
     switch (type) {
       case GET_STATE:
-        return findChild(stateMapper[pendingState] || stateMapper[propState], path);
+        return findChild(rootBranch[accessPendingState] || rootBranch[accessState], path);
       case GET_PREV_STATE:
-        return findChild(stateMapper[propPrevState], path);
+        return findChild(rootBranch[accessPrevState], path);
       default:
         return next(action);
     }
@@ -40,7 +40,7 @@ const removeReducer = function (acc, e) {
 };
 
 export function createStateChanger(root, legacy) {
-  let state = root[propState];
+  let state = root[accessState];
   if (legacy) {
     return () => (next) => (action) => {
       const { type, [TARGET]: path, [PARAM]: param, [PUBLISH_NOW]: publishNow, } = action;
@@ -73,19 +73,19 @@ export function createStateChanger(root, legacy) {
         }
         state = createNextState(trace);
         if (publishNow) {
-          root[propPrevState] = root[propState];
-          root[propState] = state;
-          state = root[propState];
+          root[accessPrevState] = root[accessState];
+          root[accessState] = state;
+          state = root[accessState];
         } else {
-          root[pendingState] = state;
+          root[accessPendingState] = state;
         }
       } else if (type === PUBLISH_CHANGES) {
-        root[propPrevState] = root[propState];
-        root[propState] = state;
-        delete root[pendingState];
+        root[accessPrevState] = root[accessState];
+        root[accessState] = state;
+        delete root[accessPendingState];
       } else if (type === ROLLBACK) {
         root[onClearState](param);
-        delete root[pendingState];
+        delete root[accessPendingState];
       }
       next(action);
     };
@@ -127,26 +127,26 @@ export function createStateChanger(root, legacy) {
       }
       state = createNextState(trace);
       if (publishNow) {
-        root[propPrevState] = root[propState];
-        root[propState] = state;
-        state = root[propState];
+        root[accessPrevState] = root[accessState];
+        root[accessState] = state;
+        state = root[accessState];
       } else {
-        root[pendingState] = state;
+        root[accessPendingState] = state;
       }
     } else if (type === PUBLISH_CHANGES) {
-      root[propPrevState] = root[propState];
-      root[propState] = state;
-      delete root[pendingState];
+      root[accessPrevState] = root[accessState];
+      root[accessState] = state;
+      delete root[accessPendingState];
     } else if (type === ROLLBACK) {
-      onProxyClearState(root[identity], param, root[pendingState]);
-      delete root[pendingState];
+      onProxyClearState(root[identity], param, root[accessPendingState]);
+      delete root[accessPendingState];
     }
     next(action);
   };
 }
 
 function createTraceablePathLegacy(root, path) {
-  let childState = root[pendingState] || root[propState];
+  let childState = root[accessPendingState] || root[accessState];
   let child = root;
   const list = [ { state: childState, child, }, ];
   for (let i = path.length-1; i>=0; i--) {
@@ -159,7 +159,7 @@ function createTraceablePathLegacy(root, path) {
 }
 
 function createTraceablePathProxy(root, path) {
-  let state= root[pendingState] || root[propState];
+  let state= root[accessPendingState] || root[accessState];
   let identifier = root[identity];
   const list = [ { state, identifier, }, ];
   for (let i = path.length-1; i>=0; i--) {

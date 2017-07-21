@@ -5,11 +5,11 @@ import Branch from './reducer/Branch';
 import LegacyBranch from './reducer/LegacyBranch';
 import ProxyStateBranch from './reducer/ProxyBranch';
 import SagaLegacyBranch from './reducer/SagaLegacyBranch';
-import KnotTree from './reducer/KnotTree';
+import Identity from './reducer/Identity';
 import { createStateAccessMiddleware, createThunk, createStateChanger, } from './reducer/createMiddleware';
 
 const { assign, keys, defineProperty, } = Object;
-const { propState, propPrevState, } = branchPrivates;
+const { accessState, accessPrevState, } = branchPrivates;
 
 export function checkProxySupport() {
   const target = {};
@@ -26,9 +26,9 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
   let subject;
   if (saga) {
     legacy = true;
-    subject = new SagaLegacyBranch(new KnotTree(), { dispatch: () => { }, }, initialState);
+    subject = new SagaLegacyBranch(new Identity(), { dispatch: () => { }, }, initialState);
   } else if (legacy) {
-    subject = new LegacyBranch(new KnotTree(), { dispatch: () => { }, onGoingTransaction: false, }, initialState);
+    subject = new LegacyBranch(new Identity(), { dispatch: () => { }, onGoingTransaction: false, }, initialState);
     const onCreateChild = subject._createChild.bind(subject);
     defineProperty(subject, '_createChild', {
       enumerable: false,
@@ -41,10 +41,10 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
       },
     });
   } else {
-    subject = new ProxyStateBranch(new KnotTree(), { dispatch: () => {}, });
+    subject = new ProxyStateBranch(new Identity(), { dispatch: () => {}, });
   }
-  subject[propState] = initialState;
-  subject[propPrevState]= {};
+  subject[accessState] = initialState;
+  subject[accessPrevState]= {};
   const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
   const noneduxStateChanger = createStateChanger(subject, legacy);
@@ -68,5 +68,5 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
 export { createLeaf, shape, leafs, };
 
 function createDummyReducer(key, root) {
-  return () => root[propState][key];
+  return () => root[accessState][key];
 }

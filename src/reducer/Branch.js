@@ -53,7 +53,7 @@ export default class Branch {
     if (!identity) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     } else if (!Branch.couldBeParent(value)) {
-      throw new Error('StateMapper does not take leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+      throw new Error('Branch does not take leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     return { type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
@@ -63,7 +63,7 @@ export default class Branch {
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     } else if (!Branch.couldBeParent(value)) {
-      throw new Error('StateMapper does not take leafs as clearState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+      throw new Error('Branch does not take leafs as clearState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     return { type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }

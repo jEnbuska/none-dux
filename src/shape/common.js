@@ -43,14 +43,14 @@ export const checkers = {
   Object: (val) => {
     if (val) {
       const { name, } = getPrototypeOf(val).constructor;
-      return val && val instanceof Object && (name !== 'Array' && name !== 'StateMapperArrayLeaf' && !naturalLeafTypes[name]);
+      return val && val instanceof Object && (name !== 'Array' && name !== 'ArrayLeaf' && !naturalLeafTypes[name]);
     }
     return false;
   },
   Array: (val) => {
     if (val) {
       const { name, } = getPrototypeOf(val).constructor;
-      return val && (val instanceof Array || name === 'StateMapperArrayLeaf');
+      return val && (val instanceof Array || name === 'ObjectLeaf');
     }
     return false;
   },
