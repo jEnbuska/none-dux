@@ -458,6 +458,8 @@ This is pretty much the same reason, why React is advices to not use index as 'k
 
 If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
 
+<sub><sub>If you require further performance improvement **v11 (beta)** is 2-10 faster in most cases, and even 1000 faster in some cases like cleaning up removed references. It's performance benefits are turned off at old browsers like ie11 </sub></sub>
+
 ```
 cosnt {values} = Object;
 
