@@ -463,10 +463,11 @@ This is pretty much the same reason, why React is advices to not use index as 'k
 
 If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
 
-If you require further performance improvement **v11 (beta)** is 2-20 faster in most cases. It's performance benefits are turned off at old browsers like ie11
+***If you require further performance improvement **v11 (beta)** can be 2-20 faster in the most heaviest cases shown below and it makes createLeaf obsolete 
+It's performance benefits are turned off at old browsers like ie11***
 <sub>```'npm install --save none-dux@beta' or 'yarn add none-dux@beta'```</sub>
 ```
-cosnt {values} = Object;
+const {values} = Object;
 
 function removeOldEntries_worstPerformance(){
   return function({bigData}){
