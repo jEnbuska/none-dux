@@ -2,13 +2,11 @@
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
 ## This documentation is not finished
-The key differences compared to v10 is that the performance is 2-10 better in most cases when using modern browsers that support Proxy
+The key differences compared to v10 is that the performance is 2-20 better in most cases when using modern browsers that support Proxy
 
 createLeaf has become obsolete (when not legacy mode)
 
 Code base is finally somewhat readable and naming makes more sence
-
-
 
 When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
 
