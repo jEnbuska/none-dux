@@ -18,8 +18,7 @@ const initialState= {
   selections: { user: {}, },
 };
 
-const { reducers, middlewares, subject, } = nonedux(initialState);
-console.log({ reducers, });
+const { reducers, middlewares, subject, } = nonedux({initialState});
 
 const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
 const store = createStoreWithMiddleware(combineReducers({ ...reducers, }), window.devToolsExtension && window.devToolsExtension());

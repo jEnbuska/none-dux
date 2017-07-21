@@ -1,6 +1,50 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
+## This documentation is not finished
+The key differences compared to v10 is that the performance is 2-10 better in most cases when using modern browsers that support Proxy
+
+createLeaf has become obsolete (when not legacy mode)
+
+Code base is finally somewhat readable and naming makes more sence
+
+
+
+When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
+
+#####There is few breaking change:
+
+######constructor
+```
+old:
+const {subject, middlewares} = nonedux(initialState, bool /*flag for saga usage*/)
+new:
+const {subject, middlewares} = nonedux({
+    initialState, 
+    saga:bool, //optional 
+    legacy: bool //optional --> if not defined, it will be automatically use legacy when run on a oldbrowser
+})
+```
+######children
+```
+target.setState({a:{},b:{}})
+const {a, ...rest} = target.getChildren(); 
+//getChildren returns Object not Array
+//rest = {b: { /*child*/ }}
+
+const {a, ...rest} = target.setState({a:{},b:{}})
+//'rest' will be allways empty because Proxys do not support iteration
+```
+######No references are stored. Makes memory almost everything bizillion x faster
+```
+target.setState({a:{}});
+target.a !== target.a
+target.a.state === target.a.state; // this is ofcourse still true
+```
+
+The day when browsers with no proxy do not need to be supported, there is a lot of good things that can be added and the code base can be made much smaller
+###Old partially deprecated documentation -->
+
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
 Alternative for 'react-redux + redux-thunk' stack
@@ -148,7 +192,7 @@ console.log(target.state.value); //'text'
 {
   const { data } = nonedux.data.setState({obj: {str: 'ok'}})
    
-  console.log(data.obj) //StateMapper: ...
+  console.log(data.obj) //Branch: ...
    
   console.log(data.obj.state) // {str: 'ok'}
 }

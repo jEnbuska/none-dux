@@ -16,7 +16,7 @@ const initialState= {
   blockContentInteraction: false,
 };
 
-const { reducers, middlewares, subject, } = nonedux(initialState, true); // true for saga
+const { reducers, middlewares, subject, } = nonedux({ initialState, saga: true, });
 middlewares.push(shape.validatorMiddleware(subject, validators));
 const sagaMiddleware = createSagaMiddleware();
 middlewares.push(sagaMiddleware);
