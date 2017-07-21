@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import StateMapper from '../src/reducer/StateMapper';
+import Branch from '../src/reducer/Branch';
 
 describe('arrays as state', () => {
   let invalidAccessCalls = [];
@@ -8,7 +8,7 @@ describe('arrays as state', () => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       beforeAll(() => {
-        Object.defineProperty(StateMapper, 'onAccessingRemovedNode', {
+        Object.defineProperty(Branch, 'onAccessingRemovedNode', {
           configurable: true,
           writable: true,
           value: (id, propertyName) => {

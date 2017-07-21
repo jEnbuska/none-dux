@@ -1,16 +1,16 @@
 import { createStoreWithNonedux, } from './utils';
-import StateMapper from '../src/reducer/StateMapper';
+import Branch from '../src/reducer/Branch';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays as state', () => {
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
         let invalidAccessCalls = [];
 
         beforeAll(() => {
-          Object.defineProperty(StateMapper,
+          Object.defineProperty(Branch,
             'onAccessingRemovedNode',
             {
               configurable: true,

@@ -1,8 +1,7 @@
 import { createStoreWithNonedux, } from './utils';
 import { PARAM, PUBLISH_NOW, REMOVE, SET_STATE, CLEAR_STATE, TARGET, } from '../src/common';
 
-describe('saga state mapper', () => {
-  let subject;
+describe('saga state branch', () => {
   test('create nonedux', () => {
     createStoreWithNonedux({ a: { b: 1, }, c: { d: {}, }, });
   });

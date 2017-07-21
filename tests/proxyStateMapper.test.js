@@ -1,14 +1,14 @@
 import { createStoreWithNonedux, } from './utils';
-import StateMapper from '../src/reducer/StateMapper';
+import ProxyBranch from '../src/reducer/ProxyBranch';
 
 describe('arrays as state', () => {
   let invalidAccessCalls = [];
 
-  [ 'proxy' ].forEach(name => {
+  [ 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       beforeAll(() => {
-        Object.defineProperty(StateMapper, 'onAccessingRemovedNode', {
+        Object.defineProperty(ProxyBranch, 'onAccessingRemovedNode', {
           configurable: true,
           writable: true,
           value: (id, propertyName) => {
@@ -22,12 +22,9 @@ describe('arrays as state', () => {
         const { subject, } = init({ root: { a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, }, });
         const { a, } = subject.root;
         expect(a.state).toBeDefined();
-        console.log('-----------REMOVE A')
         subject.root.remove('a');
         expect(invalidAccessCalls.length).toBe(0);
-        console.log('do access invalid')
         expect(a.state).toBeUndefined();
-        console.log('--------------')
       });
     });
   });

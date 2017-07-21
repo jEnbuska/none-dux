@@ -1,58 +1,56 @@
 import createLeaf from './reducer/leafs';
 import shape from './shape';
-import { stateMapperPrivates, _README_URL_, invalidParents as leafs, } from './common';
-import StateMapper from './reducer/StateMapper';
-import ProxyStateMapper from './reducer/ProxyStateMapper';
-import StateMapperSaga from './reducer/StateMapperSaga';
+import { branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
+import Branch from './reducer/Branch';
+import LegacyBranch from './reducer/LegacyBranch';
+import ProxyStateBranch from './reducer/ProxyBranch';
+import SagaLegacyBranch from './reducer/SagaLegacyBranch';
 import KnotTree from './reducer/KnotTree';
-import { createProxyStateChanged, createStateAccessMiddleware, createThunk, createLegacyStateChanger, } from './reducer/createMiddleware';
+import { createStateAccessMiddleware, createThunk, createStateChanger, } from './reducer/createMiddleware';
 
 const { assign, keys, defineProperty, } = Object;
-const { propState, propPrevState, createProxy } = stateMapperPrivates;
+const { propState, propPrevState, } = branchPrivates;
 
 export function checkProxySupport() {
   const target = {};
   const proxy = new Proxy(target, {
-    get: (t, k) => !!(t === target && k && 'check')
+    get: (t, k) => !!(t === target && k==='check' && 'check'),
   });
   return proxy.check;
 }
 
-export default function initNonedux(initialState = {}, saga = false, proxy = checkProxySupport()) {
-  console.log({proxy})
-  if (!StateMapper.couldBeParent(initialState) ||!keys(initialState).length) {
+export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {
+  if (!Branch.couldBeParent(initialState) ||!keys(initialState).length) {
     throw new Error('Expected initial state to contain at least one child, state but got '+ JSON.stringify(initialState));
   }
   let subject;
   if (saga) {
-    if (proxy) {
-      console.error('TODO');
-    }
-    subject = new StateMapperSaga(initialState, 0, new KnotTree(), { dispatch: () => { }, });
-  } else if (proxy) {
-    subject = new ProxyStateMapper(0, new KnotTree(), { dispatch: () => {} });
-  } else {
-    subject = new StateMapper(initialState, 0, new KnotTree(), { dispatch: () => { }, onGoingTransaction: false, });
+    legacy = true;
+    subject = new SagaLegacyBranch(new KnotTree(), { dispatch: () => { }, }, initialState);
+  } else if (legacy) {
+    subject = new LegacyBranch(new KnotTree(), { dispatch: () => { }, onGoingTransaction: false, }, initialState);
     const onCreateChild = subject._createChild.bind(subject);
     defineProperty(subject, '_createChild', {
       enumerable: false,
-      value: (key, role) => {
+      value: (key, identity) => {
         if (initialState.hasOwnProperty(key)) {
-          onCreateChild(key, role);
+          onCreateChild(key, identity);
         } else {
           console.error('Cannot add new to root level state after initialization');
         }
       },
     });
+  } else {
+    subject = new ProxyStateBranch(new KnotTree(), { dispatch: () => {}, });
   }
   subject[propState] = initialState;
   subject[propPrevState]= {};
   const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
-  const noneduxStateChanger = proxy ? createProxyStateChanged(subject) : createLegacyStateChanger(subject);
+  const noneduxStateChanger = createStateChanger(subject, legacy);
   const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
-  if (proxy) {
-    subject = subject[createProxy]();
+  if (!legacy) {
+    subject = subject._createProxy();
   }
   return {
     reducers,

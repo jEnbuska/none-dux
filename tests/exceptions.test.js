@@ -1,5 +1,4 @@
 import { createStoreWithNonedux, } from './utils';
-import StateMapper from '../src/reducer/StateMapper';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 function verifyErrorOnChange(...params) {
@@ -25,12 +24,12 @@ describe('killSwitch', () => {
     );
   });
 
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'legacy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration', () => {
       test('changing removed child subject should throw an exception',
         () => {
-          const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
+          const { subject: { root, }, }= init({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
           const { a, c, } = root;
           const { d, } = c;
           root.remove('a');
@@ -39,7 +38,7 @@ describe('killSwitch', () => {
         });
 
       test('accessing remove sub subject should throw an exception', () => {
-        const { subject: { root, }, }= createStoreWithNonedux({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { subject: { root, }, }= init({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
         const { a, b, c, } = root;
         const { d, } = c;
         root.remove('a', 'b', 'c');

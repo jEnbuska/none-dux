@@ -3,7 +3,7 @@ import { knotTree, } from '../common';
 const _key = Symbol('_knotset_key');
 const _removed = Symbol('_knotset_removed');
 const _prev = Symbol('_knotset_prev');
-const { createChild, removeChild, renameSelf, resolveIdentity, } = knotTree;
+const { createChild, removeChild, renameSelf, resolve, } = knotTree;
 
 export default class KnotTree {
   constructor(key, prev) {
@@ -30,13 +30,13 @@ export default class KnotTree {
     delete this[key];
   }
 
-  [resolveIdentity](acc = []) {
+  [resolve](acc = []) {
     if (this[_removed]) {
       return false;
     }
     if (this[_key]) {
       acc.push(this[_key]);
-      return this[_prev][resolveIdentity](acc);
+      return this[_prev][resolve](acc);
     }
     return acc;
   }

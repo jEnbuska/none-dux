@@ -1,11 +1,10 @@
 import { createStoreWithNonedux, } from './utils';
-import StateMapper from '../src/reducer/StateMapper';
 import createLeaf from '../src/reducer/leafs';
 import { data, data2, } from './resources';
 
 const { keys, } = Object;
 describe('performance', () => {
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
@@ -15,7 +14,6 @@ describe('performance', () => {
           const firstCompany = keys(even.companies)[0];
           const firstChildOdd = keys(odd)[0];
           const { subject: { root, }, }= init({ root: {}, });
-          StateMapper.maxDepth = 100;
           root.setState(even);
           const time = new Date();
           for (let i = 0; i < 3000; i++) {
@@ -52,7 +50,6 @@ describe('performance', () => {
           const firstCompany = keys(even.companies)[0];
           const firstChildOdd = keys(odd)[0];
           const { subject: { root, }, }= init({ root: {}, });
-          StateMapper.maxDepth = 100;
           root.setState(even);
           const time = new Date();
           for (let i = 0; i < 1500; i++) {

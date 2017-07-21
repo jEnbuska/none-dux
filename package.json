@@ -2,7 +2,7 @@
   "name": "none-dux",
   "description": "less verbose react handling with redux react-redux & redux-thunk like syntax",
   "main": "lib/index.js",
-  "version": "11-beta.0",
+  "version": "11.0.0-beta.2",
   "author": "jEnbuska <joonaenb@gmail.com>",
   "license": "ISC",
   "repository": {

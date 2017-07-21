@@ -27,10 +27,10 @@ export function findChild(value, path) {
   }
   return value;
 }
-export const stateMapperPrivates = {
+export const branchPrivates = {
   resolveDiff: Symbol('resolveDiff'),
   pending: Symbol('pending'),
-  role: Symbol('role'),
+  identity: Symbol('identity'),
   depth: Symbol('depth'),
   propState: Symbol('state'),
   propPrevState: Symbol('prevState'),
@@ -42,11 +42,12 @@ export const stateMapperPrivates = {
   children: Symbol('children'),
   handleChange: Symbol('handleChange'),
   pendingState: Symbol('pendingState'),
-  createProxy: Symbol('createProxy')
+  createProxy: Symbol('createProxy'),
+  actual: Symbol('actual'),
 };
 
 export const knotTree = {
-  resolveIdentity: Symbol('resolveIdentity'),
+  resolve: Symbol('resolve'),
   createChild: Symbol('createChild'),
   renameSelf: Symbol('renameChild'),
   removeChild: Symbol('removeChild'),

@@ -4,8 +4,7 @@ function throwError() {
   throw new Error();
 }
 describe('transaction', () => {
-
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run '+name+' configuration', () => {
       test('transaction no nested',
@@ -126,7 +125,7 @@ describe('transaction', () => {
             { a: {}, b: {}, },
             { a: { x: {}, }, b: { y: {}, }, }, ]);
         });
-    })
+    });
   });
 });
 
