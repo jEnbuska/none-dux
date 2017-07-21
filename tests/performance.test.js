@@ -34,7 +34,7 @@ describe('performance', () => {
           console.log(name + ' = ~ 3000 nodes merges, 3000 resets, 3000 removes Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
-        test('force init a lot of children', () => {
+        /*test('force init a lot of children', () => {
           const time = Date.now();
           for (let i = 0; i<1000; i++) {
             const { subject: { root, }, } = init({ root: data, });
@@ -42,7 +42,7 @@ describe('performance', () => {
           }
          // MacBook Pro  2,2 GHz Intel Core i7 --- 5000-6000ms
           console.log(name + ' = force init 442000 children: ', new Date() - time, 'ms');
-        }, 15000);
+        }, 15000);*/
 
         test('setState & remove and init lazy immediate children', () => {
           const even = data;
@@ -57,27 +57,27 @@ describe('performance', () => {
               root.clearState({});
             }
             if (i % 2 === 0) {
-              const { ...all } = root.clearState(even);
-              const { ...companies } = root.companies[firstCompany].setState(odd[firstChildOdd]);
+              root.clearState(even).getChildren();
+              root.companies[firstCompany].setState(odd[firstChildOdd]).getChildren();
               root.companies.remove([ firstCompany, ]);
             } else {
-              const { ...all } = root.clearState(odd);
-              const { ...other } = root[firstChildOdd].setState(even.companies[firstCompany]);
+              root.clearState(odd).getChildren();
+              root[firstChildOdd].setState(even.companies[firstCompany]).getChildren();
               root.remove([ firstChildOdd, ]);
             }
           }
           // MacBook Pro  2,2 GHz Intel Core i7 --- ~650ms
           console.log(name + ' = ~ 1500 nodes merges, 1500 resets, 1500 removes, init of 8250x3 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
-
+/*
         test('get state', () => {
           const data = { a: {}, b: {}, c: {}, };
           const { subject: { root, }, }= init({ root: data, });
-          let children = root._getChildren();
+          let children = root.getChildren();
 
           for (let i = 0; i<9; i++) {
             children.forEach(child => child.setState(data));
-            children = children.reduce((acc, child) => acc.concat(child._getChildren()), []);
+            children = children.reduce((acc, child) => acc.concat(child.getChildren()), []);
           }
 
           const allChildren = root._getChildrenRecursively();
@@ -89,7 +89,7 @@ describe('performance', () => {
           }
          // MacBook Pro  2,2 GHz Intel Core i7 --- ~1200-1400ms
           console.log('Get state 885720 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
-        }, 15000);
+        }, 15000);*/
         test('removeSelf naive performance', () => {
           const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
           const h = subject.a.b.c.d.e.f.g.h;
@@ -97,8 +97,7 @@ describe('performance', () => {
             h.setState({ [i]: { a: 1, }, });
           }
           const time = new Date();
-          const { ...all } = h;
-          Object.entries(all).filter(function ([ k, { state, }, ]) { return true; })
+          Object.entries(h.getChildren()).filter(function ([ k, { state, }, ]) { return true; })
             .forEach(([ k, value, ]) => value.removeSelf());
           // MacBook Pro  2,2 GHz Intel Core i7 --- 1300-2000ms
           console.log(name + ' = Remove 5000 children self naive. Took total of: ', new Date() - time, 'ms');

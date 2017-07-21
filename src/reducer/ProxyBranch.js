@@ -5,7 +5,6 @@ const { identity, dispatcher, actual, } = branchPrivates;
 const { createChild, resolve, } = knotTree;
 
 export const proxy = Symbol('proxy');
-const { keys, } = Object;
 
 const stateBranchMethods = {
   setState: true,
@@ -15,7 +14,6 @@ const stateBranchMethods = {
   getIdentity: true,
   getId: true,
   removeSelf: true,
-  getChildren: true,
   _getChildrenRecursively: true,
 };
 
@@ -61,13 +59,12 @@ export default class ProxyBranch extends Branch {
     return child._createProxy();
   }
 
-  getChildren() {
-    const state = this[proxy].state;
-    return keys(state).filter(k => Branch.couldBeParent(state[k])).map(k => this[proxy][k]);
+  getChildren(proxyChildren) {
+    return proxyChildren;
   }
 
   _getChildrenRecursively() {
-    return this.getChildren().reduce(Branch._onReduceChildren, []);
+    return Object.values(this[proxy].getChildren()).reduce(Branch._onReduceChildren, []);
   }
 
   _createProxy() {
@@ -87,6 +84,20 @@ export default class ProxyBranch extends Branch {
               return target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
             }
             return Branch.onAccessingRemovedNode(target[identity].getId(), 'state');
+          } else if (k === 'getChildren') {
+            const resolved = target[identity][resolve]();
+            if (resolved) {
+              const state = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
+              const children = {};
+              for (const k in state) {
+                if (Branch.couldBeParent(state[k])) {
+                  children[k] = target._createChild(k, target[identity][k]);
+                }
+              }
+              return target[k].bind(undefined, children);
+            }
+            Branch.onAccessingRemovedNode(target[identity].getId(), 'getState');
+            return target[k].bind(undefined, undefined)
           }
           k +='';
           const resolved = target[identity][resolve]();
@@ -102,7 +113,7 @@ export default class ProxyBranch extends Branch {
     return this[proxy];
   }
 
-  _returnSelf(){
+  _returnSelf() {
     return this[proxy];
   }
 }

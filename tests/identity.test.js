@@ -1,11 +1,11 @@
-import KnotTree from '../src/reducer/KnotTree';
+import Identity from '../src/reducer/Identity';
 import { knotTree, } from '../src/common';
 
 const { resolve, createChild, removeChild, } = knotTree;
 
-describe('knotlist', () => {
-  test('make StateMappers clueless about their identity', () => {
-    const tree = new KnotTree();
+describe('Identity', () => {
+  test('Ensure identity integrity', () => {
+    const tree = new Identity();
     expect(tree[resolve]()).toEqual([]);
     const a = tree[createChild]('a');
     expect(a[resolve]()).toEqual([ 'a', ]);

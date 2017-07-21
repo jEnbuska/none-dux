@@ -1,38 +1,39 @@
-import { createStoreWithNonedux } from './utils';
+import { createStoreWithNonedux, } from './utils';
 
+const { keys, } = Object;
 describe('get children', () => {
-  let subject;
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
         test('should return all immediate children', () => {
-          const { subject }= init({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
-          const { a, f, ..._ } = subject;
-          const [ first, second, ...rootNone ]= subject._getChildren();
-          expect(rootNone.length).toBe(0);
-          expect(a.getId()).toBe(first.getId());
-          expect(f.getId()).toBe(second.getId());
-          const [ b, ...aNone ] = a._getChildren();
+          const { subject, }= init({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
+          const { a: fA, f: fF, } = subject;
+          const { a, f, ...rootNone }= subject.getChildren();
+          expect(keys(rootNone).length).toBe(0);
+          expect(a.getId()).toBe(fA.getId());
+          expect(f.getId()).toBe(fF.getId());
+          const { b, ...aNone } = a.getChildren();
           expect(!!b).toBeTruthy();
-          expect(aNone.length).toBe(0);
-          const [ d, ...bNone ] = b._getChildren();
+          expect(keys(aNone).length).toBe(0);
+          const { d, ...bNone } = b.getChildren();
           expect(d).toBeTruthy();
-          expect(bNone.length).toBe(0);
+          expect(keys(bNone).length).toBe(0);
         });
 
         test('should return children recursively', () => {
-          const { subject }= init({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
-          const [ a, f, ...rootNone ]= subject._getChildren();
-          const [ b, ...aNone ] = a._getChildren();
-          const [ d, ...bNone ]= b._getChildren();
-          const [ x, ...dNone ]= d._getChildren();
-          const [ ...xNone ] = x._getChildren();
+          const { subject, }= init({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });
+          const { a, f, ...rootNone } = subject.getChildren();
+          expect(keys(rootNone).length).toBe(0);
+          const { b, ...aNone } = a.getChildren();
+          expect(keys(aNone).length).toBe(0);
+          const { d, ...bNone }= b.getChildren();
+          expect(keys(bNone).length).toBe(0);
+          const { x, ...dNone }= d.getChildren();
+          expect(keys(dNone).length).toBe(0);
+          const { ...xNone }= x.getChildren();
+          expect(keys(xNone).length).toBe(0);
           const [ expectA, expectB, expectD, expectX, expectF, ...expectEmpty ]= subject._getChildrenRecursively();
-
-          [ rootNone, aNone, bNone, dNone, xNone, ].forEach(arr => {
-            expect(arr.length).toBe(0);
-          });
 
           expect(expectEmpty.length).toBe(0);
 

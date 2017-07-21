@@ -110,11 +110,16 @@ export default class Legacy extends Branch {
   }
 
   getChildren() {
-    return keys(this[identity]).map(k => this[k]);
+    return keys(this[identity]).reduce((acc, k) => {
+      acc[k] = this[k];
+      return acc;
+    }, {});
   }
 
   _getChildrenRecursively() {
-    return keys(this[identity]).map(k => this[k]).reduce(Branch._onReduceChildren, []);
+    const children = keys(this[identity]).map(k => this[k]).reduce(Branch._onReduceChildren, []);
+    console.log({children})
+    return children
   }
 
 }

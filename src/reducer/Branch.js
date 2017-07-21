@@ -2,7 +2,7 @@ import { branchPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PARAM
 
 const { identity, dispatcher, } = branchPrivates;
 const { resolve, } = knotTree;
-const { getPrototypeOf, } = Object;
+const { getPrototypeOf, values,} = Object;
 
 // Saga state mapper does not dispatch its own actions, instead it should be used like:
 // yield put(target.setState, {a:1,b: {}})
