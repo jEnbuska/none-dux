@@ -35,7 +35,7 @@ const {a, ...rest} = target.getChildren();
 const {a, ...rest} = target.setState({a:{},b:{}})
 //'rest' will be allways empty because Proxys do not support iteration
 ```
-######No references are stored. Makes memory almost everything bizillion x faster
+######No references are stored. Makes almost everything bizillion x faster
 ```
 target.setState({a:{}});
 target.a !== target.a
