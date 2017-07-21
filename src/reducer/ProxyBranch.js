@@ -1,9 +1,10 @@
 import Branch from './Branch';
-import { branchPrivates, knotTree, TARGET, REMOVE, GET_STATE, PARAM, PUBLISH_NOW, } from '../common';
+import { branchPrivates, knotTree, TARGET, GET_STATE, invalidParents, } from '../common';
 
-const { identity, dispatcher, actual, } = branchPrivates;
-const { createChild, resolve, } = knotTree;
+const { identity, dispatcher, targetBranch, } = branchPrivates;
+const { push, resolve, } = knotTree;
 
+const { getPrototypeOf, } = Object;
 export const proxy = Symbol('proxy');
 
 const stateBranchMethods = {
@@ -13,9 +14,10 @@ const stateBranchMethods = {
   transaction: true,
   getIdentity: true,
   getId: true,
-  removeSelf: true,
   _getChildrenRecursively: true,
 };
+
+const wMap = new WeakMap();
 
 export default class ProxyBranch extends Branch {
 
@@ -45,16 +47,7 @@ export default class ProxyBranch extends Branch {
     return this[proxy];
   }
 
-  removeSelf() {
-    const identity = this.getIdentity();
-    if (!identity) {
-      throw new Error('Cannot call removeSelf to removed Node. Id:'+this.getId());
-    }
-    const [ _, ...parentIdentity ]= identity;
-    this[dispatcher].dispatch({ type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, });
-  }
-
-  _createChild(k, childRole = this[identity][createChild](k)) {
+  _createChild(k, childRole = this[identity][push](k)) {
     const child = new ProxyBranch(childRole, this[dispatcher]);
     return child._createProxy();
   }
@@ -64,7 +57,7 @@ export default class ProxyBranch extends Branch {
   }
 
   _getChildrenRecursively() {
-    return Object.values(this[proxy].getChildren()).reduce(Branch._onReduceChildren, []);
+    return Object.values(this[proxy].getChildren()).reduce(Branch._onGetChildrenRecursively, []);
   }
 
   _createProxy() {
@@ -72,44 +65,55 @@ export default class ProxyBranch extends Branch {
       {
         get(target, k) {
           if (typeof k ==='symbol') {
-            if (k === actual) {
+            if (k === targetBranch) {
               return target;
             }
             return k;
-          } else if (stateBranchMethods[k]) {
-            return target[k].bind(target);
           } else if (k==='state') {
             const resolved = target[identity][resolve]();
             if (resolved) {
               return target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
             }
             return Branch.onAccessingRemovedNode(target[identity].getId(), 'state');
+          } else if (stateBranchMethods[k]) {
+            return target[k].bind(target);
           } else if (k === 'getChildren') {
             const resolved = target[identity][resolve]();
             if (resolved) {
               const state = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
               const children = {};
               for (const k in state) {
-                if (Branch.couldBeParent(state[k])) {
-                  children[k] = target._createChild(k, target[identity][k]);
+                const v = state[k];
+                if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
+                  let child;
+                  if (target[identity][k] && (child = wMap.get(target[identity][k]))) {
+                    children[k] = child;
+                  } else {
+                    children[k] = target._createChild(k, target[identity][k]);
+                  }
                 }
               }
               return target[k].bind(undefined, children);
             }
             Branch.onAccessingRemovedNode(target[identity].getId(), 'getState');
-            return target[k].bind(undefined, undefined)
+            return target[k].bind(undefined, undefined);
           }
           k +='';
           const resolved = target[identity][resolve]();
           if (resolved) {
-            const state = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
-            if (Branch.couldBeParent(state[k])) {
-              return target._createChild(k, target[identity][k]);
+            const v = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, })[k];
+            if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
+              const id = target[identity][k];
+              if (target[identity][k] && wMap.has(id)) {
+                return wMap.get(id);
+              }
+              return target._createChild(k, id);
             }
           }
           return undefined;
         },
       });
+    wMap.set(this[identity], this[proxy]);
     return this[proxy];
   }
 
