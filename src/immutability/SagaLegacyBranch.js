@@ -32,9 +32,7 @@ export default class SagaBranchLegacy extends Legacy {
       configurable: true,
       enumerable: false,
       get: () => this[children][k] || (this[children][k] = new SagaBranchLegacy(childRole, this[dispatcher])),
-      set: (child) => {
-        this[children][k] = child;
-      },
+      set(){},
     });
   }
 }

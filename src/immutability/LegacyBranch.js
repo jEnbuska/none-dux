@@ -31,9 +31,7 @@ export default class BranchLegacy extends Legacy {
       configurable: true,
       enumerable: false,
       get: () => this[children][k] || (this[children][k] = new BranchLegacy(childRole, this[dispatcher])),
-      set: (child) => {
-        this[children][k] = child;
-      },
+      set() {},
     });
   }
 

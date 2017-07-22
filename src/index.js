@@ -1,12 +1,12 @@
-import createLeaf from './reducer/leafs';
+import createLeaf from './immutability/leafs';
 import shape from './shape';
 import { branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
-import Branch from './reducer/Branch';
-import LegacyBranch from './reducer/LegacyBranch';
-import ProxyStateBranch from './reducer/ProxyBranch';
-import SagaLegacyBranch from './reducer/SagaLegacyBranch';
-import Identity from './reducer/Identity';
-import { createStateAccessMiddleware, createThunk, createStateChanger, } from './reducer/createMiddleware';
+import Branch from './immutability/Branch';
+import LegacyBranch from './immutability/LegacyBranch';
+import ProxyBranch from './immutability/ProxyBranch';
+import SagaLegacyBranch from './immutability/SagaLegacyBranch';
+import Identity from './immutability/Identity';
+import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/createMiddleware';
 
 const { assign, keys, defineProperty, } = Object;
 const { accessState, accessPrevState, } = branchPrivates;
@@ -41,7 +41,7 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
       },
     });
   } else {
-    subject = new ProxyStateBranch(new Identity(), { dispatch: () => {}, });
+    subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
   }
   subject[accessState] = initialState;
   subject[accessPrevState]= {};

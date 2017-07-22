@@ -72,10 +72,13 @@ export default class Legacy extends Branch {
         }
       } else {
         if (Branch.canBeBranch(state[i]) && i !== length && role) {
-          if (this[children][i]) {
-            this[length] = this[children][i];
-            delete this[children][i];
+          const child = this[children][i];
+          if (child) {
             role[renameSelf](length+'');
+            if (this[children][length]) {
+              delete this[length];
+            }
+            this[length] = this[children][length] = child;
           } else {
             this._createChild(length+'');
           }
