@@ -2,15 +2,32 @@ import Branch from './Branch';
 
 import { branchPrivates, identityPrivates, TARGET, GET_STATE, poorSet, } from '../common';
 
-const { onSetState, onClearState, onRemove, identity, onRemoveChild, handleChange, children, } = branchPrivates;
-const { removeChild, renameSelf, resolve, } = identityPrivates;
+const { onSetState, onClearState, onRemove, identity, onRemoveChild, handleChange, children, dispatcher, } = branchPrivates;
+const { removeChild, renameSelf, resolve, push, } = identityPrivates;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
 
-const { keys, } = Object;
+const { keys, defineProperties, defineProperty} = Object;
 
 export default class Legacy extends Branch {
-
+  constructor(identity, dispatcher, state) {
+    super(identity, dispatcher);
+    state = state || dispatcher.dispatch({ type: GET_STATE, [TARGET]: identity[resolve](), });
+    this[children] = {};
+    const properties = {};
+    for (const k in state) {
+      if (Branch.canBeBranch(state[k])) {
+        const childRole = identity[push](k);
+        properties[k] = {
+          configurable: true,
+          enumerable: false,
+          get: () => this[children][k] || (this[children][k] = new this.constructor(childRole, dispatcher)),
+          set() {},
+        };
+      }
+    }
+    defineProperties(this, properties);
+  }
   [onSetState](newState, prevState) {
     this[handleChange](newState, prevState, newState);
   }
@@ -20,6 +37,7 @@ export default class Legacy extends Branch {
   }
 
   [handleChange](newState, prevState = {}, iterable = { ...prevState, ...newState, }) {
+    const newProperties = {};
     for (let k in iterable) {
       k += '';
       const next = newState[k];
@@ -34,10 +52,17 @@ export default class Legacy extends Branch {
             this[onRemoveChild](k);
           }
         } else if (Branch.canBeBranch(next)) {
-          this._createChild(k);
+          const childRole = this[identity][push](k);
+          newProperties[k] = {
+            configurable: true,
+            enumerable: false,
+            get: () => this[children][k] || (this[children][k] = new this.constructor(childRole, this[dispatcher])),
+            set() {},
+          };
         }
       }
     }
+    defineProperties(this, newProperties);
   }
 
   [onRemove](keys = [], state) {
@@ -106,6 +131,15 @@ export default class Legacy extends Branch {
       acc[k] = this[k];
       return acc;
     }, {});
+  }
+
+  _createChild(k, childRole = this[identity][push](k)) {
+    defineProperty(this, k, {
+      configurable: true,
+      enumerable: false,
+      get: () => this[children][k] || (this[children][k] = new this.constructor(childRole, this[dispatcher])),
+      set() {},
+    });
   }
 
   _getChildrenRecursively() {
