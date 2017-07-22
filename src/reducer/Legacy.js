@@ -37,7 +37,7 @@ export default class Legacy extends Branch {
       if (next !== prevState[k]) {
         if (this[identity][k]) {
           if (Branch.canBeBranch(next)) {
-            const child = this[children][this[identity][k]];
+            const child = this[children][k];
             if (child) {
               child[handleChange](next, prevState[k]);
             }
