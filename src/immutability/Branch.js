@@ -89,7 +89,7 @@ export default class Branch {
     return value && value instanceof Object && !invalidParents[getPrototypeOf(value).constructor.name];
   }
 
-  static onAccessingRemovedBranch(id, property) {
-    console.error('Accessing '+property+' of remove node');
+  static onAccessingRemovedBranch(property) {
+    console.error('Accessing '+property+' of removed Branch');
   }
 }

@@ -43,22 +43,22 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
   } else {
     subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
   }
-  /*subject.remove = function () {
+  subject.remove = function () {
     throw new Error('Cannot remove root branch values');
   };
   subject.clearState = function () {
     throw new Error('clearState cannot be be called on root branch, instead use setState');
-  };*/
+  };
   //TODO
   subject[accessState] = initialState;
   subject[accessPrevState]= {};
-  const thunk = createThunk(subject);
   const stateAccess = createStateAccessMiddleware(subject);
   const noneduxStateChanger = createStateChanger(subject, legacy);
   const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
   if (!legacy) {
     subject = subject._createProxy();
   }
+  const thunk = createThunk(subject);
   return {
     reducers,
     middlewares: [ stateAccess, thunk, noneduxStateChanger, ],
