@@ -1,31 +1,24 @@
 import Branch from './Branch';
-import { branchPrivates, identityPrivates, TARGET, GET_STATE, invalidParents, } from '../common';
+import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, } from '../common';
 
 const { identity, dispatcher, targetBranch, } = branchPrivates;
 const { push, resolve, } = identityPrivates;
 
-const { getPrototypeOf, } = Object;
 export const proxy = Symbol('proxy');
 
-const stateBranchMethods = {
+const branchReflectables = {
+  state: true,
   setState: true,
   clearState: true,
   remove: true,
   transaction: true,
   getIdentity: true,
   getId: true,
+  _returnSelf: true,
   _getChildrenRecursively: true,
 };
 
 export default class ProxyBranch extends Branch {
-
-  getId() {
-    return this[identity].getId();
-  }
-
-  getIdentity() {
-    return this[identity][resolve]();
-  }
 
   setState(value) {
     this[dispatcher].dispatch(super.setState(value));
@@ -50,58 +43,52 @@ export default class ProxyBranch extends Branch {
     return child._createProxy();
   }
 
-  getChildren(proxyChildren) {
+  getChildren(proxyChildren) { // dummy handled by proxy for better performance
     return proxyChildren;
   }
 
   _getChildrenRecursively() {
     return Object.values(this[proxy].getChildren()).reduce(Branch._onGetChildrenRecursively, []);
   }
-
   _createProxy() {
     this[proxy] = new Proxy(this,
       {
-        get(target, k) {
-          if (k === 'state') {
-            const resolved = target[identity][resolve]();
-            if (resolved) {
-              return target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
-            }
-            return Branch.onAccessingRemovedBranch(target[identity].getId(), 'state');
-          } else if (stateBranchMethods[k]) {
-            return target[k].bind(target);
-          } else if (k === 'getChildren') {
-            const resolved = target[identity][resolve]();
-            if (resolved) {
-              const state = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
-              const children = {};
-              for (const k in state) {
-                const v = state[k];
-                if (Branch.canBeBranch(v)) {
-                  children[k] = target._createChild(k, target[identity][k]);
-                }
-              }
-              return target.getChildren.bind(undefined, children);
-            }
-            Branch.onAccessingRemovedBranch(target[identity].getId(), 'getState');
-            return target.getChildren.bind(undefined, undefined);
+        get(target, k, receiver) {
+          if (branchReflectables[k]) {
+            return Reflect.get(target, k, receiver);
           } else if (typeof k === 'symbol') {
             if (k === targetBranch) {
               return target;
             }
-            return k;
+            return target[k];
           }
-          k+='';
           const resolved = target[identity][resolve]();
           if (resolved) {
-            const v = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, })[k];
-            if (Branch.canBeBranch(v)) {
+            const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
+            if (k === 'getChildren') {
+              return ProxyBranch.onGetChildren(target, state);
+            }
+            k+=''; // find single child
+            if (Branch.valueCanBeBranch(state[k])) {
               return target._createChild(k, target[identity][k]);
             }
           }
+          Branch.onAccessingRemovedBranch(target[identity].getId(), k);
         },
       });
     return this[proxy];
+  }
+
+  static onGetChildren(target, state) {
+    const children = {};
+    for (let k in state) {
+      k+='';
+      const v = state[k];
+      if (Branch.valueCanBeBranch(v)) {
+        children[k] = target._createChild(k, target[identity][k]);
+      }
+    }
+    return target.getChildren.bind(undefined, children);
   }
 
   _returnSelf() {

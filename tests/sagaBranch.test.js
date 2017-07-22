@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import { PARAM, PUBLISH_NOW, REMOVE, SET_STATE, CLEAR_STATE, TARGET, } from '../src/common';
+import { PARAM, PUBLISH_NOW, REMOVE, SET_STATE, CLEAR_STATE, SUBJECT, } from '../src/common';
 
 describe('saga state branch', () => {
   test('create nonedux', () => {
@@ -18,7 +18,7 @@ describe('saga state branch', () => {
     const { subject, } = createStoreWithNonedux({ a: { b: 1, }, c: { d: {}, }, }, undefined, true);
     expect(subject.a.setState({ x: { y: {}, }, z: 1, })).toEqual({
       type: SET_STATE,
-      [TARGET]: [ 'a', ],
+      [SUBJECT]: [ 'a', ],
       [PARAM]: { x: { y: {}, }, z: 1, },
       [PUBLISH_NOW]: true,
     });
@@ -28,7 +28,7 @@ describe('saga state branch', () => {
     const { subject, } = createStoreWithNonedux({ a: { b: 1, }, c: { d: {}, }, }, undefined, true);
     expect(subject.a.clearState({ x: { y: {}, }, z: 1, })).toEqual({
       type: CLEAR_STATE,
-      [TARGET]: [ 'a', ],
+      [SUBJECT]: [ 'a', ],
       [PARAM]: { x: { y: {}, }, z: 1, },
       [PUBLISH_NOW]: true,
     });
@@ -38,7 +38,7 @@ describe('saga state branch', () => {
     const { subject, } = createStoreWithNonedux({ a: { b: 1, }, c: { d: {}, }, }, undefined, true);
     expect(subject.a.remove('x', 'z')).toEqual({
       type: REMOVE,
-      [TARGET]: [ 'a', ],
+      [SUBJECT]: [ 'a', ],
       [PARAM]: [ 'x', 'z', ],
       [PUBLISH_NOW]: true,
     });

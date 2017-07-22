@@ -3,10 +3,9 @@ export const SET_STATE = 'NONEDUX::SET_STATE';
 export const CLEAR_STATE = 'NONEDUX::CLEAR_STATE';
 export const REMOVE = 'NONEDUX::REMOVE';
 export const GET_STATE = 'NONEDUX::GET_STATE';
-export const GET_PREV_STATE = 'NONEDUX::GET_PREV_STATE';
-export const TARGET = 'NONEDUX::TARGET';
+export const SUBJECT = 'NONEDUX::SUBJECT';
 export const PARAM = 'NONEDUX::PARAM';
-export const PUBLISH_CHANGES = 'NONEDUX::PUBLISH_CHANGES';
+export const COMMIT_TRANSACTION = 'NONEDUX::COMMIT_TRANSACTION';
 export const PUBLISH_NOW = 'NONEDUX::PUBLISH_NOW';
 export const ROLLBACK = 'NONEDUX::ROLLBACK';
 
@@ -17,8 +16,6 @@ export function stringify(obj) {
     return obj;
   }
 }
-
-export const has = Object.prototype.hasOwnProperty;
 
 export function findChild(value, path) {
   for (let i = path.length-1; i>=0; --i) {
@@ -43,6 +40,7 @@ export const branchPrivates = {
 };
 
 export const identityPrivates = {
+  branch: Symbol('branch'),
   resolve: Symbol('resolve'),
   push: Symbol('createChild'),
   renameSelf: Symbol('renameChild'),

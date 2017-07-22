@@ -1,6 +1,7 @@
 import Legacy from '../src/immutability/Legacy';
 import { createStoreWithNonedux, } from './utils';
 import createLeaf from '../src/immutability/leafs';
+import Proxu from '../src/immutability/ProxyBranch';
 import { data, data2, } from './resources';
 
 const { keys, values, } = Object;
@@ -15,15 +16,15 @@ describe('performance', () => {
     removeBest: {},
     create: {},
     createLeafs: {},
+    clearState: {},
   };
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
 
     describe('run ' + name + ' configuration',
       () => {
-
-        test('add and remove', () => {
-          const even = data;
+        test('mixed', () => {
+          const even = data.companies;
           const odd = data2;
           const firstCompany = keys(even.companies)[0];
           const firstChildOdd = keys(odd)[0];
@@ -58,7 +59,22 @@ describe('performance', () => {
           console.log(name + ' = create and access 132 000 children: ', new Date() - time, 'ms');
         }, 15000);
 
-        test('add, remove and init lazy immediate children', () => {
+        test('clearState', () => {
+          const even = data;
+          const odd = data2;
+          const { subject: { root, }, }= init({ root: {}, });
+          const time = Date.now();
+          for (let i = 0; i < 3000; i++) {
+            if (i % 2 === 0) {
+              root.clearState(even);
+            } else {
+              root.clearState(odd);
+            }
+          }
+          results.clearState[name] = (new Date() - time)/300;
+        });
+
+        test('mixed + init children', () => {
           const even = data;
           const odd = data2;
           const firstCompany = keys(even.companies)[0];
@@ -81,7 +97,6 @@ describe('performance', () => {
             }
           }
           results.addRemoveAndInit[name] = (new Date()-time)/1500;
-          // MacBook Pro  2,2 GHz Intel Core i7 --- ~650ms
           console.log(name + ' = ~ 1500 nodes merges, 1500 resets, 1500 removes, init of 8250x3 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
@@ -97,16 +112,14 @@ describe('performance', () => {
 
           const allChildren = root._getChildrenRecursively();
           const time = new Date();
-          for (let i = 0; i<3; i++) {
-            for (let j = 0; j<allChildren.length; j++) {
-              const ignore = allChildren[j].state;
-            }
+          for (let j = 0; j<allChildren.length; j++) {
+            const ignore = allChildren[j].state;
           }
-          results.getState[name] = (new Date()-time)/265700;
-          console.log('Get state ~265700 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
+          results.getState[name] = (new Date()-time)/85000;
+          console.log('Get state ~85000 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
-        test('remove children semi performance', () => {
+        test('remove children', () => {
           const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
           const h = subject.a.b.c.d.e.f.g.h;
           const data = {};
@@ -115,51 +128,15 @@ describe('performance', () => {
           }
           h.setState(data);
 
+          const time = new Date();
           const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
             .map(([ k, ]) => k);
-          const time = new Date();
           h.remove(toBeRemoved);
           results.removeSemi[name] = (new Date() - time);
-          // MacBook Pro  2,2 GHz Intel Core i7 --- 53-156ms
           console.log(name + ' = Remove 20000 children semi performance. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
-        test('remove children good performance', () => {
-          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
-          const h = subject.a.b.c.d.e.f.g.h;
-          const data = {};
-          for (let i = 0; i<20000; i++) {
-            data[i] = { a: 1, };
-          }
-          h.setState(data);
-          const time = new Date();
-          const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
-            .map(([ k, ]) => k);
-          h.remove(toBeRemoved);
-          results.removeGood[name] = (new Date()-time)/20000;
-          // MacBook Pro  2,2 GHz Intel Core i7 --- 50-200ms
-          console.log(name + ' = Remove 20000 leaf children, good performance. Took total of: ', new Date() - time, 'ms');
-        }, 15000);
-
-        test('remove children best performance', () => {
-          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
-          const g = subject.a.b.c.d.e.f.g;
-          const data = {};
-          for (let i = 0; i<20000; i++) {
-            data[i] ={ a: 1, };
-          }
-          g.setState({ h: createLeaf(data), });
-          const h = g.state.h;
-          const time = new Date();
-          const toBeKept = Object.entries(h).filter(function ([ k, v, ]) { return false; })
-            .reduce((acc, [ k, v, ]) => Object.assign(acc, { [k]: v, }), {});
-          g.setState({ h: createLeaf(toBeKept), });
-          results.removeBest[name] = (new Date()-time);
-          // MacBook Pro  2,2 GHz Intel Core i7 --- 18-33ms
-          console.log(name + ' = Remove 20000 leaf children, best performance. Took total of: ', new Date() - time, 'ms');
-        }, 15000);
-
-        test('create 50000 lazy children', () => {
+        test('create 50000 children', () => {
           const { subject: { root, }, }= init({ root: {}, });
           const data = {};
           for (let i = 0; i<50000; i++) {
@@ -168,7 +145,6 @@ describe('performance', () => {
           const time = new Date();
           root.setState(data);
           results.create[name] = (new Date()-time);
-          // MacBook Pro  2,2 GHz Intel Core i7 --- 130-250ms
           console.log(name + ' = create 50000 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
@@ -176,12 +152,11 @@ describe('performance', () => {
           const { subject: { root, }, }= init({ root: {}, });
           const data = {};
           for (let i = 0; i<50000; i++) {
-            data[i] = createLeaf({ a: 1, b: {}, c: 3, d: { e: {}, }, });
+            data[i] = i;
           }
           const time = new Date();
           root.setState(data);
           results.createLeafs[name] = (new Date()-time);
-          // MacBook Pro  2,2 GHz Intel Core i7 --- 20-67ms
           console.log(name + ' = create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
       });

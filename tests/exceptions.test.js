@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
+import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, } from '../src/common';
 
 function verifyErrorOnChange(...params) {
   params.forEach(next => {
@@ -19,7 +19,6 @@ describe('killSwitch', () => {
         [CLEAR_STATE]: () => { throw new Error(); },
         [REMOVE]: () => { throw new Error(); },
         [GET_STATE]: () => { throw new Error(); },
-        [GET_PREV_STATE]: () => { throw new Error(); },
       }
     );
   });

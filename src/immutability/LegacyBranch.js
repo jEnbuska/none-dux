@@ -1,11 +1,8 @@
 import Legacy from './Legacy';
-import Branch from './Branch';
-import { branchPrivates, identityPrivates, GET_STATE, TARGET, } from '../common';
+import { branchPrivates, } from '../common';
 
-const { identity, dispatcher, children, } = branchPrivates;
-const { push, resolve, } = identityPrivates;
+const { dispatcher, } = branchPrivates;
 
-const { defineProperty, } = Object;
 export default class BranchLegacy extends Legacy {
 
   setState(value) {

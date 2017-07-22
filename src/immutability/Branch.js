@@ -1,9 +1,8 @@
-import { branchPrivates, identityPrivates, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, PUBLISH_CHANGES, ROLLBACK, invalidParents, } from '../common';
+import { branchPrivates, identityPrivates, SUBJECT, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, COMMIT_TRANSACTION, ROLLBACK, invalidParents, } from '../common';
 
 const { identity, dispatcher, } = branchPrivates;
 const { resolve, } = identityPrivates;
 const { getPrototypeOf, } = Object;
-
 // Saga state mapper does not dispatch its own actions, instead it should be used like:
 // yield put(target.setState, {a:1,b: {}})
 export default class Branch {
@@ -15,12 +14,12 @@ export default class Branch {
 
   transaction(callBack) {
     const publishAfterDone = !this[dispatcher].onGoingTransaction;
-    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: [], });
+    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: [], });
     try {
       this[dispatcher].onGoingTransaction = true;
       callBack(this._returnSelf());
       if (publishAfterDone) {
-        this[dispatcher].dispatch({ type: PUBLISH_CHANGES, });
+        this[dispatcher].dispatch({ type: COMMIT_TRANSACTION, });
       }
     } catch (Exception) {
       this[dispatcher].dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
@@ -35,7 +34,7 @@ export default class Branch {
   get state() {
     const resolved = this[identity][resolve]();
     if (resolved) {
-      return this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
+      return this[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
     }
     return Branch.onAccessingRemovedBranch(this.getId(), 'state');
   }
@@ -52,20 +51,22 @@ export default class Branch {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (!Branch.canBeBranch(value)) {
+    } else if (!Branch.valueCanBeBranch(value)) {
       throw new Error('Branch does not take leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
+    } else if (value instanceof Array) {
+      throw new Error(`Target: "${identity.join(', ')}"\nCannot call set state parameter is Array`);
     }
-    return { type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
+    return { type: SET_STATE, [SUBJECT]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   clearState(value) {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (!Branch.canBeBranch(value)) {
+    } else if (!Branch.valueCanBeBranch(value)) {
       throw new Error('Branch does not take leafs as clearState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    return { type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
+    return { type: CLEAR_STATE, [SUBJECT]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   remove(keys) {
@@ -73,7 +74,7 @@ export default class Branch {
     if (!identity) {
       throw new Error('Cannot call remove on removed Node. Got:', `${keys}. Id: "${this.getId()}"`);
     }
-    return { type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
+    return { type: REMOVE, [SUBJECT]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   _returnSelf() {
@@ -84,11 +85,11 @@ export default class Branch {
     return [ ...acc, child, ...child._getChildrenRecursively(), ];
   }
 
-  static canBeBranch(value) {
+  static valueCanBeBranch(value) {
     return value && value instanceof Object && !invalidParents[getPrototypeOf(value).constructor.name];
   }
 
   static onAccessingRemovedBranch(id, property) {
-    console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
+    console.error('Accessing '+property+' of remove node');
   }
 }

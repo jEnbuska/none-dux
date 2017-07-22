@@ -1,7 +1,7 @@
 import { createStoreWithNonedux, } from './utils';
 import Branch from '../src/immutability/Branch';
 
-describe('arrays', () => {
+describe('accessing remove node', () => {
   let invalidAccessCalls = [];
 
   [ 'legacy', 'proxy', ].forEach(name => {

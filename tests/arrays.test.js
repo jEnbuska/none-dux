@@ -90,80 +90,80 @@ describe('arrays', () => {
 
         test(name + ' should replace current array sub state with a array',
           () => {
-            const { subject, } = init({ a: [ 1, 2, { b: 2, }, ], });
-            expect(subject.state).toEqual({ a: [ 1, 2, { b: 2, }, ], });
-            subject.clearState({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
-            expect(subject.state).toEqual({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
-            expect(subject.a[1].state.test).toEqual('empty');
-            subject.clearState({ a: [ 1, 2, [], ], });
-            expect(subject.state).toEqual({ a: [ 1, 2, [], ], });
-            expect(subject.a.state).toEqual([ 1, 2, [], ]);
+            const { subject: {child}, } = init({child: { a: [ 1, 2, { b: 2, }, ], }});
+            expect(child.state).toEqual({ a: [ 1, 2, { b: 2, }, ], });
+            child.clearState({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
+            expect(child.state).toEqual({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
+            expect(child.a[1].state.test).toEqual('empty');
+            child.clearState({ a: [ 1, 2, [], ], });
+            expect(child.state).toEqual({ a: [ 1, 2, [], ], });
+            expect(child.a.state).toEqual([ 1, 2, [], ]);
           });
 
         test(name + ' calling set state to array state should erase old array',
           () => {
-            const { subject: { root, }, } = init({ root: [], });
-            root.clearState([ 1, 2, { b: 2, }, ]);
-            expect(root.state).toEqual([ 1, 2, { b: 2, }, ]);
-            root.clearState([ 'abc', { test: 'empty', }, 2, 3, 4, ]);
-            expect(root.state).toEqual([ 'abc', { test: 'empty', }, 2, 3, 4, ]);
-            root.clearState([ 1, 2, [], ]);
-            expect(root.state).toEqual([ 1, 2, [], ]);
+            const { subject: { child, }, } = init({ child: [], });
+            child.clearState([ 1, 2, { b: 2, }, ]);
+            expect(child.state).toEqual([ 1, 2, { b: 2, }, ]);
+            child.clearState([ 'abc', { test: 'empty', }, 2, 3, 4, ]);
+            expect(child.state).toEqual([ 'abc', { test: 'empty', }, 2, 3, 4, ]);
+            child.clearState([ 1, 2, [], ]);
+            expect(child.state).toEqual([ 1, 2, [], ]);
           });
 
         test(name + ' kill old references',
           () => {
-            const { subject: { root, }, } = init({ root: [ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ], });
-            expect(root.state).toEqual([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
-            root.clearState([ 1, 2, [], ]);
-            expect(root.state).toEqual([ 1, 2, [], ]);
-            expect(root[3]).toEqual(undefined);
+            const { subject: { child, }, } = init({ child: [ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ], });
+            expect(child.state).toEqual([ 'abc', 1, { test: 'empty', }, { toBeRmd: 0, }, 3, 4, ]);
+            child.clearState([ 1, 2, [], ]);
+            expect(child.state).toEqual([ 1, 2, [], ]);
+            expect(child[3]).toEqual(undefined);
           });
 
         test(name + ' array to object should not merge',
           () => {
-            const { subject: { root, }, } = init({ root: [ { a: 1, }, { b: 2, }, { c: 3, }, ], });
-            expect(root.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
-            root.clearState({ 0: { a: 1, }, obj: { test: 'empty', }, 2: '1b', x: 3, });
-            expect(root.state).toEqual({ 0: { a: 1, }, obj: { test: 'empty', }, 2: '1b', x: 3, });
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, ], });
+            expect(child.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+            child.clearState({ 0: { a: 1, }, obj: { test: 'empty', }, 2: '1b', x: 3, });
+            expect(child.state).toEqual({ 0: { a: 1, }, obj: { test: 'empty', }, 2: '1b', x: 3, });
           });
 
         test(name + ' object to array should not merge',
           () => {
-            const { subject: { root, }, } = init({ root: { 0: 1, 1: { b: 2, }, 2: { c: 3, }, }, });
-            expect(root.state).toEqual({ 0: 1, 1: { b: 2, }, 2: { c: 3, }, });
-            root.clearState([ 3, 2, ]);
-            expect(root.state).toEqual([ 3, 2, ]);
+            const { subject: { child, }, } = init({ child: { 0: 1, 1: { b: 2, }, 2: { c: 3, }, }, });
+            expect(child.state).toEqual({ 0: 1, 1: { b: 2, }, 2: { c: 3, }, });
+            child.clearState([ 3, 2, ]);
+            expect(child.state).toEqual([ 3, 2, ]);
           });
 
         test(name + ' array to array should not merge',
           () => {
-            const { subject: { root, }, } = init({ root: [ 1, { a: 1, }, 3, 4, ], });
-            expect(root.state).toEqual([ 1, { a: 1, }, 3, 4, ]);
-            root.clearState([ { x: 2, }, 2, ]);
-            expect(root.state).toEqual([ { x: 2, }, 2, ]);
+            const { subject: { child, }, } = init({ child: [ 1, { a: 1, }, 3, 4, ], });
+            expect(child.state).toEqual([ 1, { a: 1, }, 3, 4, ]);
+            child.clearState([ { x: 2, }, 2, ]);
+            expect(child.state).toEqual([ { x: 2, }, 2, ]);
           });
 
         test(name + ' removing from array',
           () => {
-            const { subject: { root, }, } = init({ root: [ { a: 1, }, { b: 2, }, { c: 3, }, 3, 4, 5, 6, ], });
-            root.remove([ 0, 2, 6, ]);
-            expect(root.state).toEqual([ { b: 2, }, 3, 4, 5, ]);
-            expect(root.state[0]).toEqual({ b: 2, });
-            expect(root.state[1]).toEqual(3);
-            expect(root.state[2]).toEqual(4);
-            expect(root.state[3]).toEqual(5);
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, 3, 4, 5, 6, ], });
+            child.remove([ 0, 2, 6, ]);
+            expect(child.state).toEqual([ { b: 2, }, 3, 4, 5, ]);
+            expect(child.state[0]).toEqual({ b: 2, });
+            expect(child.state[1]).toEqual(3);
+            expect(child.state[2]).toEqual(4);
+            expect(child.state[3]).toEqual(5);
           });
 
         test(name + ' array state should shift',
           () => {
-            const { subject: { root, }, } = init({ root: [ 0, 1, { toBeRemoved: 2, }, 3, { toBeKept: 4, }, 5, 6, ], });
-            const third = root[2];
-            root.remove(2);
-            expect(root.state).toEqual([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
+            const { subject: { child, }, } = init({ child: [ 0, 1, { toBeRemoved: 2, }, 3, { toBeKept: 4, }, 5, 6, ], });
+            const third = child[2];
+            child.remove(2);
+            expect(child.state).toEqual([ 0, 1, 3, { toBeKept: 4, }, 5, 6, ]);
             expect(third.state).toEqual(undefined);
-            expect(root.state[2]).toEqual(3);
-            expect(root[3].state).toEqual({ toBeKept: 4, });
+            expect(child.state[2]).toEqual(3);
+            expect(child[3].state).toEqual({ toBeKept: 4, });
           });
 
         test(name + ' changing children of array',
@@ -176,16 +176,16 @@ describe('arrays', () => {
         test(name + ' leaf state to array',
           () => {
             {
-              const { subject, } = init({ reducer: { val: null, }, });
-              expect(subject.state.reducer.val).toEqual(null);
-              subject.reducer.clearState([ 1, 2, { a: 3, }, ]);
-              expect(subject.reducer.state).toEqual([ 1, 2, { a: 3, }, ]);
+              const { subject, } = init({ child: { val: null, }, });
+              expect(subject.state.child.val).toEqual(null);
+              subject.child.clearState([ 1, 2, { a: 3, }, ]);
+              expect(subject.child.state).toEqual([ 1, 2, { a: 3, }, ]);
             }
             {
-              const { subject, } = init({ reducer: { s: 0, }, });
-              expect(subject.state.reducer.s).toEqual(0);
-              subject.reducer.setState({ s: [ 1, 2, { a: 3, }, ], });
-              expect(subject.reducer.s.state).toEqual([ 1, 2, { a: 3, }, ]);
+              const { subject, } = init({ child: { s: 0, }, });
+              expect(subject.state.child.s).toEqual(0);
+              subject.child.setState({ s: [ 1, 2, { a: 3, }, ], });
+              expect(subject.child.s.state).toEqual([ 1, 2, { a: 3, }, ]);
             }
             {
               const { subject, } = init({ s: /test/, });
@@ -234,10 +234,10 @@ describe('arrays', () => {
 
         test(name + ' shift array values',
           () => {
-            const { subject, } = init([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
-            expect(subject.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
-            const { 0: a, 1: b, 2: c, } = subject;
-            subject.clearState([ { c: 3, }, { a: 1, }, { b: 2, }, ]);
+            const { subject: {child}, } = init({child: [ { a: 1, }, { b: 2, }, { c: 3, }, ]});
+            expect(child.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+            const { 0: a, 1: b, 2: c, } = child;
+            child.clearState([ { c: 3, }, { a: 1, }, { b: 2, }, ]);
             expect(a.state).toEqual({ c: 3, });
             expect(b.state).toEqual({ a: 1, });
             expect(c.state).toEqual({ b: 2, });

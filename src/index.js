@@ -6,7 +6,7 @@ import LegacyBranch from './immutability/LegacyBranch';
 import ProxyBranch from './immutability/ProxyBranch';
 import SagaLegacyBranch from './immutability/SagaLegacyBranch';
 import Identity from './immutability/Identity';
-import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/createMiddleware';
+import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/middlewares';
 
 const { assign, keys, defineProperty, } = Object;
 const { accessState, accessPrevState, } = branchPrivates;
@@ -20,7 +20,7 @@ export function checkProxySupport() {
 }
 
 export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {
-  if (!Branch.canBeBranch(initialState) ||!keys(initialState).length) {
+  if (!Branch.valueCanBeBranch(initialState) ||!keys(initialState).length) {
     throw new Error('Expected initial state to contain at least one child, state but got '+ JSON.stringify(initialState));
   }
   let subject;
@@ -43,6 +43,13 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
   } else {
     subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
   }
+  /*subject.remove = function () {
+    throw new Error('Cannot remove root branch values');
+  };
+  subject.clearState = function () {
+    throw new Error('clearState cannot be be called on root branch, instead use setState');
+  };*/
+  //TODO
   subject[accessState] = initialState;
   subject[accessPrevState]= {};
   const thunk = createThunk(subject);

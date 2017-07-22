@@ -1,14 +1,16 @@
-import { branchPrivates, identityPrivates, GET_STATE, TARGET, } from '../common';
 import Legacy from './Legacy';
-import Branch from './Branch';
 
-const { identity, dispatcher, children, } = branchPrivates;
-const { push, resolve, } = identityPrivates;
-
-const { defineProperty, defineProperties, } = Object;
+const { defineProperty, } = Object;
 const bindables = [ 'transaction', 'getId', 'remove', 'getIdentity', 'setState', 'clearState', ];
 
 export default class SagaBranchLegacy extends Legacy {
+
+  constructor(identity, dispatched, state) {
+    super(identity, dispatched, state);
+    for (let i = 0; i<bindables.length; i++) {
+      defineProperty(this, bindables[i], { value: this[bindables[i]].bind(this), enumerable: false, });
+    }
+  }
 
   transaction() {
     throw new Error('Can\'t do transaction witch Saga none-dux');
