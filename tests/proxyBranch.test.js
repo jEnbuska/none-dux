@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import ProxyBranch from '../src/reducer/ProxyBranch';
+import ProxyBranch from '../src/immutability/ProxyBranch';
 
 describe('arrays as state', () => {
   let invalidAccessCalls = [];

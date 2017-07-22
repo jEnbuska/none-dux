@@ -1,6 +1,6 @@
-import Legacy from '../src/reducer/Legacy';
+import Legacy from '../src/immutability/Legacy';
 import { createStoreWithNonedux, } from './utils';
-import createLeaf from '../src/reducer/leafs';
+import createLeaf from '../src/immutability/leafs';
 import { data, data2, } from './resources';
 
 const { keys, values, } = Object;

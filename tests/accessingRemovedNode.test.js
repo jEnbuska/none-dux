@@ -1,5 +1,5 @@
 import { createStoreWithNonedux, } from './utils';
-import Branch from '../src/reducer/Branch';
+import Branch from '../src/immutability/Branch';
 
 describe('arrays', () => {
   let invalidAccessCalls = [];
@@ -62,7 +62,6 @@ describe('arrays', () => {
         firstGroup.forEach(({ state, }) => expect(state).toBeDefined());
         expect(invalidAccessCalls).toEqual([]);
         subject.root.a.remove('c');
-        console.log('removed')
         firstGroup.forEach(({ state, }) => expect(state).toBeUndefined());
 
         expect(invalidAccessCalls).toEqual(firstGroup

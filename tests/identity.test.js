@@ -1,4 +1,4 @@
-import Identity from '../src/reducer/Identity';
+import Identity from '../src/immutability/Identity';
 import { identityPrivates, } from '../src/common';
 
 const { resolve, push, removeChild, } = identityPrivates;

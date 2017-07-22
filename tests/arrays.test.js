@@ -1,9 +1,9 @@
 import { createStoreWithNonedux, } from './utils';
-import Branch from '../src/reducer/Branch';
+import Branch from '../src/immutability/Branch';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays', () => {
-  [ 'legacy','proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
