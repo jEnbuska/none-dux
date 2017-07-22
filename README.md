@@ -14,6 +14,11 @@ When used in old browsers 'legacy' (v10) mode will be used, because Proxy featur
 
 #####There is few breaking change:
 
+######removeSelf
+```
+Function removeSelf is nolonger available
+```
+
 ######constructor
 ```
 old:
