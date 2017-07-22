@@ -1,19 +1,31 @@
-import { branchPrivates, identityPrivates, } from '../common';
+import { branchPrivates, identityPrivates, GET_STATE, TARGET, } from '../common';
 import Legacy from './Legacy';
+import Branch from './Branch';
 
 const { identity, dispatcher, children, } = branchPrivates;
-const { push, } = identityPrivates;
+const { push, resolve, } = identityPrivates;
 
-const { defineProperty, } = Object;
+const { defineProperty, defineProperties, } = Object;
 const bindables = [ 'transaction', 'getId', 'remove', 'getIdentity', 'setState', 'clearState', ];
 
 export default class SagaBranchLegacy extends Legacy {
-
-  constructor(identity, dispatched, state) {
-    super(identity, dispatched, state);
-    for (let i = 0; i<bindables.length; i++) {
-      defineProperty(this, bindables[i], { value: this[bindables[i]].bind(this), enumerable: false, });
+  constructor(identity, dispatcher, state) {
+    super(identity, dispatcher);
+    state = state || dispatcher.dispatch({ type: GET_STATE, [TARGET]: identity[resolve](), });
+    this[children] = {};
+    const properties = {};
+    for (const k in state) {
+      if (Branch.canBeBranch(state[k])) {
+        const childRole = identity[push](k);
+        properties[k] = {
+          configurable: true,
+          enumerable: false,
+          get: () => this[children][k] || (this[children][k] = new SagaBranchLegacy(childRole, dispatcher)),
+          set() {},
+        };
+      }
     }
+    defineProperties(this, properties)
   }
 
   transaction() {
@@ -32,7 +44,7 @@ export default class SagaBranchLegacy extends Legacy {
       configurable: true,
       enumerable: false,
       get: () => this[children][k] || (this[children][k] = new SagaBranchLegacy(childRole, this[dispatcher])),
-      set(){},
+      set() {},
     });
   }
 }

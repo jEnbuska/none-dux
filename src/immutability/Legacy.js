@@ -11,17 +11,6 @@ const { keys, } = Object;
 
 export default class Legacy extends Branch {
 
-  constructor(identity, dispatcher, state) {
-    super(identity, dispatcher);
-    state = state || dispatcher.dispatch({ type: GET_STATE, [TARGET]: identity[resolve](), });
-    this[children] = {};
-    for (const k in state) {
-      if (Branch.canBeBranch(state[k])) {
-        this._createChild(k+'',);
-      }
-    }
-  }
-
   [onSetState](newState, prevState) {
     this[handleChange](newState, prevState, newState);
   }
