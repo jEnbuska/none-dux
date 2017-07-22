@@ -1,12 +1,14 @@
-import { branchPrivates, knotTree, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, PUBLISH_CHANGES, ROLLBACK, invalidParents, } from '../common';
+import { branchPrivates, identityPrivates, TARGET, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, PUBLISH_CHANGES, ROLLBACK, invalidParents, } from '../common';
 
 const { identity, dispatcher, } = branchPrivates;
-const { resolve, } = knotTree;
-const { getPrototypeOf, values,} = Object;
+const { resolve, } = identityPrivates;
+const { getPrototypeOf, } = Object;
 
 // Saga state mapper does not dispatch its own actions, instead it should be used like:
 // yield put(target.setState, {a:1,b: {}})
 export default class Branch {
+
+  static children = new WeakMap();
 
   constructor(_identity, _dispatched) {
     this[identity] = _identity;
@@ -37,7 +39,7 @@ export default class Branch {
     if (resolved) {
       return this[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
     }
-    return Branch.onAccessingRemovedNode(this.getId(), 'state');
+    return Branch.onAccessingRemovedBranch(this.getId(), 'state');
   }
 
   getId() {
@@ -52,7 +54,7 @@ export default class Branch {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (!Branch.couldBeParent(value)) {
+    } else if (!Branch.canBeBranch(value)) {
       throw new Error('Branch does not take leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     return { type: SET_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
@@ -62,7 +64,7 @@ export default class Branch {
     const identity = this.getIdentity();
     if (!identity) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
-    } else if (!Branch.couldBeParent(value)) {
+    } else if (!Branch.canBeBranch(value)) {
       throw new Error('Branch does not take leafs as clearState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
     return { type: CLEAR_STATE, [TARGET]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
@@ -76,28 +78,19 @@ export default class Branch {
     return { type: REMOVE, [TARGET]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
-  removeSelf() {
-    const identity = this.getIdentity();
-    if (!identity) {
-      throw new Error('Cannot call removeSelf to removed Node. Id:'+this.getId());
-    }
-    const [ _, ...parentIdentity ]= identity;
-    return { type: REMOVE, [TARGET]: parentIdentity, [PARAM]: [ this.getId(), ], [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
-  }
-
   _returnSelf() {
     return this;
   }
 
-  static _onReduceChildren(acc, child) {
+  static _onGetChildrenRecursively(acc, child) {
     return [ ...acc, child, ...child._getChildrenRecursively(), ];
   }
 
-  static couldBeParent(value) {
+  static canBeBranch(value) {
     return value && value instanceof Object && !invalidParents[getPrototypeOf(value).constructor.name];
   }
 
-  static onAccessingRemovedNode(id, property) {
+  static onAccessingRemovedBranch(id, property) {
     console.error('Accessing '+property+' of remove node '+id+' will always return undefined');
   }
 }

@@ -2,7 +2,7 @@ import { createStoreWithNonedux, } from './utils';
 import Branch from '../src/reducer/Branch';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
-describe('arrays as state', () => {
+describe('arrays', () => {
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
@@ -11,7 +11,7 @@ describe('arrays as state', () => {
 
         beforeAll(() => {
           Object.defineProperty(Branch,
-            'onAccessingRemovedNode',
+            'onAccessingRemovedBranch',
             {
               configurable: true,
               writable: true,

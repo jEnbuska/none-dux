@@ -1,9 +1,9 @@
 import Branch from './Branch';
 
-import { branchPrivates, knotTree, TARGET, GET_STATE, poorSet, } from '../common';
+import { branchPrivates, identityPrivates, TARGET, GET_STATE, poorSet, } from '../common';
 
-const { onSetState, onClearState, onRemove, identity, onRemoveChild, children, handleChange, } = branchPrivates;
-const { removeChild, renameSelf, resolve, } = knotTree;
+const { onSetState, onClearState, onRemove, identity, onRemoveChild, handleChange, children, } = branchPrivates;
+const { removeChild, renameSelf, resolve, } = identityPrivates;
 const onRemoveFromArray = Symbol('onRemoveFromArray');
 const onRemoveFromObject = Symbol('onRemoveFromObject');
 
@@ -13,10 +13,10 @@ export default class Legacy extends Branch {
 
   constructor(identity, dispatcher, state) {
     super(identity, dispatcher);
-    this[children] = {};
     state = state || dispatcher.dispatch({ type: GET_STATE, [TARGET]: identity[resolve](), });
+    this[children] = {};
     for (const k in state) {
-      if (Branch.couldBeParent(state[k])) {
+      if (Branch.canBeBranch(state[k])) {
         this._createChild(k+'',);
       }
     }
@@ -34,16 +34,19 @@ export default class Legacy extends Branch {
     for (let k in iterable) {
       k += '';
       const next = newState[k];
-      if (this[identity][k]) {
-        if (Branch.couldBeParent(next)) {
-          if (this[children][k] && next !== prevState[k]) {
-            this[children][k][handleChange](next, prevState[k]);
+      if (next !== prevState[k]) {
+        if (this[identity][k]) {
+          if (Branch.canBeBranch(next)) {
+            const child = this[children][this[identity][k]];
+            if (child) {
+              child[handleChange](next, prevState[k]);
+            }
+          } else {
+            this[onRemoveChild](k);
           }
-        } else {
-          this[onRemoveChild](k);
+        } else if (Branch.canBeBranch(next)) {
+          this._createChild(k);
         }
-      } else if (Branch.couldBeParent(next)) {
-        this._createChild(k);
       }
     }
   }
@@ -61,22 +64,21 @@ export default class Legacy extends Branch {
     const stateLength = state.length;
     for (let i = 0; i<stateLength; i++) {
       i += '';
+      const role = this[identity][i];
       const { length, } = nextState;
       if (toBeRemoved[i]) {
         if (this[identity][i]) {
           this[onRemoveChild](i);
         }
       } else {
-        if (Branch.couldBeParent(state[i]) && i !== length && this[identity][i]) {
-          const child = this[children][i];
-          if (child) {
-            child[identity][renameSelf](length+'');
-            this[length] = child;
+        if (Branch.canBeBranch(state[i]) && i !== length && role) {
+          if (this[children][i]) {
+            this[length] = this[children][i];
+            delete this[children][i];
+            role[renameSelf](length+'');
           } else {
-            this[children][length] = this[children][i];
             this._createChild(length+'');
           }
-          this[children][i] = undefined;
           delete this[i];
         }
         nextState.push(state[i]);
@@ -102,10 +104,8 @@ export default class Legacy extends Branch {
   }
 
   [onRemoveChild](k) {
+    delete this[children][k];
     this[identity][removeChild](k);
-    if (this[children][k]) {
-      delete this[children][k];
-    }
     delete this[k];
   }
 
@@ -117,9 +117,7 @@ export default class Legacy extends Branch {
   }
 
   _getChildrenRecursively() {
-    const children = keys(this[identity]).map(k => this[k]).reduce(Branch._onReduceChildren, []);
-    console.log({children})
-    return children
+    return keys(this[identity]).map(k => this[k]).reduce(Branch._onGetChildrenRecursively, []);
   }
 
 }

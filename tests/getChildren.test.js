@@ -5,21 +5,21 @@ describe('get children', () => {
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
-      () => {
+      () => {/*
         test('should return all immediate children', () => {
           const { subject, }= init({ a: { b: { c: 2, d: {}, }, }, e: 1, f: {}, });
           const { a: fA, f: fF, } = subject;
           const { a, f, ...rootNone }= subject.getChildren();
           expect(keys(rootNone).length).toBe(0);
-          expect(a.getId()).toBe(fA.getId());
-          expect(f.getId()).toBe(fF.getId());
+          expect(a).toBe(fA);
+          expect(f).toBe(fF);
           const { b, ...aNone } = a.getChildren();
           expect(!!b).toBeTruthy();
           expect(keys(aNone).length).toBe(0);
           const { d, ...bNone } = b.getChildren();
           expect(d).toBeTruthy();
           expect(keys(bNone).length).toBe(0);
-        });
+        });*/
 
         test('should return children recursively', () => {
           const { subject, }= init({ a: { b: { c: 2, d: { x: { t: 0, }, }, }, }, e: 1, f: {}, });

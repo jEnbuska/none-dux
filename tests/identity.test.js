@@ -1,31 +1,31 @@
 import Identity from '../src/reducer/Identity';
-import { knotTree, } from '../src/common';
+import { identityPrivates, } from '../src/common';
 
-const { resolve, createChild, removeChild, } = knotTree;
+const { resolve, push, removeChild, } = identityPrivates;
 
 describe('Identity', () => {
   test('Ensure identity integrity', () => {
     const tree = new Identity();
     expect(tree[resolve]()).toEqual([]);
-    const a = tree[createChild]('a');
+    const a = tree[push]('a');
     expect(a[resolve]()).toEqual([ 'a', ]);
-    const b = a[createChild]('b');
+    const b = a[push]('b');
     expect(b[resolve]()).toEqual([ 'b', 'a', ]);
-    const c = b[createChild]('c');
+    const c = b[push]('c');
     expect(c[resolve]()).toEqual([ 'c', 'b', 'a', ]);
 
-    const x = b[createChild]('x');
+    const x = b[push]('x');
     expect(x[resolve]()).toEqual([ 'x', 'b', 'a', ]);
     expect(c[resolve]()).toEqual([ 'c', 'b', 'a', ]);
     expect(b[resolve]()).toEqual([ 'b', 'a', ]);
     expect(a[resolve]()).toEqual([ 'a', ]);
-    const y = x[createChild]('y');
-    const z = x[createChild]('z');
+    const y = x[push]('y');
+    const z = x[push]('z');
     expect(y[resolve]()).toEqual([ 'y', 'x', 'b', 'a', ]);
     expect(z[resolve]()).toEqual([ 'z', 'x', 'b', 'a', ]);
-    const i = z[createChild]('i');
-    const j = z[createChild]('j');
-    const k = j[createChild]('k');
+    const i = z[push]('i');
+    const j = z[push]('j');
+    const k = j[push]('k');
     expect(i[resolve]()).toEqual([ 'i', 'z', 'x', 'b', 'a', ]);
     expect(j[resolve]()).toEqual([ 'j', 'z', 'x', 'b', 'a', ]);
     expect(k[resolve]()).toEqual([ 'k', 'j', 'z', 'x', 'b', 'a', ]);

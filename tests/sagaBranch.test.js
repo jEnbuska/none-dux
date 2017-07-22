@@ -44,13 +44,4 @@ describe('saga state branch', () => {
     });
   });
 
-  test('call removeSelf', () => {
-    const { subject, } = createStoreWithNonedux({ a: { b: 1, }, c: { d: {}, }, }, undefined, true);
-    expect(subject.a.removeSelf()).toEqual({
-      type: REMOVE,
-      [TARGET]: [ ],
-      [PARAM]: [ 'a', ],
-      [PUBLISH_NOW]: true,
-    });
-  });
 });

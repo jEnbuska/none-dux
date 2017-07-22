@@ -1,8 +1,8 @@
 import Branch from './Branch';
-import { branchPrivates, knotTree, TARGET, GET_STATE, invalidParents, } from '../common';
+import { branchPrivates, identityPrivates, TARGET, GET_STATE, invalidParents, } from '../common';
 
 const { identity, dispatcher, targetBranch, } = branchPrivates;
-const { push, resolve, } = knotTree;
+const { push, resolve, } = identityPrivates;
 
 const { getPrototypeOf, } = Object;
 export const proxy = Symbol('proxy');
@@ -16,8 +16,6 @@ const stateBranchMethods = {
   getId: true,
   _getChildrenRecursively: true,
 };
-
-const wMap = new WeakMap();
 
 export default class ProxyBranch extends Branch {
 
@@ -64,17 +62,13 @@ export default class ProxyBranch extends Branch {
     this[proxy] = new Proxy(this,
       {
         get(target, k) {
-          if (typeof k ==='symbol') {
-            if (k === targetBranch) {
-              return target;
-            }
-            return k;
-          } else if (k==='state') {
+
+          if (k === 'state') {
             const resolved = target[identity][resolve]();
             if (resolved) {
               return target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, });
             }
-            return Branch.onAccessingRemovedNode(target[identity].getId(), 'state');
+            return Branch.onAccessingRemovedBranch(target[identity].getId(), 'state');
           } else if (stateBranchMethods[k]) {
             return target[k].bind(target);
           } else if (k === 'getChildren') {
@@ -85,35 +79,38 @@ export default class ProxyBranch extends Branch {
               for (const k in state) {
                 const v = state[k];
                 if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
-                  let child;
-                  if (target[identity][k] && (child = wMap.get(target[identity][k]))) {
-                    children[k] = child;
+                  if (target[identity][k] && Branch.children.has(target[identity][k])) {
+                    children[k] = Branch.children.get(target[identity][k]);
                   } else {
                     children[k] = target._createChild(k, target[identity][k]);
                   }
                 }
               }
-              return target[k].bind(undefined, children);
+              return target.getChildren.bind(undefined, children);
             }
-            Branch.onAccessingRemovedNode(target[identity].getId(), 'getState');
-            return target[k].bind(undefined, undefined);
+            Branch.onAccessingRemovedBranch(target[identity].getId(), 'getState');
+            return target.getChildren.bind(undefined, undefined);
+          } else if (typeof k === 'symbol') {
+            if (k === targetBranch) {
+              return target;
+            }
+            return k;
           }
-          k +='';
+          k+='';
           const resolved = target[identity][resolve]();
           if (resolved) {
             const v = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, })[k];
             if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
               const id = target[identity][k];
-              if (target[identity][k] && wMap.has(id)) {
-                return wMap.get(id);
+              if (target[identity][k] && Branch.children.has(id)) {
+                return Branch.children.get(id);
               }
               return target._createChild(k, id);
             }
           }
-          return undefined;
         },
       });
-    wMap.set(this[identity], this[proxy]);
+    Branch.children.set(this[identity], this[proxy]);
     return this[proxy];
   }
 

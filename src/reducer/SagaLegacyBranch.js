@@ -1,11 +1,12 @@
-import { branchPrivates, knotTree, } from '../common';
+import { branchPrivates, identityPrivates, } from '../common';
 import Legacy from './Legacy';
+import Branch from './Branch';
 
 const { identity, dispatcher, children, } = branchPrivates;
-const { createChild, } = knotTree;
+const { push, } = identityPrivates;
 
 const { defineProperty, } = Object;
-const bindables = [ 'transaction', 'getId', 'remove', 'removeSelf', 'getIdentity', 'setState', 'clearState', ];
+const bindables = [ 'transaction', 'getId', 'remove', 'getIdentity', 'setState', 'clearState', ];
 
 export default class SagaBranchLegacy extends Legacy {
 
@@ -27,7 +28,7 @@ export default class SagaBranchLegacy extends Legacy {
     return super.remove(keys);
   }
 
-  _createChild(k, childRole = this[identity][createChild](k)) {
+  _createChild(k, childRole = this[identity][push](k)) {
     defineProperty(this, k, {
       configurable: true,
       enumerable: false,

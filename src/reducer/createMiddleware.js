@@ -1,9 +1,9 @@
-import { TARGET, GET_STATE, GET_PREV_STATE, PARAM, PUBLISH_NOW, findChild, branchPrivates, SET_STATE, CLEAR_STATE, REMOVE, PUBLISH_CHANGES, ROLLBACK, has, knotTree, poorSet, } from '../common';
+import { TARGET, GET_STATE, GET_PREV_STATE, PARAM, PUBLISH_NOW, findChild, branchPrivates, SET_STATE, CLEAR_STATE, REMOVE, PUBLISH_CHANGES, ROLLBACK, identityPrivates, poorSet, } from '../common';
 import Branch from './Branch';
 import { proxy, } from './ProxyBranch';
 
 const { identity, dispatcher, onRemove, onSetState, onClearState, accessState, accessPrevState, accessPendingState, } = branchPrivates;
-const { removeChild, renameSelf, } = knotTree;
+const { removeChild, renameSelf, } = identityPrivates;
 
 const { entries, } = Object;
 export function createThunk(rootBranch) {
@@ -46,31 +46,32 @@ export function createStateChanger(root, legacy) {
       const { type, [TARGET]: path, [PARAM]: param, [PUBLISH_NOW]: publishNow, } = action;
       if (path) {
         const trace = createTraceablePathLegacy(root, path);
-        const last = trace[trace.length-1];
+        const target = trace[trace.length-1];
         switch (type) {
           case SET_STATE:
-            if (last.state instanceof Array || param instanceof Array) {
+            if (target.state instanceof Array || param instanceof Array) {
               throw new Error(`Target: "${path.join(', ')}"\nCannot call set state when state or parameter is Array`);
             }
-            last.child[onSetState](param, last.state);
-            last.state = { ...last.state, ...param, };
+            target.child[onSetState](param, target.state);
+            target.state = { ...target.state, ...param, };
             break;
           case CLEAR_STATE:
             if (!path.length) {
               console.error('CLEAR_STATE should not be called on nonedux root level state, instead use setState, to avoid removing root level states');
             }
-            last.child[onClearState](param, last.state);
-            last.state = param;
+            target.child[onClearState](param, target.state);
+            target.state = param;
             break;
           case REMOVE:
             if (!path.length) {
               throw new Error(`Got invalid action: REMOVE ${param.join(', ')}, Cannot remove root level values ones set on initialState`);
             }
-            last.state = last.child[onRemove](param, last.state);
+            target.state = target.child[onRemove](param, target.state);
             break;
           default:
             throw new Error('Invalid action\n' + JSON.stringify({ type, path, param, }, null, 2));
         }
+
         state = createNextState(trace);
         if (publishNow) {
           root[accessPrevState] = root[accessState];
@@ -93,33 +94,33 @@ export function createStateChanger(root, legacy) {
   return () => (next) => (action) => {
     const { type, [TARGET]: path, [PARAM]: param, [PUBLISH_NOW]: publishNow, } = action;
     if (path) {
-      const trace = createTraceablePathProxy(root, path);
-      const last = trace[trace.length-1];
+      const trace = createTraceablePath(root, path);
+      const target = trace[trace.length-1];
       switch (type) {
         case SET_STATE:
-          if (last.state instanceof Array || param instanceof Array) {
+          if (target.state instanceof Array || param instanceof Array) {
             throw new Error(`Target: "${path.join(', ')}"\nCannot call set state when state or parameter is Array`);
           }
-          onProxySetState(last.identifier, param, last.state);
-          last.state = { ...last.state, ...param, };
+          onProxySetState(target.identifier, param, target.state);
+          target.state = { ...target.state, ...param, };
           break;
         case CLEAR_STATE:
           if (!path.length) {
             console.error('CLEAR_STATE should not be called on nonedux root level state, instead use setState, to avoid removing root level states');
           }
-          onProxyClearState(last.identifier, param, last.state);
-          last.state = param;
+          onProxyClearState(target.identifier, param, target.state);
+          target.state = param;
           break;
         case REMOVE:
           if (!path.length) {
             throw new Error(`Got invalid action: REMOVE ${param.join(', ')}, Cannot remove root level values ones set on initialState`);
           }
-          if (last.state instanceof Array) {
-            last.state = onProxyArrayRemove(last.identifier, param, last.state);
+          if (target.state instanceof Array) {
+            target.state = onProxyArrayRemove(target.identifier, param, target.state);
           } else {
-            onProxyObjectRemove(last.identifier, param);
+            onProxyObjectRemove(target.identifier, param);
             const reducer = removeReducer.bind(new Set(param));
-            last.state = entries(last.state).reduce(reducer, {});
+            target.state = entries(target.state).reduce(reducer, {});
           }
           break;
         default:
@@ -158,13 +159,13 @@ function createTraceablePathLegacy(root, path) {
   return list;
 }
 
-function createTraceablePathProxy(root, path) {
+function createTraceablePath(root, path) {
   let state= root[accessPendingState] || root[accessState];
   let identifier = root[identity];
   const list = [ { state, identifier, }, ];
   for (let i = path.length-1; i>=0; i--) {
     const key = path[i];
-    identifier= identifier[key];
+    identifier = identifier[key];
     state = state[key];
     list.push({ key, identifier, state, });
   }
@@ -191,7 +192,7 @@ function onProxySetState(identity, newState, prevState) {
   for (let k in newState) {
     k += '';
     if (identity[k] && newState[k]!==prevState[k]) {
-      if (Branch.couldBeParent(newState[k])) {
+      if (Branch.canBeBranch(newState[k])) {
         onProxyClearState(identity[k], newState[k], prevState[k]);
       } else {
         identity[removeChild](k);
@@ -203,7 +204,7 @@ function onProxySetState(identity, newState, prevState) {
 function onProxyClearState(identity, newState = {}, prevState = {}) {
   for (const k in identity) {
     if (newState[k] !== prevState[k]) {
-      if (Branch.couldBeParent(newState[k])) {
+      if (Branch.canBeBranch(newState[k])) {
         onProxyClearState(identity[k], newState[k], prevState[k]);
       } else {
         identity[removeChild](k);

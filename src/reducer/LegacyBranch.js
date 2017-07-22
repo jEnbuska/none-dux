@@ -1,13 +1,12 @@
 import Legacy from './Legacy';
 import Branch from './Branch';
 
-import { branchPrivates, knotTree, } from '../common';
+import { branchPrivates, identityPrivates, } from '../common';
 
 const { identity, dispatcher, children, } = branchPrivates;
-const { createChild, } = knotTree;
+const { push, } = identityPrivates;
 
-const { defineProperty, keys, } = Object;
-
+const { defineProperty, } = Object;
 export default class BranchLegacy extends Legacy {
 
   setState(value) {
@@ -28,11 +27,7 @@ export default class BranchLegacy extends Legacy {
     return this;
   }
 
-  removeSelf() {
-    this[dispatcher].dispatch(super.removeSelf());
-  }
-
-  _createChild(k, childRole = this[identity][createChild](k)) {
+  _createChild(k, childRole = this[identity][push](k)) {
     defineProperty(this, k, {
       configurable: true,
       enumerable: false,

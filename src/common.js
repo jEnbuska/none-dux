@@ -23,11 +23,12 @@ export const has = Object.prototype.hasOwnProperty;
 export function findChild(value, path) {
   for (let i = path.length-1; i>=0; --i) {
     const key = path[i];
-    value= value[key];
+    value = value[key];
   }
   return value;
 }
 export const branchPrivates = {
+  children: Symbol('children'),
   identity: Symbol('identity'),
   accessState: Symbol('state'),
   accessPrevState: Symbol('prevState'),
@@ -37,14 +38,13 @@ export const branchPrivates = {
   onRemove: Symbol('onRemove'),
   dispatcher: Symbol('dispatcher'),
   onRemoveChild: Symbol('onRemoveChild'),
-  children: Symbol('children'),
   handleChange: Symbol('handleChange'),
-  actual: Symbol('actual'),
+  targetBranch: Symbol('targetBranch'),
 };
 
-export const knotTree = {
+export const identityPrivates = {
   resolve: Symbol('resolve'),
-  createChild: Symbol('createChild'),
+  push: Symbol('createChild'),
   renameSelf: Symbol('renameChild'),
   removeChild: Symbol('removeChild'),
 };

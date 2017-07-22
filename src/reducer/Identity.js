@@ -1,20 +1,20 @@
-import { knotTree, } from '../common';
+import { identityPrivates, } from '../common';
 
 const id = Symbol('id');
 const removed = Symbol('removed');
 const parent = Symbol('parent');
 
-const { createChild, removeChild, renameSelf, resolve, } = knotTree;
+const { push, removeChild, renameSelf, resolve, } = identityPrivates;
 
-export default class KnotTree {
+export default class Identity {
+
   constructor(key, prev) {
     this[parent]= prev;
     this[id] = key;
   }
 
-  [createChild](key) {
-    this[key] = new KnotTree(key, this);
-    return this[key];
+  [push](key) {
+    return (this[key] = new Identity(key, this));
   }
 
   [renameSelf](key) {

@@ -8,7 +8,7 @@ describe('arrays as state', () => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       beforeAll(() => {
-        Object.defineProperty(ProxyBranch, 'onAccessingRemovedNode', {
+        Object.defineProperty(ProxyBranch, 'onAccessingRemovedBranch', {
           configurable: true,
           writable: true,
           value: (id, propertyName) => {

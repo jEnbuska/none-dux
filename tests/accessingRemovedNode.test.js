@@ -1,14 +1,14 @@
 import { createStoreWithNonedux, } from './utils';
 import Branch from '../src/reducer/Branch';
 
-describe('arrays as state', () => {
+describe('arrays', () => {
   let invalidAccessCalls = [];
 
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       beforeAll(() => {
-        Object.defineProperty(Branch, 'onAccessingRemovedNode', {
+        Object.defineProperty(Branch, 'onAccessingRemovedBranch', {
           configurable: true,
           writable: true,
           value: (id, propertyName) => {
@@ -53,7 +53,7 @@ describe('arrays as state', () => {
       });
 
       test('accessing children of removed value', () => {
-        const { subject, } = init({ root: { a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], } });
+        const { subject, } = init({ root: { a: { b: {}, c: { d: { e: {}, }, }, }, x: [ { y: { z: {}, }, }, ], i: [ { j: [], }, ], }, });
 
         const { a: { c, }, } = subject.root;
         const { d, } =c;
@@ -61,8 +61,8 @@ describe('arrays as state', () => {
         const firstGroup = [ c, d, e, ];
         firstGroup.forEach(({ state, }) => expect(state).toBeDefined());
         expect(invalidAccessCalls).toEqual([]);
-        c.removeSelf();
-
+        subject.root.a.remove('c');
+        console.log('removed')
         firstGroup.forEach(({ state, }) => expect(state).toBeUndefined());
 
         expect(invalidAccessCalls).toEqual(firstGroup
@@ -76,7 +76,7 @@ describe('arrays as state', () => {
         const { z, } = y;
         const secondGroup = [ x, xFirst, y, z, ];
         secondGroup.forEach(({ state, }) => expect(state).toBeDefined());
-        x.removeSelf();
+        subject.root.remove('x');
 
         secondGroup.forEach(({ state, }) => expect(state).toBeUndefined());
         expect(invalidAccessCalls).toEqual(secondGroup.map(it => ({ name: 'state', id: it.getId(), })));
@@ -89,7 +89,7 @@ describe('arrays as state', () => {
         thirdGroup.forEach(({ state, }) => expect(state).toBeDefined());
 
         expect(invalidAccessCalls).toEqual([]);
-        i.removeSelf();
+        subject.root.remove('i');
         thirdGroup.forEach(({ state, }) => expect(state).toBeUndefined());
         expect(invalidAccessCalls)
           .toEqual(thirdGroup

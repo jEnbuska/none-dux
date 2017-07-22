@@ -20,7 +20,7 @@ export function checkProxySupport() {
 }
 
 export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {
-  if (!Branch.couldBeParent(initialState) ||!keys(initialState).length) {
+  if (!Branch.canBeBranch(initialState) ||!keys(initialState).length) {
     throw new Error('Expected initial state to contain at least one child, state but got '+ JSON.stringify(initialState));
   }
   let subject;
