@@ -6,7 +6,6 @@ import { data, data2, } from './resources';
 const { keys, values, } = Object;
 describe('performance', () => {
   const results = {
-    setSameShapeData: {},
     addAndRemove: {},
     createAndAccess: {},
     addRemoveAndInit: {},
@@ -45,7 +44,7 @@ describe('performance', () => {
               root.remove([ firstChildOdd, ]);
             }
           }
-          results.addAndRemove[name] = new Date()-time;
+          results.addAndRemove[name] = (new Date()-time)/3000;
           console.log(name + ' = ~ 3000 nodes merges, 3000 resets, 3000 removes Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
@@ -55,7 +54,7 @@ describe('performance', () => {
             const { subject: { root, }, } = init({ root: data, });
             root._getChildrenRecursively();
           }
-          results.createAndAccess[name] = new Date() - time;
+          results.createAndAccess[name] = (new Date() - time)/300;
           console.log(name + ' = create and access 132 000 children: ', new Date() - time, 'ms');
         }, 15000);
 
@@ -81,7 +80,7 @@ describe('performance', () => {
               root.remove([ firstChildOdd, ]);
             }
           }
-          results.addRemoveAndInit[name] = new Date()-time;
+          results.addRemoveAndInit[name] = (new Date()-time)/1500;
           // MacBook Pro  2,2 GHz Intel Core i7 --- ~650ms
           console.log(name + ' = ~ 1500 nodes merges, 1500 resets, 1500 removes, init of 8250x3 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
@@ -103,7 +102,7 @@ describe('performance', () => {
               const ignore = allChildren[j].state;
             }
           }
-          results.getState[name] = new Date()-time;
+          results.getState[name] = (new Date()-time)/265700;
           console.log('Get state ~265700 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
@@ -120,7 +119,7 @@ describe('performance', () => {
             .map(([ k, ]) => k);
           const time = new Date();
           h.remove(toBeRemoved);
-          results.removeSemi[name] = new Date()-time;
+          results.removeSemi[name] = (new Date() - time);
           // MacBook Pro  2,2 GHz Intel Core i7 --- 53-156ms
           console.log(name + ' = Remove 20000 children semi performance. Took total of: ', new Date() - time, 'ms');
         }, 15000);
@@ -137,7 +136,7 @@ describe('performance', () => {
           const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
             .map(([ k, ]) => k);
           h.remove(toBeRemoved);
-          results.removeGood[name] = new Date()-time;
+          results.removeGood[name] = (new Date()-time)/20000;
           // MacBook Pro  2,2 GHz Intel Core i7 --- 50-200ms
           console.log(name + ' = Remove 20000 leaf children, good performance. Took total of: ', new Date() - time, 'ms');
         }, 15000);
@@ -155,7 +154,7 @@ describe('performance', () => {
           const toBeKept = Object.entries(h).filter(function ([ k, v, ]) { return false; })
             .reduce((acc, [ k, v, ]) => Object.assign(acc, { [k]: v, }), {});
           g.setState({ h: createLeaf(toBeKept), });
-          results.removeBest[name] = new Date()-time;
+          results.removeBest[name] = (new Date()-time);
           // MacBook Pro  2,2 GHz Intel Core i7 --- 18-33ms
           console.log(name + ' = Remove 20000 leaf children, best performance. Took total of: ', new Date() - time, 'ms');
         }, 15000);
@@ -168,7 +167,7 @@ describe('performance', () => {
           }
           const time = new Date();
           root.setState(data);
-          results.create[name] = new Date()-time;
+          results.create[name] = (new Date()-time);
           // MacBook Pro  2,2 GHz Intel Core i7 --- 130-250ms
           console.log(name + ' = create 50000 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
@@ -181,7 +180,7 @@ describe('performance', () => {
           }
           const time = new Date();
           root.setState(data);
-          results.createLeafs[name] = new Date()-time;
+          results.createLeafs[name] = (new Date()-time);
           // MacBook Pro  2,2 GHz Intel Core i7 --- 20-67ms
           console.log(name + ' = create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
         }, 15000);

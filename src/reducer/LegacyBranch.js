@@ -1,5 +1,4 @@
 import Legacy from './Legacy';
-import Branch from './Branch';
 
 import { branchPrivates, identityPrivates, } from '../common';
 

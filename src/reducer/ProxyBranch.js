@@ -62,7 +62,6 @@ export default class ProxyBranch extends Branch {
     this[proxy] = new Proxy(this,
       {
         get(target, k) {
-
           if (k === 'state') {
             const resolved = target[identity][resolve]();
             if (resolved) {
@@ -78,12 +77,8 @@ export default class ProxyBranch extends Branch {
               const children = {};
               for (const k in state) {
                 const v = state[k];
-                if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
-                  if (target[identity][k] && Branch.children.has(target[identity][k])) {
-                    children[k] = Branch.children.get(target[identity][k]);
-                  } else {
-                    children[k] = target._createChild(k, target[identity][k]);
-                  }
+                if (Branch.canBeBranch(v)) {
+                  children[k] = target._createChild(k, target[identity][k]);
                 }
               }
               return target.getChildren.bind(undefined, children);
@@ -100,17 +95,12 @@ export default class ProxyBranch extends Branch {
           const resolved = target[identity][resolve]();
           if (resolved) {
             const v = target[dispatcher].dispatch({ type: GET_STATE, [TARGET]: resolved, })[k];
-            if (v && !invalidParents[getPrototypeOf(v).constructor.name]) {
-              const id = target[identity][k];
-              if (target[identity][k] && Branch.children.has(id)) {
-                return Branch.children.get(id);
-              }
-              return target._createChild(k, id);
+            if (Branch.canBeBranch(v)) {
+              return target._createChild(k, target[identity][k]);
             }
           }
         },
       });
-    Branch.children.set(this[identity], this[proxy]);
     return this[proxy];
   }
 

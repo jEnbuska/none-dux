@@ -62,30 +62,30 @@ describe('setState', () => {
       });
 
       test(name + ' setState with a  primitive should throw error', () => {
-        const { subject, }= createStoreWithNonedux({ a: 1, b: { c: undefined, d: 3, e: { f: 4, }, }, });
+        const { subject, }= init({ a: 1, b: { c: undefined, d: 3, e: { f: 4, }, }, });
         expect(() => subject.b.setState(2)).toThrow(Error);
       });
 
       test(name + ' immidiate string to empty object', () => {
-        const { subject, }= createStoreWithNonedux({ root: { a: 'hello', b: { c: undefined, d: 3, e: { f: 4, }, }, }, });
+        const { subject, }= init({ root: { a: 'hello', b: { c: undefined, d: 3, e: { f: 4, }, }, }, });
         subject.root.setState({ a: {}, });
         expect(subject.root.state).toEqual({ a: {}, b: { c: undefined, d: 3, e: { f: 4, }, }, });
       });
 
       test(name + ' immidiate string to non empty object', () => {
-        const { subject: { root, }, }= createStoreWithNonedux({ root: { a: 'hello', b: { c: undefined, d: 3, e: { f: 4, }, }, }, });
+        const { subject: { root, }, }= init({ root: { a: 'hello', b: { c: undefined, d: 3, e: { f: 4, }, }, }, });
         root.setState({ a: { b: 'world', }, });
         expect(root.state).toEqual({ a: { b: 'world', }, b: { c: undefined, d: 3, e: { f: 4, }, }, });
       });
 
       test(name + ' non immidiate string to empty object', () => {
-        const { subject, }= createStoreWithNonedux({ b: { c: 'hello', d: 3, e: { f: 4, }, }, });
+        const { subject, }= init({ b: { c: 'hello', d: 3, e: { f: 4, }, }, });
         subject.setState({ b: { c: {}, }, });
         expect(subject.state).toEqual({ b: { c: {}, }, });
       });
 
       test(name + ' non immidiate string to non empty object', () => {
-        const { subject, }= createStoreWithNonedux({ b: { c: 'hello', d: 3, e: { f: 4, }, }, });
+        const { subject, }= init({ b: { c: 'hello', d: 3, e: { f: 4, }, }, });
         subject.setState({ b: { c: { x: 1, y: 'test', }, }, });
         expect(subject.state).toEqual({ b: { c: { x: 1, y: 'test', }, }, });
       });

@@ -8,8 +8,6 @@ const { getPrototypeOf, } = Object;
 // yield put(target.setState, {a:1,b: {}})
 export default class Branch {
 
-  static children = new WeakMap();
-
   constructor(_identity, _dispatched) {
     this[identity] = _identity;
     this[dispatcher] = _dispatched;

@@ -3,7 +3,7 @@ import Branch from '../src/reducer/Branch';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  [ 'legacy','proxy' ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
@@ -205,25 +205,25 @@ describe('arrays', () => {
         test(name + ' array to leaf',
           () => {
             {
-              const { subject, } = createStoreWithNonedux({ content: [ 1, 2, { a: 3, }, ], });
+              const { subject, } = init({ content: [ 1, 2, { a: 3, }, ], });
               expect(subject.state).toEqual({ content: [ 1, 2, { a: 3, }, ], });
               subject.setState({ content: null, });
               expect(subject.state.content).toEqual(null);
             }
             {
-              const { subject, } = createStoreWithNonedux({ content: [ 1, 2, { a: 3, }, ], });
+              const { subject, } = init({ content: [ 1, 2, { a: 3, }, ], });
               expect(subject.state).toEqual({ content: [ 1, 2, { a: 3, }, ], });
               subject.setState({ content: 0, });
               expect(subject.state.content).toEqual(0);
             }
             {
-              const { subject, } = createStoreWithNonedux({ content: [ 1, 2, { a: 3, }, ], });
+              const { subject, } = init({ content: [ 1, 2, { a: 3, }, ], });
               expect(subject.state).toEqual({ content: [ 1, 2, { a: 3, }, ], });
               subject.setState({ content: /test/, });
               expect(subject.state.content.toString()).toEqual('/test/');
             }
             {
-              const { subject, } = createStoreWithNonedux({ content: [ 1, 2, { a: 3, }, ], });
+              const { subject, } = init({ content: [ 1, 2, { a: 3, }, ], });
 
               expect(subject.state).toEqual({ content: [ 1, 2, { a: 3, }, ], });
               const symbol = Symbol('test');
@@ -234,7 +234,7 @@ describe('arrays', () => {
 
         test(name + ' shift array values',
           () => {
-            const { subject, } = createStoreWithNonedux([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
+            const { subject, } = init([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
             expect(subject.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
             const { 0: a, 1: b, 2: c, } = subject;
             subject.clearState([ { c: 3, }, { a: 1, }, { b: 2, }, ]);

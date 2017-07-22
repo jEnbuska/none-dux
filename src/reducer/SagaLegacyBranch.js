@@ -1,6 +1,5 @@
 import { branchPrivates, identityPrivates, } from '../common';
 import Legacy from './Legacy';
-import Branch from './Branch';
 
 const { identity, dispatcher, children, } = branchPrivates;
 const { push, } = identityPrivates;
