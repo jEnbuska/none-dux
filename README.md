@@ -75,11 +75,9 @@ const root = (
       <Route path='/' component={App}>
         ...
 ```
-##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
-##### Actual state of object is inside lazy ***state*** variable
 
 ## Action examples
-
+##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ```
 // 1st argument is nonedux reference, 2nd one is redux store
 
