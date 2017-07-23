@@ -10,8 +10,6 @@ Alternative for 'react-redux + redux-thunk' stack
 
 Can also be used with redux-saga: (No documentation: See /examples/sagaExample)
 
-<sub>Best practice guidelines for Saga are undecided</sub>
-
 Application state can be changed directly from actions.
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
