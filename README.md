@@ -12,10 +12,6 @@ Can also be used with redux-saga: (No documentation: See /examples/sagaExample. 
 
 Application state can be changed directly from actions.
 
-No external dependencies
-
-peerDependencies: redux  and react-redux
-
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
 
 Immutability is taken care of by middlewares and published by child reducers
@@ -45,6 +41,12 @@ function generateMessState(depth = 3, height = 0) {
   };
 })
 ```
+## Installation
+```
+npm install --save none-dux 
+yarn add none-dux
+```
+
 ## Configuring store
 ```
 import { Provider, connect, } from 'react-redux';
