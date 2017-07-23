@@ -136,8 +136,6 @@ export function removeUserTransactional(userId) {
         });
     }
 }
-
-
 ```
 
 ## Functions
