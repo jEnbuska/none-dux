@@ -139,11 +139,10 @@ export function removeUserTransactional(userId) {
 ```
 
 ## Functions
-##### Invoking functions returns the same instance
+##### Calling functions like ***setState*** returns the same instance
 ```
 const {child} = nonedux;
-child.setState({subChild: {}})
-  .subChild.setState({noChild: null})
+child.setState({subChild: {}}).subChild.setState({noChild: null})
 
 console.log(child.state); 
 // { child: { subChild: { noChild: null} } }
