@@ -15,6 +15,9 @@ const emptyShape = {
 
 const triggerTypes = [ SET_STATE, REMOVE, CLEAR_STATE, ];
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
+  if (shape === emptyShape) {
+    console.error('No shape validator provided');
+  }
   shape = createValidator(shape);
   validateState(subject[accessState], subject[accessPrevState], subject.getIdentity(), shape);
   return () => (next) => (action) => {

@@ -82,8 +82,8 @@ export default class ProxyBranch extends Branch {
     return this;
   }
 
-  _createChild(dispatcher, childRole) {
-    const child = new ProxyBranch(childRole, dispatcher);
+  _createChildProxy(dispatcher, childIdentity) {
+    const child = new ProxyBranch(childIdentity, dispatcher);
     return child._createProxy();
   }
 
@@ -103,18 +103,17 @@ export default class ProxyBranch extends Branch {
         const resolved = target[identity][resolve]();
         if (resolved) {
           const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
-          const createChild = Reflect.get(target, '_createChild', receiver);
+          const createChildProxy = Reflect.get(target, '_createChildProxy', receiver);
           if (k === 'getChildren') {
-            const children = ProxyBranch.onGetChildren(target, state, createChild);
+            const children = ProxyBranch.onGetChildren(target, state, createChildProxy);
             return function () { return this; }.bind(children);
           }
           if (typeof k ==='symbol') {
-            console.log({k})
             return k;
           }
           k += ''; // find single child
           if (Branch.valueCanBeBranch(state[k])) {
-            return Reflect.apply(createChild, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
+            return Reflect.apply(createChildProxy, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
           }
         }
         Branch.onAccessingRemovedBranch(target[identity].getId(), k);

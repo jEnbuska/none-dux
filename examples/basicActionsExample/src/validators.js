@@ -1,4 +1,4 @@
-import { shape, } from '../../../src';
+import { shape, } from 'none-dux';
 
 const { types, any, } = shape;
 const { string, strict, number, bool, isRequired, } = types;

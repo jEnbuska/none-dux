@@ -1,8 +1,7 @@
 const webpack = require('webpack');
 const merge = require('webpack-merge');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const { context, vendor, distPath, publicPath, base, API_URL, }= require('./webpack.config.base');
-
+const { context, vendor, distPath, base, API_URL, }= require('./webpack.config.base');
 
 module.exports = merge(base('production'), {
   context,

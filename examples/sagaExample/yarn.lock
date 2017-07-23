@@ -3600,9 +3600,11 @@ node-sass@^4.1.1:
     sass-graph "^2.1.1"
     stdout-stream "^1.4.0"
 
-none-dux@x:
-  version "10.0.13"
-  resolved "https://registry.yarnpkg.com/none-dux/-/none-dux-10.0.13.tgz#99f423722093a77e7a66e2a9215409547034ce78"
+none-dux@beta:
+  version "11.0.0-beta.14"
+  resolved "https://registry.yarnpkg.com/none-dux/-/none-dux-11.0.0-beta.14.tgz#01d5e8b7ceb26e5b03f5493a40163e907189d256"
+  dependencies:
+    babel-polyfill "^6.23.0"
 
 "nopt@2 || 3":
   version "3.0.6"

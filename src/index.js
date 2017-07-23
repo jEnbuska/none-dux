@@ -9,7 +9,7 @@ import SagaLegacyBranch from './immutability/SagaLegacyBranch';
 import Identity from './immutability/Identity';
 import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/middlewares';
 
-const { assign, keys, defineProperty, defineProperties, } = Object;
+const { assign, keys, defineProperties, } = Object;
 const { accessState, accessPrevState, accessPendingState, } = branchPrivates;
 export function checkProxySupport() {
   const target = {};
@@ -33,21 +33,39 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
     subject = new SagaLegacyBranch(new Identity(), { dispatch: () => { }, }, initialState);
   } else if (legacy) {
     subject = new LegacyBranch(new Identity(), { dispatch: () => { }, onGoingTransaction: false, }, initialState);
-    const onCreateChild = subject._createChild.bind(subject);
-    defineProperty(subject, '_createChild', {
-      enumerable: false,
-      value: (key, identity) => {
-        if (initialState.hasOwnProperty(key)) {
-          onCreateChild(key, identity);
-        } else {
-          console.error('Got request to add new child. '+key+'\nCannot add new children to root level branch after initialState has been defined');
-        }
-      },
-    });
   } else {
     subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
   }
-  defineProperties(subject, {
+
+  const stateAccess = createStateAccessMiddleware(subject);
+  const noneduxStateChanger = createStateChanger(subject, legacy);
+  const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
+  definedRootBranchProperties(subject, initialState);
+  if (!legacy) {
+    subject = subject._createProxy();
+  }
+  const thunk = createThunk(subject, initialState);
+  return {
+    reducers,
+    middlewares: [ stateAccess, thunk, noneduxStateChanger, ],
+    subject,
+    get thunk() {
+      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at '+_README_URL_);
+    },
+    get reducer() {
+      throw new Error('Nonedux reducer is deprecated\nInstead user reducers with combineReducers\nSee README part: "Configuring store" at '+_README_URL_);
+    },
+    dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
+  };
+}
+export { createLeaf, shape, leafs, };
+
+function createDummyReducer(key, root) {
+  return () => root[accessState][key];
+}
+
+function definedRootBranchProperties(root, initialState){
+  defineProperties(root, {
     remove: {
       get() { return function () { throw new Error('Cannot remove root branch values'); }; },
     },
@@ -75,28 +93,4 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
       enumerable: false,
     },
   });
-  const stateAccess = createStateAccessMiddleware(subject);
-  const noneduxStateChanger = createStateChanger(subject, legacy);
-  const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
-  if (!legacy) {
-    subject = subject._createProxy();
-  }
-  const thunk = createThunk(subject);
-  return {
-    reducers,
-    middlewares: [ stateAccess, thunk, noneduxStateChanger, ],
-    subject,
-    get thunk() {
-      throw new Error('Nonedux thunk middleware is no longer available separately.\nUse the list of "middlewares"  provided from the same function call\nSee README part: "Configuring store" at '+_README_URL_);
-    },
-    get reducer() {
-      throw new Error('Nonedux reducer is deprecated\nInstead user reducers with combineReducers\nSee README part: "Configuring store" at '+_README_URL_);
-    },
-    dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
-  };
-}
-export { createLeaf, shape, leafs, };
-
-function createDummyReducer(key, root) {
-  return () => root[accessState][key];
 }
