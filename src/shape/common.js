@@ -30,29 +30,39 @@ export class Validator {
     return keys.reduce((acc, k) => assign(acc, { [k]: this, }), {});
   }
 }
-
+function safeEvaluate(evaluate) {
+  try {
+    return evaluate();
+  } catch (e) {
+    return false;
+  }
+}
 export const checkers = {
-  String: (val) => (val === '' || (val && getPrototypeOf(val).constructor.name === 'String')),
-  Number: val => val === 0 || (val && getPrototypeOf(val).constructor.name === 'Number'),
-  Boolean: (val) => val===false || (val && getPrototypeOf(val).constructor.name === 'Boolean'),
-  RegExp: (val) => val && val instanceof RegExp,
-  Symbol: (val) => val && getPrototypeOf(val).constructor.name === 'Symbol',
-  Function: (val) => val && getPrototypeOf(val).constructor.name === 'Function',
-  Date: (val) => val && val instanceof Date,
-  Error: (val) => val && val instanceof Error, name: 'Error',
-  Object: (val) => {
-    if (val) {
-      const { name, } = getPrototypeOf(val).constructor;
-      return val && val instanceof Object && (name !== 'Array' && name !== 'ArrayLeaf' && !naturalLeafTypes[name]);
-    }
-    return false;
+  String(val) { return val === '' || (val && typeof val === 'string'); },
+  Number(val) { return val === 0 || (val && typeof val === 'number'); },
+  Boolean(val) { return safeEvaluate(() => val===false || (val && typeof val === 'boolean')); },
+  RegExp(val) { return safeEvaluate(() => val && val instanceof RegExp); },
+  Symbol(val) { return safeEvaluate(() => val && getPrototypeOf(val).constructor.name === 'Symbol'); },
+  Function(val) { return safeEvaluate(val && getPrototypeOf(val).constructor.name === 'Function'); },
+  Date(val) { return safeEvaluate(() => val && val instanceof Date); },
+  Error(val) { return safeEvaluate(() => val && val instanceof Error); },
+  Object(val) {
+    return safeEvaluate(() => {
+      if (val) {
+        const { name, } = getPrototypeOf(val).constructor;
+        return val && val instanceof Object && (name !== 'Array' && name !== 'ArrayLeaf' && !naturalLeafTypes[name]);
+      }
+      return false;
+    });
   },
-  Array: (val) => {
-    if (val) {
-      const { name, } = getPrototypeOf(val).constructor;
-      return val && (val instanceof Array || name === 'ObjectLeaf');
-    }
-    return false;
+  Array(val) {
+    return safeEvaluate(() => {
+      if (val) {
+        const { name, } = getPrototypeOf(val).constructor;
+        return val && (val instanceof Array || name === 'ObjectLeaf');
+      }
+      return false;
+    });
   },
 };
 export const string = new Validator('String');
