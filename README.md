@@ -683,7 +683,7 @@ Object.keys(rest).length  // 2
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-##### 4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
+##### 4. No references are stored, when modern browsers are used. This makes almost everything bizillion times faster
 ```
 target.setState({ a:{} });
 target.a // instance created
