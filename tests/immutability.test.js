@@ -1,8 +1,7 @@
 import { createStoreWithNonedux, } from './utils';
 
 describe('immutability', () => {
-
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration', () => {
       test('previous states should not be changed',
@@ -156,5 +155,4 @@ describe('immutability', () => {
       });
     });
   });
-
 });

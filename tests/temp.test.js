@@ -11,11 +11,8 @@ describe('performance', () => {
         const f= init({ root: { a: { b: { c: { d: { e: { f: {}, }, }, }, }, }, }, }).subject.root.a.b.c.d.e.f;
         const t = Date.now();
         const {...all} =f;
-        console.log('----------------------------------------')
         f.state;
-        console.log(now()-t);
         f.setState({ something: {}, });
-        console.log(now()-t);
       }, 15000);
     });
   });
