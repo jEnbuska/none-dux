@@ -564,6 +564,8 @@ const children = Object.keys(state).map(k => targe[k]);
 // In modern browsers next evaluates to false
 target.setState({a: {}})
 target.a === target.a
+
+// in old browsers the same evaluates to true
 ```
 
 #### 6. There is grey areas with **Arrays that contain other Objects/Arrays**
