@@ -20,13 +20,13 @@ Reducers can be safely extended without any predefined shape.
 ```
 function grow() {
   return function (nonedux) {
-    console.log(nonedux.state); // {someSubState: {}}
-    let child = nonedux.someSubState;
+    console.log(nonedux.state); // {subState: {}}
+    let child = nonedux.subState;
     [1,2,3].forEach(n => {
       child.setState({[n]: {}});
       child = child[n];
     })
-    console.log(nonedux.state) // {someSubState: {1: {2: {3: {}}}}}
+    console.log(nonedux.state) // {subState: {1: {2: {3: {}}}}}
   };
 }
 function generateMessState(depth = 3, height = 0) {
