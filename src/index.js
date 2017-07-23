@@ -11,16 +11,16 @@ import { createStateAccessMiddleware, createThunk, createStateChanger, } from '.
 
 const { assign, keys, defineProperty, defineProperties, } = Object;
 const { accessState, accessPrevState, accessPendingState, } = branchPrivates;
-
 export function checkProxySupport() {
   const target = {};
-  if (window.Proxy) {
-    const proxy = new window.Proxy(target, {
+  try {
+    const proxy = new Proxy(target, {
       get: (t, k) => (t === target && k === 'check'),
     });
     return proxy.check;
+  } catch (e) {
+    return false;
   }
-  return false;
 }
 
 export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {
