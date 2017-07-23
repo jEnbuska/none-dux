@@ -1,16 +1,20 @@
-import { identityPrivates, } from '../common';
+import { identityPrivates, bra, } from '../common';
 
-const id = Symbol('id');
-const removed = Symbol('removed');
-const parent = Symbol('parent');
+const { defineProperties, } = Object;
+const id = 'IDENTITY:id';
+const removed = 'IDENTITY::removed';
+const parent = 'IDENTITY::parent';
 
-const { push, removeChild, renameSelf, resolve, } = identityPrivates;
+const { push, removeChild, renameSelf, resolve, branch, } = identityPrivates;
 
 export default class Identity {
 
   constructor(key, prev) {
-    this[parent]= prev;
-    this[id] = key;
+    defineProperties(this, {
+      [id]: { value: key, writable: true, configurable: true},
+      [parent]: { value: prev, writable: true, configurable: true},
+      [branch]: { value: undefined, writable: true, configurable: true},
+    });
   }
 
   [push](key) {

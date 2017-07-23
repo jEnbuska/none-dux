@@ -2,14 +2,24 @@ import { branchPrivates, identityPrivates, SUBJECT, SET_STATE, CLEAR_STATE, REMO
 
 const { identity, dispatcher, } = branchPrivates;
 const { resolve, } = identityPrivates;
-const { getPrototypeOf, } = Object;
+const { getPrototypeOf, defineProperties, } = Object;
 // Saga state mapper does not dispatch its own actions, instead it should be used like:
 // yield put(target.setState, {a:1,b: {}})
 export default class Branch {
 
   constructor(_identity, _dispatched) {
-    this[identity] = _identity;
-    this[dispatcher] = _dispatched;
+    defineProperties(this, {
+      [identity]: {
+        value: _identity,
+        enumerable: false,
+        configurable: true,
+      },
+      [dispatcher]: {
+        value: _dispatched,
+        enumerable: false,
+        configurable: true,
+      },
+    });
   }
 
   transaction(callBack) {

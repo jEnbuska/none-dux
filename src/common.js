@@ -25,26 +25,29 @@ export function findChild(value, path) {
   return value;
 }
 export const branchPrivates = {
-  children: Symbol('children'),
-  identity: Symbol('identity'),
-  accessState: Symbol('state'),
-  accessPrevState: Symbol('prevState'),
-  accessPendingState: Symbol('accessPendingState'),
-  onSetState: Symbol('onSetState'),
-  onClearState: Symbol('onClearState'),
-  onRemove: Symbol('onRemove'),
-  dispatcher: Symbol('dispatcher'),
-  onRemoveChild: Symbol('onRemoveChild'),
-  handleChange: Symbol('handleChange'),
-  targetBranch: Symbol('targetBranch'),
+  children: 'NONEDUX::children',
+  identity: 'NONEDUX::identity',
+  accessState: 'NONEDUX::state',
+  accessPrevState: 'NONEDUX::prevState',
+  accessPendingState: 'NONEDUX::accessPendingState',
+  onSetState: 'NONEDUX::onSetState',
+  onClearState: 'NONEDUX::onClearState',
+  onRemove: 'NONEDUX::onRemove',
+  dispatcher: 'NONEDUX::dispatcher',
+  onRemoveChild: 'NONEDUX::onRemoveChild',
+  handleChange: 'NONEDUX::handleChange',
+  targetBranch: 'NONEDUX::targetBranch',
 };
 
 export const identityPrivates = {
-  branch: Symbol('branch'),
-  resolve: Symbol('resolve'),
-  push: Symbol('createChild'),
-  renameSelf: Symbol('renameChild'),
-  removeChild: Symbol('removeChild'),
+  id: 'IDENTITY:id',
+  removed: 'IDENTITY::removed',
+  parent: 'IDENTITY::parent',
+  branch: 'IDENTITY::branch',
+  resolve: 'IDENTITY::resolve',
+  push: 'IDENTITY::createChild',
+  renameSelf: 'IDENTITY::renameChild',
+  removeChild: 'IDENTITY::removeChild',
 };
 
 export const invalidReferenceHandler = {

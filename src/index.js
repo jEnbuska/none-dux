@@ -8,8 +8,8 @@ import SagaLegacyBranch from './immutability/SagaLegacyBranch';
 import Identity from './immutability/Identity';
 import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/middlewares';
 
-const { assign, keys, defineProperty, } = Object;
-const { accessState, accessPrevState, } = branchPrivates;
+const { assign, keys, defineProperty, defineProperties, } = Object;
+const { accessState, accessPrevState, accessPendingState, } = branchPrivates;
 
 export function checkProxySupport() {
   const target = {};
@@ -43,15 +43,34 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
   } else {
     subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
   }
-  subject.remove = function () {
-    throw new Error('Cannot remove root branch values');
-  };
-  subject.clearState = function () {
-    throw new Error('clearState cannot be be called on root branch, instead use setState');
-  };
-  //TODO
-  subject[accessState] = initialState;
-  subject[accessPrevState]= {};
+  defineProperties(subject, {
+    remove: {
+      get() { return function () { throw new Error('Cannot remove root branch values'); }; },
+    },
+    clearState: {
+      get() {
+        return function () { throw new Error('clearState cannot be be called on root branch, instead use setState'); };
+      },
+    },
+    [accessState]: {
+      value: initialState,
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    },
+    [accessPrevState]: {
+      value: {},
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    },
+    [accessPendingState]: {
+      value: null,
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    },
+  });
   const stateAccess = createStateAccessMiddleware(subject);
   const noneduxStateChanger = createStateChanger(subject, legacy);
   const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});

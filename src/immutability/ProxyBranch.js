@@ -4,8 +4,6 @@ import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, } from '../common
 const { identity, dispatcher, accessPrevState, accessState, accessPendingState, } = branchPrivates;
 const { push, resolve, } = identityPrivates;
 
-export const proxy = Symbol('proxy');
-
 const branchReflectables = {
   state: true,
   setState: true,
@@ -16,12 +14,44 @@ const branchReflectables = {
   getId: true,
   _getChildrenRecursively: true,
 };
-const branchSymbols = {
+const branchAccerssors = {
   [identity]: true,
   [dispatcher]: true,
   [accessState]: true,
   [accessPrevState]: true,
   [accessPendingState]: true,
+};
+
+const proxyHandler = {
+  get(target, k, receiver) {
+    if (branchAccerssors[k]) {
+      return target[k];
+    } else if (branchReflectables[k]) {
+      return Reflect.get(target,
+        k,
+        receiver);
+    }
+    const resolved = target[identity][resolve]();
+    if (resolved) {
+      const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
+      const createChild = Reflect.get(target,
+        '_createChild',
+        receiver);
+      if (k === 'getChildren') {
+        const children = ProxyBranch.onGetChildren(target,
+          state,
+          createChild);
+        return function () { return this; }.bind(children);
+      }
+      k += ''; // find single child
+      if (Branch.valueCanBeBranch(state[k])) {
+        return Reflect.apply(createChild,
+          target,
+          [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
+      }
+    }
+    Branch.onAccessingRemovedBranch(target[identity].getId(), k);
+  },
 };
 
 export default class ProxyBranch extends Branch {
@@ -63,31 +93,33 @@ export default class ProxyBranch extends Branch {
     return Object.values(this.getChildren()).reduce(Branch._onGetChildrenRecursively, []);
   }
   _createProxy() {
-    const proxy = new Proxy(this,
-      {
-        get(target, k, receiver) {
-          if (branchSymbols[k]) {
-            return target[k];
-          } else if (branchReflectables[k]) {
-            return Reflect.get(target, k, receiver);
+    return new Proxy(this, {
+      get(target, k, receiver) {
+        if (branchAccerssors[k]) {
+          return target[k];
+        } else if (branchReflectables[k]) {
+          return Reflect.get(target, k, receiver);
+        }
+        const resolved = target[identity][resolve]();
+        if (resolved) {
+          const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
+          const createChild = Reflect.get(target, '_createChild', receiver);
+          if (k === 'getChildren') {
+            const children = ProxyBranch.onGetChildren(target, state, createChild);
+            return function () { return this; }.bind(children);
           }
-          const resolved = target[identity][resolve]();
-          if (resolved) {
-            const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
-            const createChild = Reflect.get(target, '_createChild', receiver);
-            if (k === 'getChildren') {
-              const children = ProxyBranch.onGetChildren(target, state, createChild);
-              return function () { return this; }.bind(children);
-            }
-            k+=''; // find single child
-            if (Branch.valueCanBeBranch(state[k])) {
-              return Reflect.apply(createChild, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
-            }
+          if (typeof k ==='symbol') {
+            console.log({k})
+            return k;
           }
-          Branch.onAccessingRemovedBranch(target[identity].getId(), k);
-        },
-      });
-    return proxy;
+          k += ''; // find single child
+          if (Branch.valueCanBeBranch(state[k])) {
+            return Reflect.apply(createChild, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
+          }
+        }
+        Branch.onAccessingRemovedBranch(target[identity].getId(), k);
+      },
+    });
   }
 
   static onGetChildren(target, state, createChild) {

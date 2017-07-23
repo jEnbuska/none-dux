@@ -8,7 +8,7 @@ export default class SagaBranchLegacy extends Legacy {
   constructor(identity, dispatched, state) {
     super(identity, dispatched, state);
     for (let i = 0; i<bindables.length; i++) {
-      defineProperty(this, bindables[i], { value: this[bindables[i]].bind(this), enumerable: false, writable: true, });
+      defineProperty(this, bindables[i], { value: this[bindables[i]].bind(this), enumerable: false, writable: true, configurable: true, });
     }
   }
 

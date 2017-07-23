@@ -39,16 +39,6 @@ export class ArrayLeaf {
     seal(this);
   }
 
-  [Symbol.iterator]() {
-    let index = 0;
-    return {
-      next: () => ({
-        value: this[index++],
-        done: index===this.length+1,
-      }),
-    };
-  }
-
   get length() {
     return values(this).length;
   }
@@ -134,5 +124,16 @@ export class ArrayLeaf {
     return values(this).valueOf();
   }
 
+}
+if (window.Symbol && typeof window.Symbol !== 'function'){
+  ArrayLeaf[window.Symbol.iterator] = function() {
+    let index = 0;
+    return {
+      next: () => ({
+        value: this[index++],
+        done: index===this.length+1,
+      }),
+    };
+  }
 }
 

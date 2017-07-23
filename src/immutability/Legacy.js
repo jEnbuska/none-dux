@@ -3,8 +3,8 @@ import Branch from './Branch';
 import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, poorSet, } from '../common';
 const { onSetState, onClearState, onRemove, identity, onRemoveChild, handleChange, dispatcher, } = branchPrivates;
 const { removeChild, renameSelf, resolve, push, branch, } = identityPrivates;
-const onRemoveFromArray = Symbol('onRemoveFromArray');
-const onRemoveFromObject = Symbol('onRemoveFromObject');
+const onRemoveFromArray = 'NONEDUX::onRemoveFromArray';
+const onRemoveFromObject = 'NONEDUX::onRemoveFromObject';
 
 const { keys, defineProperties, defineProperty, } = Object;
 
