@@ -486,8 +486,6 @@ function removeRetiringEmployee_better(){
 
 }
 ```
-
-```
 **In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects**
 
 ## Leaf types:
