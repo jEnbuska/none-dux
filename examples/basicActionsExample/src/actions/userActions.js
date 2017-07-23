@@ -15,7 +15,7 @@ export function addUser() {
         localStorage.setItem('users', JSON.stringify(users.content.state));
         res();
       }, 800);
-    });
+    })
   };
 }
 
@@ -36,7 +36,7 @@ export function saveUserChanges() {
       localStorage.setItem('users', JSON.stringify(users.content.state));
       res();
     }, 800
-    ));
+    ))
   };
 }
 
@@ -53,7 +53,7 @@ export function removeUser(id) {
       users.content.remove(id);
       localStorage.setItem('users', JSON.stringify(users.content.state));
       res();
-    }, 800);
+    }, 800)
   };
 }
 
@@ -70,8 +70,10 @@ export function fetchUsers() {
       users.status.setState({ pending: true, });
       todosByUser.status.setState({ pending: true, });
       setTimeout(() => {
-        const userData = JSON.parse(localStorage.getItem('users')) || {};
-        const todoData = JSON.parse(localStorage.getItem('todosContent')) || {};
+        let userData = localStorage.getItem('users');
+        userData = userData ? JSON.parse(userData) : {}
+        let todoData = localStorage.getItem('todosContent');
+        todoData = todoData ? JSON.parse(todoData) : {};
         users.setState({ content: userData, status: { pending: false, }, });
         todosByUser.setState({ content: todoData, status: { pending: false, }, });
         resolve();
