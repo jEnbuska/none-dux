@@ -639,7 +639,7 @@ The key differences compared to v10 is that the performance is 2-10 better in mo
 
 createLeaf has become obsolete (when not used in legacy browsers)
 
-Added better support for older browsers
+Better support for older browsers
 
 Performance improvement is available on browsers that support Proxy (ie11<= & ios9<= are not included)
 
