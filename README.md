@@ -80,6 +80,7 @@ const root = (
 ##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ```
 // actions 1st argument is nonedux reference, 2nd one is redux store
+// they are injected to dispatched functions by nonedux thunk
 
 export function removeUser(userId) {
    return function (nonedux, {dispatch}) {
