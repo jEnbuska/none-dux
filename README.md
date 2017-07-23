@@ -633,8 +633,8 @@ function fetchCustomerData_Lightweight(){
   }
 }
 ```
-
-#### Changes v10->v11
+-------------------
+## Changes v10->v11
 The key differences compared to v10 is that the performance is 2-10 better in most heavies cases
 
 createLeaf has become obsolete (when not used in legacy browsers)
