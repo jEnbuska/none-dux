@@ -8,7 +8,8 @@ Small sized React-redux extension, that opens a possibility to remove the most o
 
 Alternative for 'react-redux + redux-thunk' stack
 
-Can also be used with redux-saga: (No documentation: See /examples/sagaExample. Some best practice guidelines should be decided)
+Can also be used with redux-saga: (No documentation: See /examples/sagaExample)
+<sub>Best practice guidelines are undecided</sub>
 
 Application state can be changed directly from actions.
 
