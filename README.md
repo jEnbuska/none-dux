@@ -79,7 +79,7 @@ const root = (
 ## Action examples
 ##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ```
-// 1st argument is nonedux reference, 2nd one is redux store
+// actions 1st argument is nonedux reference, 2nd one is redux store
 
 export function removeUser(userId) {
    return function (nonedux, {dispatch}) {
