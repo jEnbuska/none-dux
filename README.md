@@ -279,7 +279,7 @@ replace with something like
 
 ### Type checking is only menth for development and does not work on old browsers
 #### It provides console errors when something breaks spesifications.
-##### Adding shape validator as middleware
+##### 1. Adding shape validator as middleware
 ```
 import nonedux, { shape } from 'none-dux
 import validator from './validator'
@@ -292,7 +292,7 @@ const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
 
 ...
 ```
-##### Creating validator
+##### 2. Creating validator
 ```
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
