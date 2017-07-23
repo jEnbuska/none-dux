@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import createLeaf from './immutability/leafs';
 import shape from './shape';
 import { branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
