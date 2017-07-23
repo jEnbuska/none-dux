@@ -309,8 +309,7 @@ replace with something like
 
 ## Type checking
 
-#### Type is only menth for development and does not work on old browsers
-
+#### Type checking is only menth for development and does not work on old browsers
 ```
 //Provides console errors when something breaks spesifications.
 
