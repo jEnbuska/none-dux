@@ -219,34 +219,6 @@ function stateExample(){
      nonedux.setState({a:1})
      nonedux.setState({a: 'hello none-dux'})
      nonedux.setState({a: {b: {c: {} } } } )
-     const {b} = nonedux.a;
-     const {c} = b;
-     
-     //by calling state (getter)
-     const orgState = c.state
-     //an action is dispatched and result returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
-     
-     const rootState = nonedux.state;
-     const aState = a.state;
-     const bState = b.state;
-     
-     //If other branch of the object is mutated
-     b.setState({d: {}})
-     
-     //... then states will not change due to path copying
-     console.log(orgState === c.state); //true
-     
-     //... but all parent branches will get updated
-     console.log(rootState !== nonedux.state); //true
-     console.log(aState !== a.state); //true
-     console.log(bState !== b.state); //true
-     
-     //After remove
-     b.remove('c');
-     
-     //... removed branches cannot be accessed
-     c.state; // console error(...)r;
-     c.setState({}) // throws Error
   }
 }
 ```
