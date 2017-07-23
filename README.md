@@ -692,6 +692,6 @@ target.a === target.a // false
 target.a.state === target.a.state; // true
 ```
 ###### Tested on latest chrome & IE10
-#### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
+#### Please submit reports to https://github.com/jEnbuska/none-dux/issues
 
 
