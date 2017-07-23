@@ -277,15 +277,23 @@ replace with something like
 
 ## Type checking
 
-#### Type checking is only menth for development and does not work on old browsers
-##### It provides console errors when something breaks spesifications.
+### Type checking is only menth for development and does not work on old browsers
+#### It provides console errors when something breaks spesifications.
+##### Adding shape validator as middleware
 ```
-
-
 import nonedux, { shape } from 'none-dux
+import validator from './validator'
 
-const { reducer, middlewares, subject, } = nonedux({ initialState );
+... 
 
+const { reducer, middlewares, subject, } = nonedux({ initialState });
+const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
+const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
+
+...
+```
+##### Creating validator
+```
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
 
@@ -319,7 +327,7 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
   request: {...isRequired}
 };
 ```
-##### Few key details about type checking that are easy to miss
+###### Few key details about type checking that are easy to miss
 ```
 //Object shape
 
@@ -372,7 +380,7 @@ const {spec} = shape;
  [spec]: isRequired.strict[spec]
 }
 ```
-##### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
+###### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
 ----------------
 ## Atomic changes
