@@ -570,7 +570,7 @@ target.a === target.a
 #### 6. There is grey areas with **Arrays that contain other Objects/Arrays**
 ```
 const first = {a:1}, second = {b:2}, third = {c:3}
-someArray.clearState([ first, second, third, ]);
+target.clearState([ first, second, third, ]);
 const { 0: firstChild, 1: secondChild, 2: thirdChild, } = target;
 target.clearState([ third, first, second, ]);  //switch order
 
@@ -580,10 +580,8 @@ firstChild.state; // { c: 3, };
 secondChild.state; // { a: 1, };
 thirdChild.state; // { b: 2, };
 
-//From 'setState:s' point of view the previous says:
-someArray.setState({0: first, 1: second, 2: third });
-...
-someArray.setState({0: third, 1: first, 2:second });
+//From 'clearState:s' point of view the previous means:
+`target.clearState({0: first, 1: second, 2: third })`
 ```
 
 
