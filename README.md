@@ -307,12 +307,14 @@ replace with something like
 
 ## Type checking
 
+####Type is only meth for development and does not work on old browsers
+
 ```
 //Provides console errors when something breaks spesifications.
 
 import nonedux, { shape } from 'none-dux
 
-const { reducer, middlewares, subject, } = nonedux(initialState);
+const { reducer, middlewares, subject, } = nonedux({ initialState );
 
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
@@ -713,7 +715,7 @@ Object.keys(rest).length  // 2
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-#####4. No references are stored. when modern browsers are userd. This makes almost everything bizillion times faster
+#####4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
 ```
 target.setState({ a:{} });
 target.a === target.a // false
