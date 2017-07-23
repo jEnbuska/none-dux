@@ -1,13 +1,11 @@
 import { SUBJECT, GET_STATE, PARAM, PUBLISH_NOW, findChild, branchPrivates, SET_STATE, CLEAR_STATE, COMMIT_TRANSACTION, ROLLBACK, identityPrivates, poorSet, } from '../common';
 import Branch from './Branch';
-import { proxy, } from './ProxyBranch';
 
 const { identity, dispatcher, onRemove, onSetState, onClearState, accessState, accessPrevState, accessPendingState, } = branchPrivates;
 const { removeChild, renameSelf, } = identityPrivates;
 
 const { entries, } = Object;
 export function createThunk(rootBranch) {
-  rootBranch = rootBranch[proxy] || rootBranch;
   return (store) => {
     rootBranch[dispatcher].dispatch = action => store.dispatch(action);
     return (next) => (action) => {
@@ -45,7 +43,7 @@ export function createStateChanger(root, legacy) {
         const target = trace[trace.length-1];
         if (type === SET_STATE) {
           if (target.state instanceof Array) {
-            throw new Error(`Target: "${subject.join(', ')}"\nCannot call set state when state or parameter is Array`);
+            throw new Error(`Target: "${subject.join(', ')}"\nCannot call setState when targets state is Array`);
           }
           target.branch[onSetState](param, target.state);
           target.state = { ...target.state, ...param, };

@@ -1,64 +1,16 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
-
-## This documentation is not finished
-The key differences compared to v10 is that the performance is 2-20 better in most heavies cases
-
-createLeaf has become obsolete (when not legacy mode)
-
-Performance improvement is available only on browsers that support Proxy (not ie11<= & ios9<=)
-
-Code base is finally somewhat readable and naming makes more sence
-
-When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
-
-#####There is few breaking change:
-
-######removeSelf
-```
-Function removeSelf is nolonger available
-```
-
-######constructor
-```
-old:
-const {subject, middlewares} = nonedux(initialState, bool /*flag for saga usage*/)
-new:
-const {subject, middlewares} = nonedux({
-    initialState, 
-    saga:bool, //optional 
-    legacy: bool //optional --> if not defined, it will be automatically use legacy when run on a oldbrowser
-})
-```
-######children
-```
-target.setState({a:{},b:{}})
-const {a, ...rest} = target.getChildren(); 
-//getChildren returns Object not Array
-//rest = {b: { /*child*/ }}
-
-const {a, ...rest} = target.setState({a:{},b:{}})
-//'rest' will be allways empty because Proxys do not support iteration
-```
-######No references are stored. Makes almost everything bizillion x faster
-```
-target.setState({a:{}});
-target.a !== target.a
-target.a.state === target.a.state; // this is ofcourse still true
-```
-
-The day when browsers with no proxy do not need to be supported, there is a lot of good things that can be added and the code base can be made much smaller
-###Old partially deprecated documentation -->
+######Read about breaking changes 10v->11v at the bottom of the documentation
 
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
+0 reducers
+
 Alternative for 'react-redux + redux-thunk' stack
 
-Can also be used with redux-saga, to remove all **reducer boilerplate**: (No documentation: See examples/sagaExample. Some best practice guidelines should be decided)
+Can also be used with redux-saga: (No documentation: See examples/sagaExample. Some best practice guidelines should be decided)
 
 Application state can be changed directly from actions.
-
-0 reducer boilerplate.
 
 No external dependencies
 
@@ -68,7 +20,7 @@ Action objects are auto generated and dispatched  when (***setState / clearState
 
 Immutability is taken care of by middlewares and published by child reducers
 
-State can be safely extended without any predefined shape
+Reducers can be safely extended without any predefined shape.
 ```
 function grow() {
   return function (nonedux) {
@@ -82,8 +34,8 @@ function grow() {
   };
 }
 function generateMessState(depth = 3, height = 0) {
-  return function (nonedux, { dispatch, }) { 
-    /* initialState = {mess: {}, ...}*/
+  /* initialState = {mess: {}, ...}*/
+  return function (nonedux, { dispatch, }) {
     const { mess, } = nonedux;
     let child = mess;
     for (let i = 0; i<depth && child; i++) {
@@ -99,7 +51,6 @@ import { Provider, connect, } from 'react-redux';
 import { createStore, applyMiddleware, combineReducers, } from 'redux';
 import nonedux from 'none-dux';
 
-
 const initialState = { //Sames as the initial state of store
   request: {},
   todosByUser: {},  
@@ -107,8 +58,11 @@ const initialState = { //Sames as the initial state of store
 };
 
 // don't add 'redux-thunk'
-const { reducers, middlewares } = nonedux(initialState);
+const { reducers, middlewares } = nonedux({ initialState });
+
+// creates the reducers defined in initialState
 console.log(Object.keys(reducers)); //['request', 'todosByUser', 'users']
+
 const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
 const store = createStoreWithMiddleware(comboneReducers({...reducers})); // can be combined with other reducers like redux-form
 
@@ -124,32 +78,36 @@ const root = (
 ## Action examples
 
 ```
-// 1st argument is nonedux state reference, 2nd one is redux store
+// 1st argument is nonedux reference, 2nd one is redux store
+
 export function removeUser(userId) {
    return function (nonedux, {dispatch}) {
       const {users, todosByUser} = nonedux;
-      //users & todosByUser are created lazily first time they are referenced
-      
-      const user = users[userId]; //lazy
-      const usersTodos = todosByUser[userId] //lazy
+      const user = users[userId];
       
       user.setState({ verified: false, });
       
       api.deleteUser(userId)
         .then(()=> {
           users.remove(userId);
-          userTodos.removeSelf();
+          userTodos.remove(userId);
         });
     }
 }
+...
 
 function createPayment(userId, data){
   return function({users, transactions}){
+  
   const user = users[userId];
   if(!user.state.pendingPayment){
+     
      user.setState({pendingPaymend: true})
-     const id = = generateId(); 
-     const {[id]: transaction} = transactions[userId].setState({[id]: {id, ...data, userId, validated: false, }})
+     const id = uuid(); 
+     const {[id]: transaction} = transactions[userId].setState({
+       [id]: {id, ...data, userId, validated: false, }
+     })
+     
      api.postTransactions(transaction.state)
       .then(() => transaction.setState({validated: true}))
       .then(() => user.setState({pendingPayment: false}))
@@ -160,17 +118,18 @@ function createPayment(userId, data){
 
 export function removeUserTransactional(userId) {
    return function (nonedux, {dispatch}) {
+   
       const {users, todosByUser} = nonedux;
       const user = users[userId];
-      const usersTodos = todosByUser[userId]
       
       user.setState({ verified: false, });
       
       api.deleteUser(userId)
         .then(()=> {
-          nonedux.transaction(() => { // only 1 update to store, if one of them fails both changes are cancelled
+          nonedux.transaction(() => { 
+            // only 1 update to store, if one of them fails both changes are cancelled
             users.remove(userId);
-            userTodos.removeSelf();
+            todosByUser(userId);
           })
         });
     }
@@ -178,14 +137,63 @@ export function removeUserTransactional(userId) {
 
 
 ```
-String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
+
+## Functions
+#####Invoking functions returns the same instance
 ```
-console.log(target.state)// {value: 'text'};
-console.log(target.value); //undefined
-console.log(target.state.value); //'text'
+const {child} = nonedux;
+child.setState({subChild: {}})
+  .subChild.setState({noChild: null})
+
+console.log(child.state); 
+// { child: { subChild: { noChild: null} } }
+```
+
+#####setState
+```
+console.log(target.state); // { a: 1, b: {} }
+
+// setState does shallow merge
+target.setState({ a: 2, c: 3 });
+console.log(target.state) // { a: 2, b: {}, c: 3 }
+
+// setState takes Objects as parameters
+target.setState('test'); //Error("[...]")
+target.setState([ 1, 'abc', {} ]); //Error("[...]")
+ ```
+ #####clearState
+ ```
+ console.log(target.state); //{ a: 1, b: { } }
+ 
+ // clear state removes the previous states outer join
+ target.clearState({ b: 2 });
+ console.log(target.state); // { b: 2 }
+ 
+// clearState takes both Object or Array as parameter
+ target.setState('text'); //Error("[...]")
+```
+####remove
+```
+const keys = [ 1, 2, 3 ];
+
+target.remove(keys); //removes all children with matching keys
+//same as
+target.remove(1,2,3);
+//or
+target.remove(...[1,2,3]);
+```
+
+##State
+**Root level** reducer variables must be defined at nonedux initialState
+
+String, Numbers, Date, etc. Can only be accessed through parent object and used through parents ***state***
+```
+console.log(target.state)// { name: 'text' };
+console.log(target.name); //undefined
+console.log(target.state.name); //'text'
 ...
 {
-  const {data} = nonedux.data.setState({str:'abc'});
+  const {data} = nonedux.data.setState({ str: 'abc' });
   
   console.log(data.str); // undefined
    
@@ -195,47 +203,15 @@ console.log(target.state.value); //'text'
 }
 ...
 {
-  const { data } = nonedux.data.setState({obj: {str: 'ok'}})
+  const { data } = nonedux.data.setState({ obj: { str: 'ok' } })
    
   console.log(data.obj) //Branch: ...
    
-  console.log(data.obj.state) // {str: 'ok'}
+  console.log(data.obj.state) // { str: 'ok' }
 }
 ```
 
-## Functions
-
-```
-console.log(target.state); // { a: 1, b: {} }
-target.setState({ a: 2, c: 3 });
-console.log(target.state) // { a: 2, b: {}, c: 3 }
-// setState does shallow merge
- ... 
- 
- //clear state removes the previous states outer join
- console.log(target.state); //{ a: 1, b: { } }
- target.clearState({ b: 2 });
- console.log(target.state); // { b: 2 }
- 
- // Both clearState and setState take object or array as parameter
- target.setState('text'); //Error("[..., 'target'] Expected setState parameter to be an Object or Array, but got 'text'")
-...
-
-const ids = [ 1, 2, 3 ];
-
-target.remove(ids); //removes all children with matching ids
-or
-target.remove(1,2,3);
-or
-target[1].removeSelf();
-target[2].removeSelf();
-target[3].removeSelf();
-```
-
-##State
-**Root level** reducer variables must be defined at nonedux initialState
-
-<sub>...  the types can be changed</sub>
+Types can be changed
 
 ```
 function stateExample(){
@@ -249,21 +225,29 @@ function stateExample(){
      
      //by calling state (getter)
      const orgState = c.state
-     //an action will be dispatched and returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
+     //an action is dispatched and result returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
+     
+     const rootState = nonedux.state;
+     const aState = a.state;
+     const bState = b.state;
      
      //If other branch of the object is mutated
      b.setState({d: {}})
      
      //... then states will not change due to path copying
-     expect(orgState).toBe(c.state);
+     console.log(orgState === c.state); //true
+     
+     //... but all parent branches will get updated
+     console.log(rootState !== nonedux.state); //true
+     console.log(aState !== a.state); //true
+     console.log(bState !== b.state); //true
      
      //After remove
-     c.removeSelf();
-     c.state; // causes console error;
-     c.setState({}) // throws Error
+     b.remove('c');
      
-     nonedux.remove('a'); // Don't do this
-     nonedux.clearState({b: {}}) //Don't do this either
+     //... removed branches cannot be accessed
+     c.state; // console error(...)r;
+     c.setState({}) // throws Error
   }
 }
 ```
@@ -291,8 +275,8 @@ by
   ...
   import nonedux from 'none-dux'
   
-  // (Do not use 'redux-thunk')
-  const { reducers, middlewares, } = nonedux(initialState);
+  // ( Do not use 'redux-thunk' )
+  const { reducers, middlewares, } = nonedux({ initialState });
   const createStoreWithMiddleware = applyMiddleware(...middlewares)(createStore);
   const store = createStoreWithMiddleware(combineReducers({...reducers}));
   
@@ -367,7 +351,7 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
 ```
 //Object shape
 
-Won't work::
+Won't work:
 { strict }
 { isRequired }
 
@@ -376,7 +360,7 @@ Will work:
 { ...strict }
 { ...strict.isRequired }
 { ...isRequired.strict }
-{ isRequired: string } //Assuming key name is actually 'isRequired'
+{ isRequired: string } //Assumed key name is actually 'isRequired'!
 
 //Array shape
  
@@ -387,21 +371,21 @@ Won't work
 [ ...isRequired.strict, [] ]
 
 Will work:
-[ strict, {}]
+[ strict, {} ]
 [ isRequired, number ]
-[ strict.isRequired, {...isRequired} ]
-[ isRequired.strict, [] ]
+[ strict.isRequired, {...isRequired} ]  //array with not-null/undefined objects
+[ isRequired.strict, [] ]               //array that has arrays
 
-any
+// 'any' key
+
 Will work:
-{ [any]: number, something: {} } //uses spec object if key is something else uses spec number
+{ [any]: number, myObj: {} } //assumes that values is number is name is not 'myObj'
 { [any]: {} }
 { any: string, } //means that the key name is actually 'any'
 
 Wont work:
-
-{ [any]: any, } //any is not type but identifier
-{ something: any } //same here
+{ [any]: any, }     //any is not type but identifier
+{ something: any }  //same here
 
 ```
 
@@ -417,218 +401,124 @@ const {spec} = shape;
  [spec]: isRequired.strict[spec]
 }
 ```
-using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
+#####using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
 ----------------
 ## Atomic changes
+#####Transaction allows doing multiple changes before store gets the updated state
 ```
-...
-/*in index.js/jsx after store created*/
-const states = new Set();
-states.add(store.getState()); //initialState is `{}`
-store.subscribe(() => states(store.getState()))
-export getDistinctStates= () => states;
-...
-/*in action creator*/
+
+/* in action creator */
+// Store state = { users: {} }
 
 *TRANSACTION*
+
 function playWithTransaction(){
-  function(nonedux){
-    const state = nonedux.state;
-    nonedux.transaction(() => {
-      nonedux.setState({a:{}, b: {}})
-      nonedux.setState({c:{}})
-      nonedux.c.setState({d:{}})
-    })
-    const states = [...getDistinctStates()]
-    console.log(states[0]);// {}
-    console.log(states[1]); // {a: {}, b: {}, c: {d: {}}}
+  function(nonedux){;
+    
+    nonedux.transaction(({ users }) => {
+      users.setState({ a:{}, b: {} })
+      users.setState({ c:{} })
+      users.c.setState({ todos:{} })
+    }) // --> update store state
   }
 }
 
 *SIMPLE ROLLBACK*
 function playWithRollback(){
-  function(nonedux){
-    const state = nonedux.state;
-    nonedux.transaction(() => {
-      nonedux.setState({a:{}, b: {}})
-      nonedux.setState({c:{}})
-      nonedux.c.setState({d:{}})
-      throw new Error(); // rollback all
-    })
-    const states = [...getDistinctStates()]
-    console.log(states[0]);// {}
-    console.log(states.length) // 1
+  function(nonedux){;
+    
+    nonedux.transaction(({ users }) => {
+      users.setState({ a:{}, b: {} })
+      users.setState({ c:{} })
+      nonedux.c.setState({ todos:{} })
+      throw new Error();    // ROLLBACK ALL
+    }) // --> no published changes
   }
 }
 
 *ADVANCED ROLLBACK*
 function rollbackAdvanced(){
   function(nonedux, {dispatch}){
-    const state = nonedux.state;
-    nonedux.transaction(() => {
-      nonedux.setState({a:{}}) // this change will not be cancelled because of try catch
+    
+    nonedux.transaction(({ users }) => {
+      users.setState({ a:{} })
       try{
         dispatch(doChangesAndThrowError());
       }catch(ignore){ /* explicitly thrown error */ }
-    })
-    const states = [...getDistinctStates()]
-    console.log(states[0]);// {}
-    console.log(states[1]); // {a: 1}
+    }) // --> state = { users: { a: {} } }
   }
 }
 
 function doChangesAndThrowError(){
   function(nonedux){
-     nonedux.transaction(({a}) => {
-        const orgState = nonedux.state //{a:1} 
-        a.setState({b: {c: { } } })
-        b.transaction(({c}) => {
-          c.setState({d: 1})
-          throw new Error('state should be returned to orgState')
-        })
+     nonedux.transaction(({ users }) => {
+        users.a.setState({ todos: {} })
+        users.a.transaction(({ todos }) => {
+          const id = uuid();
+          todos.setState({[id]: id, done: false, description: 'Buy milk'})
+        }) // --> rollback scopes changes
      })
   }
 }
 ```
 ##Arrays
 Arrays are not shallow merged like objects
-```
-myArray.setState([1, {}, 'str'])
-//results to same as
-myArray.clearState([1, {}, 'str'])
-```
-Having **arrays that have objects or other arrays as children** can make it very **inefficient** to perform updates
 
-This is pretty much the same reason, why React is advices to not use index as 'key':s for component when creating list of components
+'setState' and 'remove' can be expensive if run on older browsers, that do not support es6 Proxy
+
+The technical details about why this is so, boils down to same reasons, why React is advices to not use index as 'key':s for component when creating list of components
 
 
 ## Performance
 
-If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following 2 first patterns:
+If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following first pattern:
 
 ```
-cosnt {values} = Object;
+cosnt { entries } = Object;
 
-function removeOldEntries_worstPerformance(){
+function removeOldEntries_thisIsTheWorstYouCanDo(){
   return function({bigData}){
-    const {...dataEntries} = bigData;               //force init every non lazy child
+  
     const shouldBeRemoved = (entry) => entry.date < Date.now()
-    values(dataEntries)
-      .filter((e) => shouldBeRemoved(e.state))      // get every value separatelly (this is quite fast) 
-      .forEach(e => e.removeSelf())                 // remove each separatelly
+    
+    keys(dataEntries.state)
+      .map(([k]) => bigData[k]) //!Create reference for each child
+      .filter(child => shouldBeRemoved(value.state)) //! dispatch get state for each child separatelly
+      .forEach((child) => bigData.remove(child.getId())) //! Every removal is it's own action 
       
-     //If there was 5000 entries and all of them where removed, the whole operation could take > 1500ms on macbook pro
+     /* 
+       If 3000 object entries were removed:
+       The operation using macbook pro could take 1-2 seconds by it self
+       + the time what it takes for react to render <=3000 times
+       on a Macbook Pro
+     */
   }
 }
 ...
 
-//Note that if entries are not Objects/Arrays no performance optimization needed
-
-cosnt {entries} = Object;
-
-function removeOldEntries_semiPerformance(){
-  return function({bigData}){
-    const {state} = bigData;                           //ask state only ones
-    const shouldBeRemoved = ([k, value]) => value.date < Date.now()
-    const oldEntries = entries(state)
-      .filter(shouldBeRemoved)                         // use plain object state
-      .map(([k])=> k)                                  // select keys
-      bigData.remove(oldEntries);                      // remove all at ones
-      
-     //This should be about 60x faster.
-  }
-}
-...
-
-cosnt {entries, assign} = Object;
-
-// Assuming bigData children are created by 'createLeaf' (see next section about 'Large objects'):
-/*
-  const bidDataContent = entries(data).reduce((acc, [k, v]) => assign(acc, {[k]: createLeaf(v) }), {})
-  nonedux.bigData.setState(bigDataContent)
-*/
+cosnt { entries } = Object;
 
 function removeOldEntries_goodPerformance(){
   return function({bigData}){
-    const {state} = bigData;
+    
     const shouldBeRemoved = ([k, value]) => value.date < Date.now()
+    
     const oldEntries = entries(state)
       .filter(shouldBeRemoved)                         // use plain object state
       .map(([k])=> k)                                  // select keys
       
       bigData.remove(oldEntries);                      // remove all at ones
       
-     //This should be about 160x faster than slowest.
-  }
-}
-...
-import {createLeaf} from 'none-dux'
-
-cosnt {entries, assign} = Object;
-
-// Assuming bigData is created by 'createLeaf' (see section about 'Very large objects'):
-// nonedux.setState({bigData: createLeaf(data)})
-
-function removeOldEntries_bestPerformance(){
-  return function(nonedux){
-    const {bigData} = nonedux.state;    
-    const shouldBeKept = ([k, value]) => value.date >= Date.now()
-    const nextBigData = entries(bigData)
-      .filter(shouldBeKept)                        
-      .reduce((acc, [k, v]) => assign(acc, {[k]: v}),{})
-      
-    nonedux.setState({bigData: createLeaf(nextBigData)})
-    
-     //Performance should very close to optimal. about 350x faster than slowest
+      /* 
+        If 3000 object entries were removed:
+        ~ 15 ms
+       */
   }
 }
 ```
 **In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects**
 
-## Large objects
-When ever creating and object with more than 1000 object children consider using createLeaf helper function.
-
-If entries are only leaf: (string,  numbers, etc.) there should not be any need to improve performance
-
-Children aren't created until they are referred to for the first time, but the promise* of creating them later when referred is work too.
-
-<sub><sub>*(**promise** literally, not JavaScript Promise)</sub></sub>
-```
-...
-function fetchCustomerData(){
-  function(nonedux){
-    fetchUserData()
-      .then(({data}) => {
-        let { transactions, associations } = data;
-        nonedux.setState({statistics: {transactions, associations} })
-        // if child statistics is not accessed previously it is created now
-        nonedux.statistics.setState({transactions, associations}). 
-        // pending children 'transactions' & 'associations' created;
-        const {transactions: t, associations: s} = statistics; 
-        // children 'transaction' & 'associations' were created & their lazy children are now pending
-      })
-  }
-}
-...
-import {createLeaf} from 'none-dux'
-
-function fetchCustomerData_Lightweight(){
-  function({statistics}){
-    fetchUserData()
-      .then(({data}) => {
-        let { transactions, associations } = data;
-        transactions = createLeaf(transactions);
-        associations = createLeaf(associations)
-        statistics.setState({transactions, associations}). //no direct refence to children;
-        statistics.transactions //undefined
-        statistics.associations //undefined
-        statistics.state.transactions //!==undefined
-        statistics.state.associations  //!==undefined
-      })
-  }
-}
-```
 ## Leaf types:
 Leafs are types that do not have children, nor they cannot be referenced directly but only through state
 ```
@@ -660,23 +550,59 @@ leafs.MyClass = true;
 
 nonedux.subState.setState({child: new MyClass()};)
 nonedux.subState.child; //undefined
+nonedux.subState.state.child; // MyClass...
 ```
-Define leaf types before they are added to state
 
 --------------
 ## Warnings
-Using custom non-leaf JavaScript classes in reducer state is not well tested.
 
-Using non normalized state is not a must but recommended
+#### 1. All keys must be strings or numbers
+```
+const key = () => console.log('I'm key');
+target.setState({[key]: {} }) // This will result in bugs
+```
 
-All keys must be strings or numbers
+####2. nonedux values are not enumerable
+```
+const {a, b, ...rest} = target.setState({ a:{}, b: {}, c: {}, d: {} })
+Object.keys(rest).length  // 0
 
-There is grey areas with Arrays that contain other Objects/Arrays.
+for(const child in target){
+  console.log('This will never be executed')
+}
+```
+
+#####Accessing all children
+```
+target.setState({ a:{}, b: {}, c: {}, d: {} })
+const {a, b, ...rest} = target.getChildren()
+Object.keys(rest).length  // 2
+
+//or
+
+const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
+const children = Object.keys(state).map(k => targe[k]);
+```
+
+---------------
+
+####3. Using custom non-leaf JavaScript classes in reducer state is not well tested
+
+####4. Using non normalized state is not a must but recommended
+
+####5. Comparison instances
+```
+// In modern browsers next evaluates to false
+target.setState({a: {}})
+target.a === target.a
+```
+
+####6. There is grey areas with **Arrays that contain other Objects/Arrays**
 ```
 const first = {a:1}, second = {b:2}, third = {c:3}
-someArray.setState([ first, second, third, ]);
-const { 0: firstChild, 1: secondChild, 2: thirdChild, } = subject;
-subject.setState([ third, first, second, ]);  //switch order
+someArray.clearState([ first, second, third, ]);
+const { 0: firstChild, 1: secondChild, 2: thirdChild, } = target;
+target.clearState([ third, first, second, ]);  //switch order
 
 /* One might expect that 'firstChild' state, 
 would still points to 'first' value but it doesn't */
@@ -690,6 +616,109 @@ someArray.setState({0: first, 1: second, 2: third });
 someArray.setState({0: third, 1: first, 2:second });
 ```
 
+
+## Older browsers
+When nonedux code is run on browsers that do not support **es6 Proxy** the internal logic is different
+
+######Next performance improvement examples and warnings, apply only to older browsers
+
+With large objects & arrays that include thousands of child objects the performance can be poor.
+
+When accessing data from actions this is roughly what happens:
+######applies only to old browsers
+```
+function juggle(){
+  function(nonedux){
+    nonedux.state // { obj: { primitive: 1, subChild: {} } }
+    const obj = nonedux.obj 
+    // nonedux --> get() { return child['obj'] || child['obj'] = createBranch('obj') }
+        // obj -->  createGetterFor('subChild')
+  }
+}
+```
+######applies only to old browsers
+... when data is not referenced no work is done.
+
+If objects children are **leafs**: (string,  numbers, etc.) there should not any performance problems
+
+To improve performance Objects and Arrays can be wrapped as **leafs** by using **createLeaf** helper function.
+######applies only to old browsers
+```
+import {createLeaf} from 'none-dux'
+
+function fetchCustomerData_Lightweight(){
+  function({statistics}){
+    fetchUserData()
+      .then(({data}) => {
+        let { transactions, associations } = data;
+        
+        transactions = createLeaf(transactions);
+        associations = createLeaf(associations)
+        
+        statistics.setState({transactions, associations}). //no direct refence to children;
+        
+        statistics.transactions //undefined
+        statistics.associations //undefined
+        statistics.state.transactions // is defined
+        statistics.state.associations  // is defined
+      })
+  }
+}
+```
+
+#### Changes v10->v11
+The key differences compared to v10 is that the performance is 2-10 better in most heavies cases
+
+createLeaf has become obsolete (when not used in legacy browsers)
+
+Performance improvement is available on browsers that support Proxy (ie11<= & ios9<= are not included)
+
+
+When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
+
+#####There is few breaking change:
+
+#####1. function 'removeSelf' has been removed
+
+#####2. initializint store
+######old:
+```
+const {subject, middlewares} = nonedux(initialState, bool /*flag for saga usage*/)
+```
+######new:
+```
+//constructor parameters is an Object
+const {subject, middlewares} = nonedux({
+    initialState, 
+    saga:bool, //optional 
+    legacy: bool //optional --> if not defined, it will be automatically use legacy when run on a oldbrowser
+})
+```
+#####3. children are not enumerable
+```
+const {a, b, ...rest} = target.setState({ a:{}, b: {}, c: {}, d: {} })
+Object.keys(rest).length  // 0
+
+for(const child in target){
+  console.log('This will never be executed')
+}
+
+//access all children by 'getChildren'
+
+const {a, b, ...rest} = target.getChildren()
+Object.keys(rest).length  // 2
+
+//or
+
+const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
+const children = Object.keys(state).map(k => targe[k]);
+```
+#####4. No references are stored. when modern browsers are userd. This makes almost everything bizillion times faster
+```
+target.setState({ a:{} });
+target.a === target.a // false
+target.a.state === target.a.state; // true
+```
 
 #### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
 

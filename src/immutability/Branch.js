@@ -13,20 +13,21 @@ export default class Branch {
   }
 
   transaction(callBack) {
-    const publishAfterDone = !this[dispatcher].onGoingTransaction;
-    const stateBefore = this[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: [], });
+    const disp = this[dispatcher];
+    const publishAfterDone = !disp.onGoingTransaction;
+    const stateBefore = disp.dispatch({ type: GET_STATE, [SUBJECT]: [], });
     try {
-      this[dispatcher].onGoingTransaction = true;
-      callBack(this._returnSelf());
+      disp.onGoingTransaction = true;
+      callBack(this);
       if (publishAfterDone) {
-        this[dispatcher].dispatch({ type: COMMIT_TRANSACTION, });
+        disp.dispatch({ type: COMMIT_TRANSACTION, });
       }
     } catch (Exception) {
-      this[dispatcher].dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
+      disp.dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
       throw Exception;
     } finally {
       if (publishAfterDone) {
-        this[dispatcher].onGoingTransaction = false;
+        disp.onGoingTransaction = false;
       }
     }
   }
@@ -48,37 +49,33 @@ export default class Branch {
   }
 
   setState(value) {
-    const identity = this.getIdentity();
-    if (!identity) {
+    const identifier = this[identity][resolve]();
+    if (!identifier) {
       throw new Error('Cannot call setState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     } else if (!Branch.valueCanBeBranch(value)) {
       throw new Error('Branch does not take leafs as setState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     } else if (value instanceof Array) {
-      throw new Error(`Target: "${identity.join(', ')}"\nCannot call set state parameter is Array`);
+      throw new Error(`Target: "${identifier.join(', ')}"\nCannot call set state parameter is Array`);
     }
-    return { type: SET_STATE, [SUBJECT]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
+    return { type: SET_STATE, [SUBJECT]: identifier, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   clearState(value) {
-    const identity = this.getIdentity();
-    if (!identity) {
+    const identifier = this[identity][resolve]();
+    if (!identifier) {
       throw new Error('Cannot call clearState to removed Node. Got:', `${value}. Id: "${this.getId()}"`);
     } else if (!Branch.valueCanBeBranch(value)) {
       throw new Error('Branch does not take leafs as clearState parameters. Got:', `${value}. Identity: "${this.getIdentity().join(', ')}"`);
     }
-    return { type: CLEAR_STATE, [SUBJECT]: identity, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
+    return { type: CLEAR_STATE, [SUBJECT]: identifier, [PARAM]: value, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   remove(keys) {
-    const identity = this.getIdentity();
-    if (!identity) {
+    const identifier = this[identity][resolve]();
+    if (!identifier) {
       throw new Error('Cannot call remove on removed Node. Got:', `${keys}. Id: "${this.getId()}"`);
     }
-    return { type: REMOVE, [SUBJECT]: identity, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
-  }
-
-  _returnSelf() {
-    return this;
+    return { type: REMOVE, [SUBJECT]: identifier, [PARAM]: keys, [PUBLISH_NOW]: !this[dispatcher].onGoingTransaction, };
   }
 
   static _onGetChildrenRecursively(acc, child) {

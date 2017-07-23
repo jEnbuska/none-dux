@@ -3,7 +3,7 @@ import { SUBJECT, SET_STATE, REMOVE, CLEAR_STATE, branchPrivates, } from '../com
 import createValidator from './createValidator';
 import validateState from './validateState';
 
-const { accessState, accessPrevState, targetBranch} = branchPrivates;
+const { accessState, accessPrevState, } = branchPrivates;
 
 const emptyShape = {
   [spec]: {
@@ -15,7 +15,6 @@ const emptyShape = {
 
 const triggerTypes = [ SET_STATE, REMOVE, CLEAR_STATE, ];
 export default function createValidatorMiddleware(subject, shape = emptyShape) {
-  subject = subject[targetBranch] || subject;
   shape = createValidator(shape);
   validateState(subject[accessState], subject[accessPrevState], subject.getIdentity(), shape);
   return () => (next) => (action) => {

@@ -11,12 +11,13 @@ describe('performance', () => {
     createAndAccess: {},
     addRemoveAndInit: {},
     getState: {},
+    removeWorst: {},
     removeSemi: {},
-    removeGood: {},
-    removeBest: {},
     create: {},
     createLeafs: {},
     clearState: {},
+    clearAccessedState: {},
+    getNewChildren: {},
   };
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
@@ -49,6 +50,29 @@ describe('performance', () => {
           console.log(name + ' = ~ 3000 nodes merges, 3000 resets, 3000 removes Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
+        test('get new Children', () => {
+          const even = data.companies;
+          const odd = data2;
+          const { subject: { root, }, }= init({ root: {}, });
+          root.setState(even);
+          let total = 0;
+          const time = new Date();
+          for (let i = 0; i < 200; i++) {
+            if (i % 2 === 0) {
+              root.clearState(even);
+              const time = Date.now()
+              root._getChildrenRecursively();
+              total+=Date.now()-time
+            } else {
+              root.clearState(odd);
+              const time = Date.now()
+              root._getChildrenRecursively()
+              total+=Date.now()-time
+            }
+          }
+          results.getNewChildren[name] = total/200;
+        }, 15000);
+
         test('create and access lot of children', () => {
           const time = Date.now();
           for (let i = 0; i<300; i++) {
@@ -72,6 +96,27 @@ describe('performance', () => {
             }
           }
           results.clearState[name] = (new Date() - time)/300;
+        });
+
+        test('clearState accessed state', () => {
+          const even = data;
+          const odd = data2;
+          const { subject: { root, }, }= init({ root: {}, });
+          let total = 0;
+          for (let i = 0; i < 200; i++) {
+            if (i % 2 === 0) {
+              root._getChildrenRecursively();
+              const time = Date.now()
+              root.clearState(even);
+              total+=Date.now()-time
+            } else {
+              root._getChildrenRecursively();
+              const time = Date.now()
+              root.clearState(odd);
+              total+=Date.now()-time
+            }
+          }
+          results.clearAccessedState[name] = total/200;
         });
 
         test('mixed + init children', () => {
@@ -119,21 +164,40 @@ describe('performance', () => {
           console.log('Get state ~85000 times. Avg depth ~8.5. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
-        test('remove children', () => {
+        test('remove worst', () => {
           const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
           const h = subject.a.b.c.d.e.f.g.h;
           const data = {};
-          for (let i = 0; i<20000; i++) {
-            data[i] = { a: 1, };
+          for (let i = 0; i<3000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
           }
           h.setState(data);
+
+          const time = new Date();
+          Object.keys(h.state)
+            .map(k => h[k])
+            .filter(({ state, }) => true)
+            .map((it) => h.remove(it.getId()));
+          results.removeWorst[name] = (new Date() - time);
+          console.log(name + ' = Remove 20000 children semi performance. Took total of: ', new Date() - time, 'ms');
+        }, 15000);
+
+        test('remove children semi', () => {
+          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+          const h = subject.a.b.c.d.e.f.g.h;
+          const data = {};
+          for (let i = 0; i<3000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+          h.setState(data);
+          h._getChildrenRecursively();
 
           const time = new Date();
           const toBeRemoved = Object.entries(h.state).filter(function ([ k, v, ]) { return true; })
             .map(([ k, ]) => k);
           h.remove(toBeRemoved);
           results.removeSemi[name] = (new Date() - time);
-          console.log(name + ' = Remove 20000 children semi performance. Took total of: ', new Date() - time, 'ms');
+          console.log(name + ' = Remove 3000 children semi performance. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
         test('create 50000 children', () => {
