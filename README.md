@@ -674,20 +674,20 @@ Object.keys(rest).length  // 0
 for(const child in target){
   console.log('This will never be executed')
 }
-
-//access all children by 'getChildren'
-
+```
+##### 4. function getChildren return an Object instead of Array
+```
 const {a, b, ...rest} = target.getChildren()
 Object.keys(rest).length  // 2
-
-//or
-
+//or as Array
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
 ##### 4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
 ```
 target.setState({ a:{} });
+target.a // instance created
+target.a // instance created again
 target.a === target.a // false
 target.a.state === target.a.state; // true
 ```
