@@ -1,7 +1,6 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
-######Read about breaking changes 10v->11v at the bottom of the documentation
-
+######Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
 0 reducers
@@ -673,16 +672,20 @@ The key differences compared to v10 is that the performance is 2-10 better in mo
 
 createLeaf has become obsolete (when not used in legacy browsers)
 
-Performance improvement is available on browsers that support Proxy (ie11<= & ios9<= are not included)
+Added better support for older browsers
 
+Performance improvement is available on browsers that support Proxy (ie11<= & ios9<= are not included)
 
 When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
 
-#####There is few breaking change:
+Table of Proxy support can be found at:
+https://kangax.github.io/compat-table/es6/
+
+####Some breaking change:
 
 #####1. function 'removeSelf' has been removed
 
-#####2. initializint store
+#####2. initializing store
 ######old:
 ```
 const {subject, middlewares} = nonedux(initialState, bool /*flag for saga usage*/)
@@ -721,7 +724,7 @@ target.setState({ a:{} });
 target.a === target.a // false
 target.a.state === target.a.state; // true
 ```
-
+######Tested on latest chrome & IE10
 #### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
 
 
