@@ -50,7 +50,7 @@ export function removeUser(id) {
   return function ({ users, }) {
     users.content[id].setState({ pending: true, });
     return new Promise(res => {
-      users.content[id].removeSelf();
+      users.content.remove(id);
       localStorage.setItem('users', JSON.stringify(users.content.state));
       res();
     }, 800);

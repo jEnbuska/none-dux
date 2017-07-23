@@ -14,10 +14,13 @@ const { accessState, accessPrevState, accessPendingState, } = branchPrivates;
 
 export function checkProxySupport() {
   const target = {};
-  const proxy = new Proxy(target, {
-    get: (t, k) => !!(t === target && k==='check' && 'check'),
-  });
-  return proxy.check;
+  if (window.Proxy) {
+    const proxy = new window.Proxy(target, {
+      get: (t, k) => (t === target && k === 'check'),
+    });
+    return proxy.check;
+  }
+  return false;
 }
 
 export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {

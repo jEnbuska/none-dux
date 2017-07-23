@@ -27,10 +27,10 @@ export function toggleTodo(id, userId) {
 
 export function removeTodo(id, userId) {
   return function ({ todosByUser: { content, }, }) {
-    const todo = content[userId][id];
-    todo.setState({ pending: true, });
+    const usersTodos = content[userId];
+    usersTodos[id].setState({ pending: true, });
     return new Promise(res => setTimeout(() => {
-      todo.removeSelf();
+      usersTodos.remove(id);
       localStorage.setItem('todosContent', JSON.stringify(content.state));
       res();
     }, 800));
