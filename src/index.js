@@ -40,7 +40,7 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
         if (initialState.hasOwnProperty(key)) {
           onCreateChild(key, identity);
         } else {
-          console.error('Cannot add new to root level state after initialization');
+          console.error('Got request to add new child. '+key+'\nCannot add new children to root level branch after initialState has been defined');
         }
       },
     });
