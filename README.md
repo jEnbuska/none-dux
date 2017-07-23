@@ -222,9 +222,9 @@ function stateExample(){
   }
 }
 ```
-##### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
-happy path:
+### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
 
+happy path:
 
 #### 1. Initializing store
 replace
