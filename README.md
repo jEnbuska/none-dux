@@ -29,6 +29,7 @@ function grow() {
     console.log(nonedux.state) // {subState: {1: {2: {3: {}}}}}
   };
 }
+
 function generateMessState(depth = 3, height = 0) {
   /* initialState = {mess: {}, ...}*/
   return function (nonedux, { dispatch, }) {
