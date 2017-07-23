@@ -8,15 +8,11 @@ Small sized React-redux extension, that opens a possibility to remove the most o
 
 Alternative for 'react-redux + redux-thunk' stack
 
-Can also be used with redux-saga: (No documentation: See examples/sagaExample. Some best practice guidelines should be decided)
+Can also be used with redux-saga: <sub>(No documentation: See /examples/sagaExample)</sub>
 
-Application state can be changed directly from actions.
+Application state can be changed directly from actions
 
-No external dependencies
-
-peerDependencies: redux  and react-redux
-
-Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
+Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked
 
 Immutability is taken care of by middlewares and published by child reducers
 
@@ -24,15 +20,16 @@ Reducers can be safely extended without any predefined shape.
 ```
 function grow() {
   return function (nonedux) {
-    console.log(nonedux.state); // {someSubState: {}}
-    let child = nonedux.someSubState;
+    console.log(nonedux.state); // {subState: {}}
+    let child = nonedux.subState;
     [1,2,3].forEach(n => {
       child.setState({[n]: {}});
       child = child[n];
     })
-    console.log(nonedux.state) // {someSubState: {1: {2: {3: {}}}}}
+    console.log(nonedux.state) // {subState: {1: {2: {3: {}}}}}
   };
 }
+
 function generateMessState(depth = 3, height = 0) {
   /* initialState = {mess: {}, ...}*/
   return function (nonedux, { dispatch, }) {
@@ -45,6 +42,12 @@ function generateMessState(depth = 3, height = 0) {
   };
 })
 ```
+## Installation
+```
+npm install --save none-dux 
+yarn add none-dux
+```
+
 ## Configuring store
 ```
 import { Provider, connect, } from 'react-redux';
@@ -72,13 +75,12 @@ const root = (
       <Route path='/' component={App}>
         ...
 ```
-##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
-##### Actual state of object is inside lazy ***state*** variable
 
 ## Action examples
-
+##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
 ```
-// 1st argument is nonedux reference, 2nd one is redux store
+// actions 1st argument is nonedux reference, 2nd one is redux store
+// they are injected to dispatched functions by nonedux thunk
 
 export function removeUser(userId) {
    return function (nonedux, {dispatch}) {
@@ -134,16 +136,13 @@ export function removeUserTransactional(userId) {
         });
     }
 }
-
-
 ```
 
 ## Functions
-##### Invoking functions returns the same instance
+##### Calling functions like ***setState*** returns the same instance
 ```
 const {child} = nonedux;
-child.setState({subChild: {}})
-  .subChild.setState({noChild: null})
+child.setState({subChild: {}}).subChild.setState({noChild: null})
 
 console.log(child.state); 
 // { child: { subChild: { noChild: null} } }
@@ -186,7 +185,7 @@ target.remove(...[1,2,3]);
 ## State
 **Root level** reducer variables must be defined at nonedux initialState
 
-String, Numbers, Date, etc. Can only be accessed through parent object and used through parents ***state***
+***Leaf*** values like String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
 ```
 console.log(target.state)// { name: 'text' };
 console.log(target.name); //undefined
@@ -220,40 +219,12 @@ function stateExample(){
      nonedux.setState({a:1})
      nonedux.setState({a: 'hello none-dux'})
      nonedux.setState({a: {b: {c: {} } } } )
-     const {b} = nonedux.a;
-     const {c} = b;
-     
-     //by calling state (getter)
-     const orgState = c.state
-     //an action is dispatched and result returned `{ return dispatch({type: [GET_STATE], [TARGET]: ['a', 'b', 'c' ]})}`
-     
-     const rootState = nonedux.state;
-     const aState = a.state;
-     const bState = b.state;
-     
-     //If other branch of the object is mutated
-     b.setState({d: {}})
-     
-     //... then states will not change due to path copying
-     console.log(orgState === c.state); //true
-     
-     //... but all parent branches will get updated
-     console.log(rootState !== nonedux.state); //true
-     console.log(aState !== a.state); //true
-     console.log(bState !== b.state); //true
-     
-     //After remove
-     b.remove('c');
-     
-     //... removed branches cannot be accessed
-     c.state; // console error(...)r;
-     c.setState({}) // throws Error
   }
 }
 ```
-##### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
-happy path:
+### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
 
+happy path:
 
 #### 1. Initializing store
 replace
@@ -303,19 +274,26 @@ replace with something like
     }
  } 
 ```
----------------
 
 ## Type checking
 
-#### Type is only menth for development and does not work on old browsers
-
+### Type checking is only menth for development and does not work on old browsers
+#### It provides console errors when something breaks spesifications.
+##### 1. Adding shape validator as middleware
 ```
-//Provides console errors when something breaks spesifications.
-
 import nonedux, { shape } from 'none-dux
+import validator from './validator'
 
-const { reducer, middlewares, subject, } = nonedux({ initialState );
+... 
 
+const { reducer, middlewares, subject, } = nonedux({ initialState });
+const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
+const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
+
+...
+```
+##### 2. Creating validator
+```
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict string, bool } = types;
 
@@ -349,13 +327,9 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
   request: {...isRequired}
 };
 ```
-##### Few key details about type checking that are easy to miss
+###### Few key details about type checking that are easy to miss
 ```
 //Object shape
-
-Won't work:
-{ strict }
-{ isRequired }
 
 Will work:
 { ...isRequired }
@@ -364,19 +338,23 @@ Will work:
 { ...isRequired.strict }
 { isRequired: string } //Assumed key name is actually 'isRequired'!
 
+Won't work:
+{ strict }
+{ isRequired }
+
 //Array shape
  
-Won't work
-[ ...isRequired, number ]
-[ ...strict, {} ]
-[ ...strict.isRequired ]
-[ ...isRequired.strict, [] ]
-
 Will work:
 [ strict, {} ]
 [ isRequired, number ]
 [ strict.isRequired, {...isRequired} ]  //array with not-null/undefined objects
 [ isRequired.strict, [] ]               //array that has arrays
+
+Won't work
+[ ...isRequired, number ]
+[ ...strict, {} ]
+[ ...strict.isRequired ]
+[ ...isRequired.strict, [] ]
 
 // 'any' key
 
@@ -388,7 +366,6 @@ Will work:
 Wont work:
 { [any]: any, }     //any is not type but identifier
 { something: any }  //same here
-
 ```
 
 If you do not have object spread available (with 'objects' shape):
@@ -403,7 +380,7 @@ const {spec} = shape;
  [spec]: isRequired.strict[spec]
 }
 ```
-##### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
+###### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
 ----------------
 ## Atomic changes
@@ -473,22 +450,17 @@ The technical details about why this is so, boils down to same reasons, why Reac
 
 
 ## Performance
-
-If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following first pattern:
-
+##### 1. Avoid looping througt hundreds of variables in nonedux variables
 ```
-cosnt { entries } = Object;
-
-function removeOldEntries_thisIsTheWorstYouCanDo(){
-  return function({bigData}){
-  
-    const shouldBeRemoved = (entry) => entry.date < Date.now()
-    
-    keys(dataEntries.state)
-      .map(([k]) => bigData[k]) //!Create reference for each child
-      .filter(child => shouldBeRemoved(value.state)) //! dispatch get state for each child separatelly
-      .forEach((child) => bigData.remove(child.getId())) //! Every removal is it's own action 
-      
+function removeRetiringEmployees(){
+  function(nonedux){
+    const {employees} = nonedux;
+    const employees = Object
+      .keys(employees.state)
+      .map(k => employees[k]) // every access to children generates actions that are intercepted by middlewares
+      .filter(employee => employee.state.age>=64) // every reference to state generates an action 
+      .forEach(employee => employees.remove(employee.getId()) // every an action          
+     
      /* 
        If 3000 object entries were removed:
        The operation using macbook pro could take 1-2 seconds by it self
@@ -497,26 +469,21 @@ function removeOldEntries_thisIsTheWorstYouCanDo(){
      */
   }
 }
-...
 
-cosnt { entries } = Object;
-
-function removeOldEntries_goodPerformance(){
-  return function({bigData}){
-    
-    const shouldBeRemoved = ([k, value]) => value.date < Date.now()
-    
-    const oldEntries = entries(state)
-      .filter(shouldBeRemoved)                         // use plain object state
-      .map(([k])=> k)                                  // select keys
-      
-      bigData.remove(oldEntries);                      // remove all at ones
-      
-      /* 
-        If 3000 object entries were removed:
-        ~ 15 ms
-       */
+function removeRetiringEmployee_better(){
+  return function({employees}){            
+    const retiringEmployees = Object
+      .entries(employees.state)
+      .filter(([k, employeeState])=> employeeState.age>=64)     
+      .map(([k]) => k);
+    employees.remove(retiringEmployees);    
+    /* 
+      If 3000 object entries were removed:
+      ~ 15 ms
+     */
   }
+}
+
 }
 ```
 **In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects**
@@ -585,8 +552,7 @@ Object.keys(rest).length  // 2
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-
----------------
+###### Accessing all children could be inefficient. Do it only with small sets of objects
 
 #### 3. Using custom non-leaf JavaScript classes in reducer state is not well tested
 
@@ -597,12 +563,14 @@ const children = Object.keys(state).map(k => targe[k]);
 // In modern browsers next evaluates to false
 target.setState({a: {}})
 target.a === target.a
+
+// in old browsers the same evaluates to true
 ```
 
 #### 6. There is grey areas with **Arrays that contain other Objects/Arrays**
 ```
 const first = {a:1}, second = {b:2}, third = {c:3}
-someArray.clearState([ first, second, third, ]);
+target.clearState([ first, second, third, ]);
 const { 0: firstChild, 1: secondChild, 2: thirdChild, } = target;
 target.clearState([ third, first, second, ]);  //switch order
 
@@ -612,10 +580,8 @@ firstChild.state; // { c: 3, };
 secondChild.state; // { a: 1, };
 thirdChild.state; // { b: 2, };
 
-//From 'setState:s' point of view the previous says:
-someArray.setState({0: first, 1: second, 2: third });
-...
-someArray.setState({0: third, 1: first, 2:second });
+//From 'clearState:s' point of view the previous means:
+`target.clearState({0: first, 1: second, 2: third })`
 ```
 
 
@@ -667,13 +633,13 @@ function fetchCustomerData_Lightweight(){
   }
 }
 ```
-
-#### Changes v10->v11
+-------------------
+## Changes v10->v11
 The key differences compared to v10 is that the performance is 2-10 better in most heavies cases
 
 createLeaf has become obsolete (when not used in legacy browsers)
 
-Added better support for older browsers
+Better support for older browsers
 
 Performance improvement is available on browsers that support Proxy (ie11<= & ios9<= are not included)
 
@@ -708,24 +674,24 @@ Object.keys(rest).length  // 0
 for(const child in target){
   console.log('This will never be executed')
 }
-
-//access all children by 'getChildren'
-
+```
+##### 4. function getChildren return an Object instead of Array
+```
 const {a, b, ...rest} = target.getChildren()
 Object.keys(rest).length  // 2
-
-//or
-
+//or as Array
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-##### 4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
+##### 4. No references are stored, when modern browsers are used. This makes almost everything bizillion times faster
 ```
 target.setState({ a:{} });
+target.a // instance created
+target.a // instance created again
 target.a === target.a // false
 target.a.state === target.a.state; // true
 ```
 ###### Tested on latest chrome & IE10
-#### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
+#### Please submit reports to https://github.com/jEnbuska/none-dux/issues
 
 
