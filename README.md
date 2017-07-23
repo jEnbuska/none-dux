@@ -274,7 +274,6 @@ replace with something like
     }
  } 
 ```
----------------
 
 ## Type checking
 
@@ -324,10 +323,6 @@ const validator = { ...isRequired.strict  // ! Use destructed when you have Obje
 ```
 //Object shape
 
-Won't work:
-{ strict }
-{ isRequired }
-
 Will work:
 { ...isRequired }
 { ...strict }
@@ -335,19 +330,23 @@ Will work:
 { ...isRequired.strict }
 { isRequired: string } //Assumed key name is actually 'isRequired'!
 
+Won't work:
+{ strict }
+{ isRequired }
+
 //Array shape
  
-Won't work
-[ ...isRequired, number ]
-[ ...strict, {} ]
-[ ...strict.isRequired ]
-[ ...isRequired.strict, [] ]
-
 Will work:
 [ strict, {} ]
 [ isRequired, number ]
 [ strict.isRequired, {...isRequired} ]  //array with not-null/undefined objects
 [ isRequired.strict, [] ]               //array that has arrays
+
+Won't work
+[ ...isRequired, number ]
+[ ...strict, {} ]
+[ ...strict.isRequired ]
+[ ...isRequired.strict, [] ]
 
 // 'any' key
 
@@ -359,7 +358,6 @@ Will work:
 Wont work:
 { [any]: any, }     //any is not type but identifier
 { something: any }  //same here
-
 ```
 
 If you do not have object spread available (with 'objects' shape):
