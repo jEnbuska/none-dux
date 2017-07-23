@@ -1,6 +1,7 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
-######Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
+
+###### Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
 0 reducers
@@ -138,7 +139,7 @@ export function removeUserTransactional(userId) {
 ```
 
 ## Functions
-#####Invoking functions returns the same instance
+##### Invoking functions returns the same instance
 ```
 const {child} = nonedux;
 child.setState({subChild: {}})
@@ -148,7 +149,7 @@ console.log(child.state);
 // { child: { subChild: { noChild: null} } }
 ```
 
-#####setState
+##### setState
 ```
 console.log(target.state); // { a: 1, b: {} }
 
@@ -160,7 +161,7 @@ console.log(target.state) // { a: 2, b: {}, c: 3 }
 target.setState('test'); //Error("[...]")
 target.setState([ 1, 'abc', {} ]); //Error("[...]")
  ```
- #####clearState
+ ##### clearState
  ```
  console.log(target.state); //{ a: 1, b: { } }
  
@@ -171,7 +172,7 @@ target.setState([ 1, 'abc', {} ]); //Error("[...]")
 // clearState takes both Object or Array as parameter
  target.setState('text'); //Error("[...]")
 ```
-####remove
+#### remove
 ```
 const keys = [ 1, 2, 3 ];
 
@@ -182,7 +183,7 @@ target.remove(1,2,3);
 target.remove(...[1,2,3]);
 ```
 
-##State
+## State
 **Root level** reducer variables must be defined at nonedux initialState
 
 String, Numbers, Date, etc. Can only be accessed through parent object and used through parents ***state***
@@ -306,7 +307,7 @@ replace with something like
 
 ## Type checking
 
-####Type is only meth for development and does not work on old browsers
+#### Type is only menth for development and does not work on old browsers
 
 ```
 //Provides console errors when something breaks spesifications.
@@ -402,11 +403,11 @@ const {spec} = shape;
  [spec]: isRequired.strict[spec]
 }
 ```
-#####using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
+##### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
 ----------------
 ## Atomic changes
-#####Transaction allows doing multiple changes before store gets the updated state
+##### Transaction allows doing multiple changes before store gets the updated state
 ```
 
 /* in action creator */
@@ -463,7 +464,7 @@ function doChangesAndThrowError(){
   }
 }
 ```
-##Arrays
+## Arrays
 Arrays are not shallow merged like objects
 
 'setState' and 'remove' can be expensive if run on older browsers, that do not support es6 Proxy
@@ -563,7 +564,7 @@ const key = () => console.log('I'm key');
 target.setState({[key]: {} }) // This will result in bugs
 ```
 
-####2. nonedux values are not enumerable
+#### 2. nonedux values are not enumerable
 ```
 const {a, b, ...rest} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 Object.keys(rest).length  // 0
@@ -573,7 +574,7 @@ for(const child in target){
 }
 ```
 
-#####Accessing all children
+##### Accessing all children
 ```
 target.setState({ a:{}, b: {}, c: {}, d: {} })
 const {a, b, ...rest} = target.getChildren()
@@ -587,18 +588,18 @@ const children = Object.keys(state).map(k => targe[k]);
 
 ---------------
 
-####3. Using custom non-leaf JavaScript classes in reducer state is not well tested
+#### 3. Using custom non-leaf JavaScript classes in reducer state is not well tested
 
-####4. Using non normalized state is not a must but recommended
+#### 4. Using non normalized state is not a must but recommended
 
-####5. Comparison instances
+#### 5. Comparison instances
 ```
 // In modern browsers next evaluates to false
 target.setState({a: {}})
 target.a === target.a
 ```
 
-####6. There is grey areas with **Arrays that contain other Objects/Arrays**
+#### 6. There is grey areas with **Arrays that contain other Objects/Arrays**
 ```
 const first = {a:1}, second = {b:2}, third = {c:3}
 someArray.clearState([ first, second, third, ]);
@@ -621,12 +622,12 @@ someArray.setState({0: third, 1: first, 2:second });
 ## Older browsers
 When nonedux code is run on browsers that do not support **es6 Proxy** the internal logic is different
 
-######Next performance improvement examples and warnings, apply only to older browsers
+###### Next performance improvement examples and warnings, apply only to older browsers
 
 With large objects & arrays that include thousands of child objects the performance can be poor.
 
 When accessing data from actions this is roughly what happens:
-######applies only to old browsers
+###### applies only to old browsers
 ```
 function juggle(){
   function(nonedux){
@@ -637,13 +638,13 @@ function juggle(){
   }
 }
 ```
-######applies only to old browsers
+###### applies only to old browsers
 ... when data is not referenced no work is done.
 
 If objects children are **leafs**: (string,  numbers, etc.) there should not any performance problems
 
 To improve performance Objects and Arrays can be wrapped as **leafs** by using **createLeaf** helper function.
-######applies only to old browsers
+###### applies only to old browsers
 ```
 import {createLeaf} from 'none-dux'
 
@@ -681,16 +682,16 @@ When used in old browsers 'legacy' (v10) mode will be used, because Proxy featur
 Table of Proxy support can be found at:
 https://kangax.github.io/compat-table/es6/
 
-####Some breaking change:
+#### Some breaking change:
 
-#####1. function 'removeSelf' has been removed
+##### 1. function 'removeSelf' has been removed
 
-#####2. initializing store
-######old:
+##### 2. initializing store
+###### old:
 ```
 const {subject, middlewares} = nonedux(initialState, bool /*flag for saga usage*/)
 ```
-######new:
+###### new:
 ```
 //constructor parameters is an Object
 const {subject, middlewares} = nonedux({
@@ -699,7 +700,7 @@ const {subject, middlewares} = nonedux({
     legacy: bool //optional --> if not defined, it will be automatically use legacy when run on a oldbrowser
 })
 ```
-#####3. children are not enumerable
+##### 3. children are not enumerable
 ```
 const {a, b, ...rest} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 Object.keys(rest).length  // 0
@@ -718,13 +719,13 @@ Object.keys(rest).length  // 2
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-#####4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
+##### 4. No references are stored. when modern browsers are used. This makes almost everything bizillion times faster
 ```
 target.setState({ a:{} });
 target.a === target.a // false
 target.a.state === target.a.state; // true
 ```
-######Tested on latest chrome & IE10
+###### Tested on latest chrome & IE10
 #### Please submit reports to https://github.com/jEnbuska/none-dux ***issues***
 
 
