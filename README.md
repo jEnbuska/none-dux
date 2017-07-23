@@ -10,9 +10,9 @@ Alternative for 'react-redux + redux-thunk' stack
 
 Can also be used with redux-saga: <sub>(No documentation: See /examples/sagaExample)</sub>
 
-Application state can be changed directly from actions.
+Application state can be changed directly from actions
 
-Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked.
+Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked
 
 Immutability is taken care of by middlewares and published by child reducers
 
