@@ -36,7 +36,7 @@ const base = (env) => ({
         use: env==='production'
           ? 'url-loader?limit=10000&name=/assets/[name].[hash:8].[ext]'
           :'file-loader?name=assets/[name].[hash:8].[ext]',
-        //If the file is greater than the limit (10000 in bytes) the file-loader is used and all query parameters are passed to it.
+        // If the file is greater than the limit (10000 in bytes) the file-loader is used and all query parameters are passed to it.
       },
       {
         test: [ /\.scss$/, /\.css$/, ],
@@ -77,7 +77,7 @@ const base = (env) => ({
 });
 
 const vendor = [
-  'react', 'react-dom', 'react-router', 'uuid',
+  'react', 'react-dom', 'react-router', 'uuid', 'react-transition-group', 'react-router-dom', 'react-redux', 'redux-saga',
 ];
 module.exports = {
   API_URL: process.env.API_URL || JSON.stringify('http://138.197.65.89:9000'),
