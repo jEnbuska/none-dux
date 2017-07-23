@@ -450,22 +450,17 @@ The technical details about why this is so, boils down to same reasons, why Reac
 
 
 ## Performance
-
-If you have an Object with thousands of Object entries and you are looping through them in an action, avoid the following first pattern:
-
+##### 1. Avoid looping througt hundreds of variables in nonedux variables
 ```
-cosnt { entries } = Object;
-
-function removeOldEntries_thisIsTheWorstYouCanDo(){
-  return function({bigData}){
-  
-    const shouldBeRemoved = (entry) => entry.date < Date.now()
-    
-    keys(dataEntries.state)
-      .map(([k]) => bigData[k]) //!Create reference for each child
-      .filter(child => shouldBeRemoved(value.state)) //! dispatch get state for each child separatelly
-      .forEach((child) => bigData.remove(child.getId())) //! Every removal is it's own action 
-      
+function removeRetiringEmployees(){
+  function(nonedux){
+    const {employees} = nonedux;
+    const employees = Object
+      .keys(employees.state)
+      .map(k => employees[k]) // every access to children generates actions that are intercepted by middlewares
+      .filter(employee => employee.state.age>=64) // every reference to state generates an action 
+      .forEach(employee => employees.remove(employee.getId()) // every an action          
+     
      /* 
        If 3000 object entries were removed:
        The operation using macbook pro could take 1-2 seconds by it self
@@ -474,27 +469,24 @@ function removeOldEntries_thisIsTheWorstYouCanDo(){
      */
   }
 }
-...
 
-cosnt { entries } = Object;
-
-function removeOldEntries_goodPerformance(){
-  return function({bigData}){
-    
-    const shouldBeRemoved = ([k, value]) => value.date < Date.now()
-    
-    const oldEntries = entries(state)
-      .filter(shouldBeRemoved)                         // use plain object state
-      .map(([k])=> k)                                  // select keys
-      
-      bigData.remove(oldEntries);                      // remove all at ones
-      
-      /* 
-        If 3000 object entries were removed:
-        ~ 15 ms
-       */
+function removeRetiringEmployee_better(){
+  return function({employees}){            
+    const retiringEmployees = Object
+      .entries(employees.state)
+      .filter(([k, employeeState])=> employeeState.age>=64)     
+      .map(([k]) => k);
+    employees.remove(retiringEmployees);    
+    /* 
+      If 3000 object entries were removed:
+      ~ 15 ms
+     */
   }
 }
+
+}
+```
+
 ```
 **In some cases, when changing an array state that has Objects or other Arrays as children can be several times more inefficient compared to using objects**
 
