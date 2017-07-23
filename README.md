@@ -279,8 +279,9 @@ replace with something like
 ## Type checking
 
 #### Type checking is only menth for development and does not work on old browsers
+##### It provides console errors when something breaks spesifications.
 ```
-//Provides console errors when something breaks spesifications.
+
 
 import nonedux, { shape } from 'none-dux
 
