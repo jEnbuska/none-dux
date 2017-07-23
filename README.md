@@ -552,8 +552,7 @@ Object.keys(rest).length  // 2
 const {state} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 const children = Object.keys(state).map(k => targe[k]);
 ```
-
----------------
+###### Accessing all children could be inefficient do it only with small sets of objects
 
 #### 3. Using custom non-leaf JavaScript classes in reducer state is not well tested
 
