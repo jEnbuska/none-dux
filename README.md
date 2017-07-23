@@ -185,7 +185,7 @@ target.remove(...[1,2,3]);
 ## State
 **Root level** reducer variables must be defined at nonedux initialState
 
-String, Numbers, Date, etc. Can only be accessed through parent object and used through parents ***state***
+String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
 ```
 console.log(target.state)// { name: 'text' };
 console.log(target.name); //undefined
