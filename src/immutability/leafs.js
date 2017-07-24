@@ -43,6 +43,16 @@ export class ArrayLeaf {
     return values(this).length;
   }
 
+  [Symbol.iterator]() {
+    let index = 0;
+    return {
+      next: () => ({
+        value: this[index++],
+        done: index===this.length+1,
+      }),
+    };
+  }
+
   map(func) {
     return values(this).map(func);
   }
@@ -124,16 +134,5 @@ export class ArrayLeaf {
     return values(this).valueOf();
   }
 
-}
-if (window.Symbol && typeof window.Symbol !== 'function'){
-  ArrayLeaf[window.Symbol.iterator] = function() {
-    let index = 0;
-    return {
-      next: () => ({
-        value: this[index++],
-        done: index===this.length+1,
-      }),
-    };
-  }
 }
 
