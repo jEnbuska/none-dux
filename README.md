@@ -4,7 +4,7 @@
 ###### Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
-0 reducers
+0 reducer boilerplate
 
 Alternative for 'redux-thunk'
 
