@@ -8,9 +8,11 @@ class Content extends React.Component {
 
   render() {
     const { auth, } = this.props;
+    if (!auth.token) {
+      return <Redirect to='/auth' />;
+    }
     return (
       <div>
-        {!auth.token && <Redirect to='/auth' />}
         {!auth.user.termsAccepted && <Terms />}
         <Switch>
           <Route to='/' component={TheEnd} />
