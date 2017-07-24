@@ -6,7 +6,7 @@ Small sized React-redux extension, that opens a possibility to remove the most o
 
 0 reducers
 
-Alternative for 'react-redux + redux-thunk' stack
+Alternative for 'redux-thunk'
 
 Can also be used with redux-saga: <sub>(No documentation: See /examples/sagaExample)</sub>
 
