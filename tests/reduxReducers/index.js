@@ -11,8 +11,11 @@ const D = createReducer('D');
 const E_A = createReducer('E_A');
 const E_B = createReducer('E_B');
 const E = combineReducers({ E_A, E_B, });
+const F = createReducer('F');
+const G = createReducer('G');
+const H = createReducer('H');
 
-export default combineReducers({ A, B, C, D, E, });
+export default combineReducers({ A, B, C, D, E, F, G, H});
 
 function createReducer(name) {
   const ADD = types['ADD_'+name];

@@ -12,6 +12,7 @@ const branchReflectables = {
   transaction: true,
   getIdentity: true,
   getId: true,
+  clearReferences: true,
   _getChildrenRecursively: true,
 };
 const branchAccerssors = {
@@ -27,32 +28,27 @@ const proxyHandler = {
     if (branchAccerssors[k]) {
       return target[k];
     } else if (branchReflectables[k]) {
-      return Reflect.get(target,
-        k,
-        receiver);
+      return Reflect.get(target, k, receiver);
     }
     const resolved = target[identity][resolve]();
     if (resolved) {
       const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
-      const createChild = Reflect.get(target,
-        '_createChild',
-        receiver);
+      const createChildProxy = Reflect.get(target, '_createChildProxy', receiver);
       if (k === 'getChildren') {
-        const children = ProxyBranch.onGetChildren(target,
-          state,
-          createChild);
+        const children = ProxyBranch.onGetChildren(target, state, createChildProxy);
         return function () { return this; }.bind(children);
+      }
+      if (typeof k ==='symbol') {
+        return k;
       }
       k += ''; // find single child
       if (Branch.valueCanBeBranch(state[k])) {
-        return Reflect.apply(createChild,
-          target,
-          [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
+        return Reflect.apply(createChildProxy, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
       }
     }
     Branch.onAccessingRemovedBranch(target[identity].getId(), k);
   },
-};
+}
 
 export default class ProxyBranch extends Branch {
 
@@ -93,32 +89,7 @@ export default class ProxyBranch extends Branch {
     return Object.values(this.getChildren()).reduce(Branch._onGetChildrenRecursively, []);
   }
   _createProxy() {
-    return new Proxy(this, {
-      get(target, k, receiver) {
-        if (branchAccerssors[k]) {
-          return target[k];
-        } else if (branchReflectables[k]) {
-          return Reflect.get(target, k, receiver);
-        }
-        const resolved = target[identity][resolve]();
-        if (resolved) {
-          const state = target[dispatcher].dispatch({ type: GET_STATE, [SUBJECT]: resolved, });
-          const createChildProxy = Reflect.get(target, '_createChildProxy', receiver);
-          if (k === 'getChildren') {
-            const children = ProxyBranch.onGetChildren(target, state, createChildProxy);
-            return function () { return this; }.bind(children);
-          }
-          if (typeof k ==='symbol') {
-            return k;
-          }
-          k += ''; // find single child
-          if (Branch.valueCanBeBranch(state[k])) {
-            return Reflect.apply(createChildProxy, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
-          }
-        }
-        Branch.onAccessingRemovedBranch(target[identity].getId(), k);
-      },
-    });
+    return new Proxy(this, proxyHandler);
   }
 
   static onGetChildren(target, state, createChild) {

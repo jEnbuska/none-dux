@@ -41,6 +41,7 @@ export const branchPrivates = {
 
 export const identityPrivates = {
   id: 'IDENTITY:id',
+  clearReferences: 'IDENTITY::clearReferences',
   removed: 'IDENTITY::removed',
   parent: 'IDENTITY::parent',
   branch: 'IDENTITY::branch',

@@ -1,7 +1,7 @@
 import Identity from '../src/immutability/Identity';
 import { identityPrivates, } from '../src/common';
 
-const { resolve, push, removeChild, } = identityPrivates;
+const { resolve, push, removeChild, clearReferences} = identityPrivates;
 
 describe('Identity', () => {
   test('Ensure identity integrity', () => {
@@ -40,5 +40,16 @@ describe('Identity', () => {
     expect(y[resolve]()).toEqual(false);
 
     expect(x[resolve]()).toEqual(false);
+  });
+
+  test('clearReferences', () => {
+    const tree = new Identity();
+    expect(tree[resolve]()).toEqual([]);
+
+    tree[push]('a');
+    tree[push]('b');
+    tree[push]('c');
+    tree[clearReferences]()
+    expect(tree.a).toBeUndefined()
   });
 });

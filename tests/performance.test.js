@@ -3,6 +3,8 @@ import { createStoreWithNonedux, createReduxStore, } from './utils';
 import { subjects, triggers, } from './reduxReducers/types';
 import { data, data2, } from './resources';
 
+const now = require('nano-time');
+
 const { keys, values, } = Object;
 describe('performance', () => {
   const results = {
@@ -18,6 +20,11 @@ describe('performance', () => {
     clearAccessedState: {},
     getNewChildren: {},
     reduxComparison: {},
+    access: {},
+    setState: {},
+    setStateBetter: {},
+    setStateBetterBadCase: {},
+    setStateWithClearReferences: {},
   };
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
@@ -145,11 +152,77 @@ describe('performance', () => {
           console.log(name + ' = ~ 1500 nodes merges, 1500 resets, 1500 removes, init of 8250x3 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
+        test('access', () => {
+          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+          const h = subject.a.b.c.d.e.f.g.h;
+          const data = {};
+          for (let i = 0; i<3000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+          h.setState(data);
+          const time = Date.now();
+          for (let i = 0; i<3000; i++) {
+            const accessed = h[i];
+          }
+          results.access[name] = (Date.now()-time);
+        }, 15000);
+        test('setState better', () => {
+          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+          const h = subject.a.b.c.d.e.f.g.h;
+          const data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+          const time = now();
+          h.setState(data);
+          results.setState[name] = (now()-time)+' ns';
+        }, 15000);
+
+        test('setState better bad case', () => {
+          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+          const h = subject.a.b.c.d.e.f.g.h;
+          let data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+
+          h.setState(data);
+          const children = h._getChildrenRecursively();
+
+          data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+          const time = now();
+          h.setState(data);
+          results.setStateBetterBadCase[name] = (now()-time) + ' ns';
+        }, 15000);
+
+        test('setState after clearReferences', () => {
+          const { subject, }= init({ a: { b: { c: { d: { e: { f: { g: { h: {}, }, }, }, }, }, }, }, });
+          const h = subject.a.b.c.d.e.f.g.h;
+          let data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+
+          h.setState(data);
+          const children = h._getChildrenRecursively();
+          data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
+          }
+
+          h.clearReferences();
+          const time = now();
+          h.setState(data);
+          results.setStateWithClearReferences[name] = (now()-time) + ' ns';
+        }, 15000);
+
         test('get state', () => {
           const data = { a: {}, b: {}, c: {}, };
           const { subject: { root, }, }= init({ root: data, });
           let children = values(root.getChildren());
-
           for (let i = 0; i<9; i++) {
             children.forEach(child => child.setState(data));
             children = values(children).reduce((acc, child) => acc.concat(values(child.getChildren())), []);
@@ -235,7 +308,7 @@ describe('performance', () => {
             store.dispatch({ type: 'RESET_'+s, payload: data, });
           });
           let time = Date.now();
-          for (let i = 0; i<100; i++) {
+          for (let i = 0; i<1; i++) {
             for (let s = 0; s<subjects.length; s++) {
               const current = subjects[s];
               store.dispatch({ type: 'REMOVE_'+current, payload: i, });
@@ -251,12 +324,15 @@ describe('performance', () => {
           initialState.C = data;
           initialState.D = data;
           initialState.E = { E_A: data, E_B: data, };
+          initialState.F = data;
+          initialState.G = data;
+          initialState.H = data;
           const { subject, } = createStoreWithNonedux(initialState, undefined, false, name==='proxy');
-          const children = [ subject.A.A_A, subject.A.A_B, subject.C, subject.D, subject.E.E_A, subject.E.E_B, ];
+          const children = [ [ 'A', 'A_A', ], [ 'A', 'A_B', ], [ 'B', ], [ 'C', ], [ 'D', ], [ 'E', 'E_A', ], [ 'E', 'E_B', ], [ 'F', ], [ 'G', ], [ 'H', ], ];
           time = Date.now();
-          for (let i = 0; i<100; i++) {
+          for (let i = 0; i<1; i++) {
             for (let c = 0; c<children.length; c++) {
-              const current = children[c];
+              const current = children[c].reduce((target, k) => target[k], subject);
               current.remove(i);
               current.setState({ [i]: { id: i, content: { name: 'test', age: 100, }, }, });
               current.setState({ [i]: { id: i, content: { name: 'tes2', age: 10, }, }, });

@@ -1,7 +1,7 @@
 import { branchPrivates, identityPrivates, SUBJECT, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, COMMIT_TRANSACTION, ROLLBACK, invalidParents, } from '../common';
 
 const { identity, dispatcher, } = branchPrivates;
-const { resolve, } = identityPrivates;
+const { resolve, clearReferences, } = identityPrivates;
 const { getPrototypeOf, defineProperties, } = Object;
 // Saga state mapper does not dispatch its own actions, instead it should be used like:
 // yield put(target.setState, {a:1,b: {}})
@@ -22,22 +22,26 @@ export default class Branch {
     });
   }
 
+  clearReferences() {
+    this[identity][clearReferences]();
+  }
+
   transaction(callBack) {
-    const disp = this[dispatcher];
-    const publishAfterDone = !disp.onGoingTransaction;
-    const stateBefore = disp.dispatch({ type: GET_STATE, [SUBJECT]: [], });
+    const dispatcherRef = this[dispatcher];
+    const publishAfterDone = !dispatcherRef.onGoingTransaction;
+    const stateBefore = dispatcherRef.dispatch({ type: GET_STATE, [SUBJECT]: [], });
     try {
-      disp.onGoingTransaction = true;
+      dispatcherRef.onGoingTransaction = true;
       callBack(this);
       if (publishAfterDone) {
-        disp.dispatch({ type: COMMIT_TRANSACTION, });
+        dispatcherRef.dispatch({ type: COMMIT_TRANSACTION, });
       }
     } catch (Exception) {
-      disp.dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
+      dispatcherRef.dispatch({ type: ROLLBACK, [PARAM]: stateBefore, });
       throw Exception;
     } finally {
       if (publishAfterDone) {
-        disp.onGoingTransaction = false;
+        dispatcherRef.onGoingTransaction = false;
       }
     }
   }
