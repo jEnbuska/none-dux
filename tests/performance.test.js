@@ -1,7 +1,6 @@
 import Legacy from '../src/immutability/Legacy';
-import { createStoreWithNonedux, } from './utils';
-import createLeaf from '../src/immutability/leafs';
-import Proxu from '../src/immutability/ProxyBranch';
+import { createStoreWithNonedux, createReduxStore, } from './utils';
+import { subjects, triggers, } from './reduxReducers/types';
 import { data, data2, } from './resources';
 
 const { keys, values, } = Object;
@@ -18,6 +17,7 @@ describe('performance', () => {
     clearState: {},
     clearAccessedState: {},
     getNewChildren: {},
+    reduxComparison: {},
   };
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
@@ -60,14 +60,14 @@ describe('performance', () => {
           for (let i = 0; i < 200; i++) {
             if (i % 2 === 0) {
               root.clearState(even);
-              const time = Date.now()
+              const time = Date.now();
               root._getChildrenRecursively();
-              total+=Date.now()-time
+              total+=Date.now()-time;
             } else {
               root.clearState(odd);
-              const time = Date.now()
-              root._getChildrenRecursively()
-              total+=Date.now()-time
+              const time = Date.now();
+              root._getChildrenRecursively();
+              total+=Date.now()-time;
             }
           }
           results.getNewChildren[name] = total/200;
@@ -106,14 +106,14 @@ describe('performance', () => {
           for (let i = 0; i < 200; i++) {
             if (i % 2 === 0) {
               root._getChildrenRecursively();
-              const time = Date.now()
+              const time = Date.now();
               root.clearState(even);
-              total+=Date.now()-time
+              total+=Date.now()-time;
             } else {
               root._getChildrenRecursively();
-              const time = Date.now()
+              const time = Date.now();
               root.clearState(odd);
-              total+=Date.now()-time
+              total+=Date.now()-time;
             }
           }
           results.clearAccessedState[name] = total/200;
@@ -222,6 +222,48 @@ describe('performance', () => {
           root.setState(data);
           results.createLeafs[name] = (new Date()-time);
           console.log(name + ' = create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
+        }, 15000);
+
+        test('redux comparison', () => {
+          results.reduxComparison[name] = {};
+          const store = createReduxStore();
+          const data = {};
+          for (let i = 0; i<1000; i++) {
+            data[i] = { id: i, content: { name: 'test', age: 100, }, };
+          }
+          subjects.forEach(s => {
+            store.dispatch({ type: 'RESET_'+s, payload: data, });
+          });
+          let time = Date.now();
+          for (let i = 0; i<100; i++) {
+            for (let s = 0; s<subjects.length; s++) {
+              const current = subjects[s];
+              store.dispatch({ type: 'REMOVE_'+current, payload: i, });
+              store.dispatch({ type: 'ADD_'+current, payload: { id: i, content: { name: 'test', age: 100, }, }, });
+              store.dispatch({ type: 'UPDATE_'+current, payload: { id: i, content: { name: 'test2', age: 10, }, }, });
+              store.dispatch({ type: 'RESET_'+current, payload: data, });
+            }
+          }
+          results.reduxComparison[name].redux = Date.now()-time;
+          const initialState = {};
+          initialState.A = { A_A: data, A_B: data, };
+          initialState.B = data;
+          initialState.C = data;
+          initialState.D = data;
+          initialState.E = { E_A: data, E_B: data, };
+          const { subject, } = createStoreWithNonedux(initialState, undefined, false, name==='proxy');
+          const children = [ subject.A.A_A, subject.A.A_B, subject.C, subject.D, subject.E.E_A, subject.E.E_B, ];
+          time = Date.now();
+          for (let i = 0; i<100; i++) {
+            for (let c = 0; c<children.length; c++) {
+              const current = children[c];
+              current.remove(i);
+              current.setState({ [i]: { id: i, content: { name: 'test', age: 100, }, }, });
+              current.setState({ [i]: { id: i, content: { name: 'tes2', age: 10, }, }, });
+              current.clearState(data);
+            }
+          }
+          results.reduxComparison[name].nonedux = Date.now()-time;
         }, 15000);
       });
   });
