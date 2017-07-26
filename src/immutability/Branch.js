@@ -1,4 +1,4 @@
-import { branchPrivates, identityPrivates, SUBJECT, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, COMMIT_TRANSACTION, ROLLBACK, invalidParents, } from '../common';
+import { branchPrivates, identityPrivates, SUBJECT, SET_STATE, CLEAR_STATE, REMOVE, PARAM, PUBLISH_NOW, GET_STATE, COMMIT_TRANSACTION, ROLLBACK, invalidParents, _README_URL_} from '../common';
 
 const { identity, dispatcher, } = branchPrivates;
 const { resolve, clearReferences, } = identityPrivates;
@@ -24,7 +24,7 @@ export default class Branch {
 
   clearReferences(middleware) {
     if (!middleware) {
-      console.warn('clearReferences has been deprecated.\nclearReferences is automatically run after action has been executed and there is no other pending actions');
+      console.warn('clearReferences has been deprecated.\nclearReferences is automatically run after action has been executed and there is no other pending actions\nFurther details see: '+_README_URL_ + ' section "Important detail about Actions"');
     }
     this[identity][clearReferences]();
   }
