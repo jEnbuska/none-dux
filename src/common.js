@@ -25,30 +25,19 @@ export function findChild(value, path) {
   return value;
 }
 export const branchPrivates = {
-  children: 'NONEDUX::children',
-  identity: 'NONEDUX::identity',
-  accessState: 'NONEDUX::state',
-  accessPrevState: 'NONEDUX::prevState',
-  accessPendingState: 'NONEDUX::accessPendingState',
-  onSetState: 'NONEDUX::onSetState',
-  onClearState: 'NONEDUX::onClearState',
-  onRemove: 'NONEDUX::onRemove',
-  dispatcher: 'NONEDUX::dispatcher',
-  onRemoveChild: 'NONEDUX::onRemoveChild',
-  handleChange: 'NONEDUX::handleChange',
-  targetBranch: 'NONEDUX::targetBranch',
+  children: Symbol('NONEDUX::children'),
+  identity: Symbol('NONEDUX::identity'),
+  accessState: Symbol('NONEDUX::state'),
+  accessPrevState: Symbol('NONEDUX::prevState'),
+  accessPendingState: Symbol('NONEDUX::accessPendingState'),
+  dispatcher: Symbol('NONEDUX::dispatcher'),
+  targetBranch: Symbol('NONEDUX::targetBranch'),
 };
 
 export const identityPrivates = {
   id: 'IDENTITY:id',
-  clearReferences: 'IDENTITY::clearReferences',
-  removed: 'IDENTITY::removed',
-  parent: 'IDENTITY::parent',
-  branch: 'IDENTITY::branch',
   resolve: 'IDENTITY::resolve',
   push: 'IDENTITY::createChild',
-  renameSelf: 'IDENTITY::renameChild',
-  removeChild: 'IDENTITY::removeChild',
 };
 
 export const invalidReferenceHandler = {
@@ -64,18 +53,14 @@ export const invalidReferenceHandler = {
 };
 
 export const invalidParents = {
-  LegacyBranch: true,
-  ProxyBranch: true,
-  SagaLegacyBranch: true,
-  ObjectLeaf: true,
-  ArrayLeaf: true,
-  Number: true,
   String: true,
-  RegExp: true,
+  Number: true,
   Boolean: true,
+  RegExp: true,
   Function: true,
   Date: true,
   Error: true,
+  Branch: true,
 };
 
 export function poorSet(arr) {

@@ -4,8 +4,8 @@ import nonedux, { shape, } from '../src';
 
 const { validatorMiddleware, } = shape;
 
-export function createStoreWithNonedux(initialState, shape, saga, proxy = false) {
-  const { reducers, middlewares, subject, } = nonedux({ initialState, saga, legacy: !proxy, });
+export function createStoreWithNonedux(initialState, shape) {
+  const { reducers, middlewares, subject, } = nonedux({ initialState, shape});
   if (shape) {
     middlewares.push(validatorMiddleware(subject, shape));
   }

@@ -1,49 +1,24 @@
 import 'babel-polyfill';
-import createLeaf from './immutability/leafs';
 import shape from './shape';
 import { branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
 import Branch from './immutability/Branch';
-import LegacyBranch from './immutability/LegacyBranch';
-import ProxyBranch from './immutability/ProxyBranch';
-import SagaLegacyBranch from './immutability/SagaLegacyBranch';
 import Identity from './immutability/Identity';
 import { createStateAccessMiddleware, createThunk, createStateChanger, } from './immutability/middlewares';
 
 const { assign, keys, defineProperties, } = Object;
 const { accessState, accessPrevState, accessPendingState, } = branchPrivates;
-export function checkProxySupport() {
-  const target = {};
-  try {
-    const proxy = new Proxy(target, {
-      get: (t, k) => (t === target && k === 'check'),
-    });
-    return proxy.check;
-  } catch (e) {
-    return false;
-  }
-}
 
-export default function initNonedux({ initialState, saga = false, legacy = !checkProxySupport(), }) {
+export default function initNonedux({ initialState, }) {
   if (!Branch.valueCanBeBranch(initialState) || !keys(initialState).length) {
     throw new Error('Expected initial state to contain at least one child, state but got '+ JSON.stringify(initialState));
   }
-  let subject;
-  if (saga) {
-    legacy = true;
-    subject = new SagaLegacyBranch(new Identity(), { dispatch: () => { }, }, initialState);
-  } else if (legacy) {
-    subject = new LegacyBranch(new Identity(), { dispatch: () => { }, onGoingTransaction: false, }, initialState);
-  } else {
-    subject = new ProxyBranch(new Identity(), { dispatch: () => {}, });
-  }
+  let subject = new Branch(new Identity(), { dispatch: () => {}, });
 
   const stateAccess = createStateAccessMiddleware(subject);
-  const noneduxStateChanger = createStateChanger(subject, legacy);
+  const noneduxStateChanger = createStateChanger(subject);
   const reducers = keys(initialState).reduce((acc, k) => assign(acc, { [k]: createDummyReducer(k, subject), }), {});
   definedRootBranchProperties(subject, initialState);
-  if (!legacy) {
-    subject = subject._createProxy();
-  }
+  subject = subject._createProxy();
   const thunk = createThunk(subject, initialState);
   return {
     reducers,
@@ -58,13 +33,13 @@ export default function initNonedux({ initialState, saga = false, legacy = !chec
     dispatcher: () => console.warn('Usage of dispatcher is deprecated and can be removed'),
   };
 }
-export { createLeaf, shape, leafs, };
+export { shape, leafs, };
 
 function createDummyReducer(key, root) {
   return () => root[accessState][key];
 }
 
-function definedRootBranchProperties(root, initialState){
+function definedRootBranchProperties(root, initialState) {
   defineProperties(root, {
     remove: {
       get() { return function () { throw new Error('Cannot remove root branch values'); }; },
