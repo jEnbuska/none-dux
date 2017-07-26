@@ -5,12 +5,26 @@ const { identity, dispatcher, onRemove, onSetState, onClearState, accessState, a
 const { removeChild, renameSelf, } = identityPrivates;
 
 const { entries, } = Object;
+
+
 export function createThunk(rootBranch) {
   return (store) => {
     rootBranch[dispatcher].dispatch = action => store.dispatch(action);
-    return (next) => (action) => {
+    let activeActions = 0;
+    return (next) => async (action) => {
       if (typeof action === 'function') {
-        return action(rootBranch, store);
+        activeActions++;
+        try {
+          console.log('apply action')
+          return await action(rootBranch, store);
+        } finally {
+          activeActions--;
+          console.log(activeActions)
+          if (!activeActions) {
+            console.log('clear ref')
+            rootBranch.clearReferences();
+          }
+        }
       }
       return next(action);
     };

@@ -22,7 +22,10 @@ export default class Branch {
     });
   }
 
-  clearReferences() {
+  clearReferences(middleware) {
+    if (!middleware) {
+      console.warn('clearReferences has been deprecated.\nclearReferences is automatically run after action has been executed and there is no other pending actions');
+    }
     this[identity][clearReferences]();
   }
 
