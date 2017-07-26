@@ -2,6 +2,7 @@
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
 ###### Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
+###### Known performance and memory issues have been fixed on 11.2 
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
 0 reducer boilerplate
@@ -78,6 +79,7 @@ const root = (
 
 ## Action examples
 ##### ***setState*** ***remove***, ***clearState*** can be called to nonedux objects and arrays from inside action creators:
+###### All Promises used inside Actions must be returned. Further details after next example
 ```
 // actions 1st argument is nonedux reference, 2nd one is redux store
 // they are injected to dispatched functions by nonedux thunk
@@ -89,7 +91,8 @@ export function removeUser(userId) {
       
       user.setState({ verified: false, });
       
-      api.deleteUser(userId)
+      //All promises must be returned to keep none-dux running fast
+      return api.deleteUser(userId)
         .then(()=> {;
           users.remove(userId);
           userTodos.remove(userId);
@@ -110,7 +113,7 @@ function createPayment(userId, data){
        [id]: {id, ...data, userId, validated: false, }
      })
      
-     api.postTransactions(transaction.state)
+     return api.postTransactions(transaction.state)
       .then(() => transaction.setState({validated: true}))
       .then(() => user.setState({pendingPayment: false}))
       .catch(err => { ... })
@@ -126,7 +129,7 @@ export function removeUserTransactional(userId) {
       
       user.setState({ verified: false, });
       
-      api.deleteUser(userId)
+      return api.deleteUser(userId)
         .then(()=> {
           nonedux.transaction(({users, todosByUser}) => { 
             // only 1 update to store, if one of them fails both changes are cancelled
@@ -135,6 +138,64 @@ export function removeUserTransactional(userId) {
           })
         });
     }
+}
+```
+# Important detail about Actions
+All promises must be returned from Actions, it helps none-dux with cleaning up garbage. 
+If Promise is not returned, and Promise references to none-dux objects this will throw an Error 
+```
+function nestedPromise(){
+  function({data, notification}){    
+    notifications.setState({dataFetch: 'pending'})
+    return api.fetchData()                         //return Promise
+      .then((result) => {
+        data.setState(result.data)
+        notification.setState({dataFetch: 'success'})
+        return new Promise(res => {                //return Promise
+          setTimeout(() => {
+            notifications.setState({dataFetch: ''})
+          }, 2000)
+        })
+      }).catch(err => {
+        notification.setState({dataFetch: 'error'})
+        return new Promise(res => {                //return Promise
+          setTimeout(() => {
+            notifications.setState({dataFetch: ''})
+          }, 2000)
+        })        
+      })
+  }
+}
+
+function asyncAwaitExample(){
+  async function(nonedux){
+  
+    notifications.setState({dataFetch: 'pending'})
+    
+    try {
+    
+      const dataResult = await api.fetchData()
+      data.setState(dataResult.data)
+      notification.setState({dataFetch: 'success'})
+      
+      await new Promise(resolve=> 
+        setTimeout(() => {
+          notifications.setState({dataFetch: ''})
+          resolve();
+        }, 2000));
+        
+    } catch(e) {
+    
+      notification.setState({dataFetch: 'error'})
+      
+      await new Promise(resolve=> 
+        setTimeout(() => {
+          notifications.setState({dataFetch: ''})
+          resolve();
+        }, 2000)
+        
+    }
+  }
 }
 ```
 
@@ -180,20 +241,6 @@ target.remove(keys); //removes all children with matching keys
 target.remove(1,2,3);
 //or
 target.remove(...[1,2,3]);
-```
-#### clearReferences
-###### After accessing a lot of data through actions the performance can get slower over time 
-```
-//clear all references
-nonedux.clearReferences();
-//clear users references
-nonedux.users.clearReferences();
-/*
-  cleans the targets references and makes changes like setState faster
-  Consider using this during route changes if you are noticing animation lag
-  Be cautious with pending promises, timeouts & intervals, that might be referencing to variables being cleared
-*/
-
 ```
 
 ## State
@@ -297,13 +344,11 @@ replace with something like
 ```
 import nonedux, { shape } from 'none-dux
 import validator from './validator'
-
 ... 
 
 const { reducer, middlewares, subject, } = nonedux({ initialState });
 const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
 const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
-
 ...
 ```
 ##### 2. Creating validator
@@ -464,35 +509,6 @@ The technical details about why this is so, boils down to same reasons, why Reac
 
 ## Performance
 
-There is a weakness with this library's performance. The issue has to do with the fact that JavaScript does not have concept like 'weak reference' or 'garbage collection callbacks' 
-
-###### Skip this first example if not especially interested:
-####ClearState
-```
-function loopAndFetchData(){
-  return function(nonedux){
-    api.fetchStatistics(({data)) => { //data with 1000 entries and each containing multple object children
-      nonedux.clearState({statistics: data}) //this should be as fast as expected ~(0.1 ms)
-      let allChildren= nonedux.statistics._getChildrenRecursively();
-      console.log(allChildren.length); // 10 000
-      // When a child is accessed for the first time an internal location is created
-      
-      const copy = deepClone(data);
-      //After state map has been created it has to be updated when state is changed
-      nonedux.clearState({statistics: copy}); //Now the whole operation takes about 100 times longer
-      
-      //After app has been run for a long time and lot of data has been in action the internal state map will eventually grow
-     
-      const anotherCopy= deepClone(data);
-      //Clear references clears the subjects state map in less than ~0.1 ms
-      nonedux.statistics.clearReferences();
-      nonedux.clearState({statistics: anotherCopy}); //as fast as on first time
-    })
-  }
-}
-
-```
-
 Depending of use case, with **old browsers** the performance **can** be ~5 times slower than with redux
 ##### 1. Avoid looping through hundreds of variables in nonedux variables
 ```
@@ -504,11 +520,11 @@ function removeRetiringEmployees(){
     const employees = Object
       .keys(employees.state)
       .map(k => employees[k]) 
-      // access CHILD takes avg 0.005 - 0.02 ms
+      // access single CHILD takes avg 0.005 - 0.02 ms
       .filter(employee => employee.state.age>=64) 
-      // access to STATE takes avg 0.002 - 0.04 ms
+      // access to single STATE takes avg 0.002 - 0.04 ms
       .forEach(employee => employees.remove(employee.getId())
-      // object REMOVE takes avg 0.1 - 0.3 ms
+      // single object REMOVE takes avg 0.1 - 0.3 ms
   }
 }
 
@@ -524,7 +540,7 @@ function removeRetiringEmployee_better(){
 
 function fetchEmployees(){
   return function({employees}){            
-    api.fetchEmployees(({data}) => {
+    return api.fetchEmployees(({data}) => {
       employees.setState(data);
       // assuming there is entries 1000 and every empty on data is object
       // takes about 0.75ms on modern browser
@@ -535,11 +551,10 @@ function fetchEmployees(){
 
 function fetchEmployees_better(){
   return function(nonedux){         
-    api.fetchEmployees(({data}) => {
+    return api.fetchEmployees(({data}) => {
       nonedux.setState({employees: data});
       // assuming there is entries 1000 and every empty on data is object
       // in avg good case takes about 0.1ms on modern browser
-      // in the very bad case 8ms
       // good case on legacy browser <7ms
       // on legacy browser 18ms 
     )
@@ -584,17 +599,16 @@ nonedux.subState.state.child; // MyClass...
 
 --------------
 ## Warnings
-#### 0. If you consider using none-dux in production
-Note that performance on old browsers is significantly slower
+#### 1. If you consider using none-dux in production
+Note that performance is not great on old browsers. This should not be an issue unless someone is using and old IPhone or Windows Phone and you are doing a lot of animations.
 
-Remember to call 'clearReferences' ones in a while
-#### 1. All keys must be strings or numbers
+#### 2. All keys must be strings or numbers
 ```
 const key = () => console.log('I'm key');
 target.setState({[key]: {} }) // This will result in bugs
 ```
 
-#### 2. nonedux values are not enumerable
+#### 3. nonedux values are not enumerable
 ```
 const {a, b, ...rest} = target.setState({ a:{}, b: {}, c: {}, d: {} })
 Object.keys(rest).length  // 0
@@ -617,11 +631,11 @@ const children = Object.keys(state).map(k => targe[k]);
 ```
 ###### Accessing all children could be inefficient. Do it only with small sets of objects
 
-#### 3. Using custom non-leaf JavaScript classes in reducer state is not well tested
+#### 4. Using custom non-leaf JavaScript classes in reducer state is not well tested
 
-#### 4. Using non normalized state is not a must but recommended
+#### 5. Using non normalized state is not a must but recommended
 
-#### 5. Comparison instances
+#### 6. Comparison instances
 ```
 // In modern browsers next evaluates to false
 target.setState({a: {}})
@@ -645,26 +659,12 @@ thirdChild.state; // { b: 2, };
 //From 'clearState:s' point of view the previous means:
 `target.clearState({0: first, 1: second, 2: third })`
 ```
-#### 7. Accessing state is cheap, but if you are accessing lot of nonedux children (hundreds) from inside actions
-```
-function expensiveAccessing(){
-  function(nonedux){
-    const children = Object.values(nonedux.getChildren());
-    children.forEach(child => {
-      const childChildren = child.getChildren()
-      /* ... do something */
-    })
-  }
-}
-```
-###### ... then consider calling 'nonedux.clearReferences()' ones in a while
 
 
 ## Older browsers
 When nonedux code is run on browsers that do not support **es6 Proxy** the internal logic is implemented differently
 
 ###### Next performance improvement examples and warnings, apply only to older browsers
-
 With large objects & arrays that include thousands of child objects the performance can be poor.
 
 When accessing data from actions this is roughly what happens:
@@ -713,9 +713,9 @@ function fetchCustomerData_Lightweight(){
 ## Changes v10->v11
 The key differences compared to v10 is that the performance is 1-10 better in most heavies cases when run on modern browsers
 
-createLeaf has become obsolete (when not used in legacy browsers)
-
 Better support for older browsers
+
+createLeaf has become obsolete (when not used in old browsers)
 
 When used in old browsers 'legacy' (v10) mode will be used, because Proxy features cannot be added using babel
 

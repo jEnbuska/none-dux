@@ -15,13 +15,10 @@ export function createThunk(rootBranch) {
       if (typeof action === 'function') {
         activeActions++;
         try {
-          console.log('apply action')
           return await action(rootBranch, store);
         } finally {
           activeActions--;
-          console.log(activeActions)
           if (!activeActions) {
-            console.log('clear ref')
             rootBranch.clearReferences(true);
           }
         }

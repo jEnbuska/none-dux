@@ -15,7 +15,7 @@ export function addUser() {
         localStorage.setItem('users', JSON.stringify(users.content.state));
         res();
       }, 800);
-    })
+    });
   };
 }
 
@@ -36,7 +36,7 @@ export function saveUserChanges() {
       localStorage.setItem('users', JSON.stringify(users.content.state));
       res();
     }, 800
-    ))
+    ));
   };
 }
 
@@ -53,7 +53,7 @@ export function removeUser(id) {
       users.content.remove(id);
       localStorage.setItem('users', JSON.stringify(users.content.state));
       res();
-    }, 800)
+    }, 800);
   };
 }
 
@@ -64,21 +64,16 @@ export function selectUser(id) {
 }
 
 export function fetchUsers() {
-  return function (store) {
+  return async function (store) {
     const { users, todosByUser, } = store;
-    return new Promise((resolve) => {
-      users.status.setState({ pending: true, });
-      todosByUser.status.setState({ pending: true, });
-      setTimeout(() => {
-        let userData = localStorage.getItem('users');
-        userData = userData ? JSON.parse(userData) : {}
-        let todoData = localStorage.getItem('todosContent');
-        todoData = todoData ? JSON.parse(todoData) : {};
-        users.setState({ content: userData, status: { pending: false, }, });
-        todosByUser.setState({ content: todoData, status: { pending: false, }, });
-        resolve();
-      },
-        800);
-    });
+    await new Promise(res => setTimeout(res, 800));
+    let userData = localStorage.getItem('users');
+    userData = userData ? JSON.parse(userData) : {};
+    let todoData = localStorage.getItem('todosContent');
+    todoData = todoData ? JSON.parse(todoData) : {};
+    users.setState({ content: userData, status: { pending: false, }, });
+    todosByUser.setState({ content: todoData, status: { pending: false, }, });
+    users.status.setState({ pending: true, });
+    todosByUser.status.setState({ pending: true, });
   };
 }
