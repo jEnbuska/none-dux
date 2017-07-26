@@ -90,10 +90,7 @@ export function removeUser(userId) {
       user.setState({ verified: false, });
       
       api.deleteUser(userId)
-        .then(()=> {
-          /*Don't referece nonedux variables from the outer 
-          scope instead re-access through nonedux 'root'*/
-          const {users, usrsTodos} = nonedux;
+        .then(()=> {;
           users.remove(userId);
           userTodos.remove(userId);
         });
@@ -114,8 +111,8 @@ function createPayment(userId, data){
      })
      
      api.postTransactions(transaction.state)
-      .then(() => nonedux.transaction.setState({validated: true}))
-      .then(() => nonedux.user.setState({pendingPayment: false}))
+      .then(() => transaction.setState({validated: true}))
+      .then(() => user.setState({pendingPayment: false}))
       .catch(err => { ... })
     }
   }
@@ -187,13 +184,14 @@ target.remove(...[1,2,3]);
 #### clearReferences
 ###### After accessing a lot of data through actions the performance can get slower over time 
 ```
-nonedux.clearReferences(); 
+//clear all references
+nonedux.clearReferences();
+//clear users references
+nonedux.users.clearReferences();
 /*
   cleans the targets references and makes changes like setState faster
   Consider using this during route changes if you are noticing animation lag
-  Be cautious with promises!
-  In Promises allways reference values througt nonedux (root) because some other action
-  might hae called  this function
+  Be cautious with pending promises, timeouts & intervals, that might be referencing to variables being cleared
 */
 
 ```
@@ -477,16 +475,14 @@ function loopAndFetchData(){
       nonedux.clearState({statistics: data}) //this should be as fast as expected ~(0.1 ms)
       let allChildren= nonedux.statistics._getChildrenRecursively();
       console.log(allChildren.length); // 10 000
-
-      // When a child is accessed for the first time an internal location has been created
+      // When a child is accessed for the first time an internal location is created
       
       const copy = deepClone(data);
       //After state map has been created it has to be updated when state is changed
       nonedux.clearState({statistics: copy}); //Now the whole operation takes about 100 times longer
       
       //After app has been run for a long time and lot of data has been in action the internal state map will eventually grow
-      
-      //Workaround
+     
       const anotherCopy= deepClone(data);
       //Clear references clears the subjects state map in less than ~0.1 ms
       nonedux.statistics.clearReferences();
@@ -589,7 +585,7 @@ nonedux.subState.state.child; // MyClass...
 --------------
 ## Warnings
 #### 0. If you consider using none-dux in production
-Note that performance on legacy browsers is significantly slower
+Note that performance on old browsers is significantly slower
 
 Remember to call 'clearReferences' ones in a while
 #### 1. All keys must be strings or numbers
@@ -649,6 +645,19 @@ thirdChild.state; // { b: 2, };
 //From 'clearState:s' point of view the previous means:
 `target.clearState({0: first, 1: second, 2: third })`
 ```
+#### 7. Accessing state is cheap, but if you are accessing lot of nonedux children (hundreds) from inside actions
+```
+function expensiveAccessing(){
+  function(nonedux){
+    const children = Object.values(nonedux.getChildren());
+    children.forEach(child => {
+      const childChildren = child.getChildren()
+      /* ... do something */
+    })
+  }
+}
+```
+###### ... then consider calling 'nonedux.clearReferences()' ones in a while
 
 
 ## Older browsers
