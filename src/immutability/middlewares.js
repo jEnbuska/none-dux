@@ -22,7 +22,7 @@ export function createThunk(rootBranch) {
           console.log(activeActions)
           if (!activeActions) {
             console.log('clear ref')
-            rootBranch.clearReferences();
+            rootBranch.clearReferences(true);
           }
         }
       }
