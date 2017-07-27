@@ -29,6 +29,10 @@ export default class Branch {
     this[identity][clearReferences]();
   }
 
+  removeSelf(){
+    throw new Error('"target.removeSelf()" is deprecated. Please use parent.remove("target") instead')
+  }
+
   transaction(callBack) {
     const dispatcherRef = this[dispatcher];
     const publishAfterDone = !dispatcherRef.onGoingTransaction;

@@ -11,6 +11,7 @@ const branchReflectables = {
   remove: true,
   transaction: true,
   getIdentity: true,
+  removeSelf: true,
   getId: true,
   clearReferences: true,
   _getChildrenRecursively: true,
@@ -48,7 +49,7 @@ const proxyHandler = {
     }
     Branch.onAccessingRemovedBranch(target[identity].getId(), k);
   },
-}
+};
 
 export default class ProxyBranch extends Branch {
 

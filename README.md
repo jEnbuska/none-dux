@@ -1,8 +1,8 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-###### Read about breaking changes 10v->11v & support for older browsers at the bottom of the documentation
-###### Known performance and memory issues have been fixed on 11.2  (manually calling clearReferences is deprecated)
+<sub>Known performance and memory issues have been fixed on 11.2  (manually calling clearReferences is deprecated)</sub>
+
 Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
 
 0 reducer boilerplate
