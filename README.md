@@ -207,10 +207,10 @@ console.log(target.state) // { a: 2, b: {}, c: 3 }
 // setState takes Objects as parameters
 target.setState('test'); //Error("[...]")
 target.setState([ 1, 'abc', {} ]); //Error("[...]")
- ```
+```
  
- ##### clearState
- ```
+##### clearState
+```
  console.log(target.state); //{ a: 1, b: { } }
  
  // clear state removes the previous states outer join
