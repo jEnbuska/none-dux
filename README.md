@@ -37,7 +37,7 @@ function generateMessState(depth = 3, height = 0) {
     const { mess, } = nonedux;
     let child = mess;
     for (let i = 0; i<depth && child; i++) {
-      child = child.setState({ [height]: dispatch(generateMessState(i, index+1)) })[height]
+      child = child.setState({ [height]: dispatch(generateMessState(i, i+1)) })[height]
     }
     return nonedux.mess.state;
   };
@@ -95,7 +95,7 @@ export function removeUser(userId) {
       return api.deleteUser(userId)
         .then(()=> {;
           users.remove(userId);
-          userTodos.remove(userId);
+          todosByUser.remove(userId);
         });
     }
 }
@@ -144,48 +144,49 @@ export function removeUserTransactional(userId) {
 All promises must be returned from Actions, it helps none-dux with cleaning up garbage. 
 If Promise is not returned, and Promise references to none-dux objects this will throw an Error 
 ```
+
 function nestedPromise(){
-  function({data, notification}){    
+  return function({data, notifications}){
     notifications.setState({dataFetch: 'pending'})
     return api.fetchData()                         //return Promise
       .then((result) => {
         data.setState(result.data)
-        notification.setState({dataFetch: 'success'})
+        notifications.setState({dataFetch: 'success'})
         return new Promise(res => {                //return Promise
           setTimeout(() => {
             notifications.setState({dataFetch: ''})
           }, 2000)
         })
       }).catch(err => {
-        notification.setState({dataFetch: 'error'})
+        notifications.setState({dataFetch: 'error'})
         return new Promise(res => {                //return Promise
           setTimeout(() => {
             notifications.setState({dataFetch: ''})
           }, 2000)
-        })        
+        })
       })
   }
 }
 
 function asyncAwaitExample(){
-  async function({data, notification}){  
+  return async function({data, notifications}){
     notifications.setState({dataFetch: 'pending'})
     try {
       const dataResult = await api.fetchData()
       data.setState(dataResult.data)
       notification.setState({dataFetch: 'success'})
-      await new Promise(resolve=> 
+      await new Promise(resolve=>
         setTimeout(() => {
           notifications.setState({dataFetch: ''})
           resolve();
         }, 2000));
     } catch(e) {
       notification.setState({dataFetch: 'error'})
-      await new Promise(resolve=> 
+      await new Promise(resolve=>
         setTimeout(() => {
           notifications.setState({dataFetch: ''})
           resolve();
-        }, 2000)
+        }, 2000))
     }
   }
 }
@@ -267,7 +268,7 @@ Types can be changed
 
 ```
 function stateExample(){
-  function(nonedux){
+  return function(nonedux){
      console.log(nonedux.state)//{a: {}}
      nonedux.setState({a:1})
      nonedux.setState({a: 'hello none-dux'})
@@ -313,7 +314,7 @@ replace with something like
   ```
  //actions redux-thunk
  function updateUser(id, changes){
-    function(dispatch){
+    return function(dispatch){
       dispatch({type: UPDATE_USER, payload: {id, ...changes}}) 
     }
  } 
@@ -322,7 +323,7 @@ replace with something like
  ``` 
  //actions nonedux
  function updateUser(id, changes){
-    function({users}){
+    return function({users}){
       users[id].setState(changes);
     }
  } 
@@ -346,36 +347,42 @@ const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
 ##### 2. Creating validator
 ```
 const { types, any, validatorMiddleware } = shape;
-const { isRequired, strict string, bool } = types;
+const { isRequired, strict, string, number, bool } = types;
 
-const validator = { ...isRequired.strict  // ! Use destructed when you have Objects shape spesification
-  todosByUser: { ...isRequired,           // Not null not undefined
-    [any]: {                              // byUserIds 
-      [any]: { ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
-        userId: string.isRequired,        // ! No desctructing   
+const validator = {
+  ...isRequired.strict,  // ! Use destructed when you have Objects shape spesification
+  todosByUser: {
+    ...isRequired,           // Not null not undefined
+    [any]: {                              // byUserIds
+      [any]: {
+        ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
+        userId: string.isRequired,        // ! No desctructing
         id: string.isRequired,
         description: string.isRequired,
         done: bool,
+      },
     },
-  },
-  users: {  // by id
-   [any]: {
-    ...strict,
-    //one liner for creating multiple keys with same spec
-    ...string.many('id', 'firstName', 'lastName')  
+    users: {  // by id
+      [any]: {
+        ...strict,
+        //one liner for creating multiple keys with same spec
+        ...string.many('id',
+          'firstName',
+          'lastName')
+      },
     },
-  },
-  
-  //more examples
-  someObjectList: [
-    isRequired,         // ! No desctructing
-    {
-      a: number,
-      b: {},            // Object that can include anything an is not required
-    }
-  ],
-  someStringList: [ string ]
-  request: {...isRequired}
+
+    //more examples
+    someObjectList: [
+      isRequired,         // ! No desctructing
+      {
+        a: number,
+        b: {},            // Object that can include anything an is not required
+      }
+    ],
+    someStringList: [ string ],
+    request: { ...isRequired },
+  }
 };
 ```
 ###### Few key details about type checking that are easy to miss
@@ -444,7 +451,7 @@ const {spec} = shape;
 *TRANSACTION*
 
 function playWithTransaction(){
-  function(nonedux){;    
+  return function(nonedux){
     nonedux.transaction(({ users }) => {
       users.setState({ a:{}, b: {} })
       users.setState({ c:{} })
@@ -455,8 +462,7 @@ function playWithTransaction(){
 
 *SIMPLE ROLLBACK*
 function playWithRollback(){
-  function(nonedux){;
-    
+  return function(nonedux){    
     nonedux.transaction(({ users }) => {
       users.setState({ a:{}, b: {} })
       users.setState({ c:{} })
@@ -468,8 +474,7 @@ function playWithRollback(){
 
 *ADVANCED ROLLBACK*
 function rollbackAdvanced(){
-  function(nonedux, {dispatch}){
-    
+  return function(nonedux, {dispatch}){    
     nonedux.transaction(({ users }) => {
       users.setState({ a:{} })
       try{
@@ -480,7 +485,7 @@ function rollbackAdvanced(){
 }
 
 function doChangesAndThrowError(){
-  function(nonedux){
+  return function(nonedux){
      nonedux.transaction(({ users }) => {
         users.a.setState({ todos: {} })
         users.a.transaction(({ todos }) => {
@@ -507,23 +512,21 @@ Depending of use case, with **old browsers** the performance **can** be ~5 times
 // Max time usually represents the time, operation takes on legacy browsers
 // Bench marking done on MacBook Pro with i7 cpu
 function removeRetiringEmployees(){
-  function(nonedux){
+  return function(nonedux){
     const {employees} = nonedux;
-    const employees = Object
-      .keys(employees.state)
+    Object.keys(employees.state)
       .map(k => employees[k]) 
       // access single CHILD takes avg 0.005 - 0.02 ms
       .filter(employee => employee.state.age>=64) 
       // access to single STATE takes avg 0.002 - 0.04 ms
-      .forEach(employee => employees.remove(employee.getId())
+      .forEach(employee => employees.remove(employee.getId()));
       // single object REMOVE takes avg 0.1 - 0.3 ms
   }
 }
 
 function removeRetiringEmployee_better(){
   return function({employees}){            
-    const retiringEmployees = Object
-      .entries(employees.state)
+    const retiringEmployees = Object.entries(employees.state)
       .filter(([k, employeeState])=> employeeState.age>=64)     
       .map(([k]) => k);
     employees.remove(retiringEmployees);
@@ -537,7 +540,7 @@ function fetchEmployees(){
       // assuming there is entries 1000 and every empty on data is object
       // takes about 0.75ms on modern browser
       // on legacy browser <7ms 
-    )
+    })
   }
 }
 
@@ -549,7 +552,7 @@ function fetchEmployees_better(){
       // in avg good case takes about 0.1ms on modern browser
       // good case on legacy browser <7ms
       // on legacy browser 18ms 
-    )
+    })
   }
 }
 ```
@@ -663,7 +666,7 @@ When accessing data from actions this is roughly what happens:
 ###### applies only to old browsers
 ```
 function juggle(){
-  function(nonedux){
+  return function(nonedux){
     nonedux.state // { obj: { primitive: 1, subChild: {} } }
     const obj = nonedux.obj 
     // nonedux --> get() { return child['obj'] || child['obj'] = createBranch('obj') }
@@ -682,7 +685,7 @@ To improve performance Objects and Arrays can be wrapped as **leafs** by using *
 import {createLeaf} from 'none-dux'
 
 function fetchCustomerData_Lightweight(){
-  function(nonedux){
+  return function(nonedux){
     fetchUserData()
       .then(({data}) => {
         let { transactions, associations } = data;
