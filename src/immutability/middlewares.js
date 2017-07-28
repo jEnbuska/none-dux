@@ -6,7 +6,6 @@ const { removeChild, renameSelf, } = identityPrivates;
 
 const { entries, } = Object;
 
-
 export function createThunk(rootBranch) {
   return (store) => {
     rootBranch[dispatcher].dispatch = action => store.dispatch(action);
@@ -38,7 +37,7 @@ export function createStateAccessMiddleware(rootBranch) {
 }
 
 const removeReducer = function (acc, e) {
-  if (!this.has(e[0])) {
+  if (!this[e[0]]) {
     acc[e[0]] = e[1];
   }
   return acc;
@@ -101,7 +100,7 @@ export function createStateChanger(root, legacy) {
         target.state = onProxyArrayRemove(target.identifier, param, target.state);
       } else {
         onProxyObjectRemove(target.identifier, param);
-        const rReducer = removeReducer.bind(new Set(param));
+        const rReducer = removeReducer.bind(poorSet(param));
         target.state = entries(target.state).reduce(rReducer, {});
       }
       nextState = createNextState(trace);
