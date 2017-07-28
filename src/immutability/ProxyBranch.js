@@ -4,7 +4,7 @@ import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, } from '../common
 const { identity, dispatcher, accessPrevState, accessState, accessPendingState, } = branchPrivates;
 const { push, resolve, } = identityPrivates;
 
-const branchReflectables = {
+const instanceMethods = {
   state: true,
   setState: true,
   clearState: true,
@@ -16,7 +16,7 @@ const branchReflectables = {
   clearReferences: true,
   _getChildrenRecursively: true,
 };
-const branchAccerssors = {
+const instanceVariables = {
   [identity]: true,
   [dispatcher]: true,
   [accessState]: true,
@@ -26,9 +26,9 @@ const branchAccerssors = {
 
 const proxyHandler = {
   get(target, k, receiver) {
-    if (branchAccerssors[k]) {
+    if (instanceVariables[k]) {
       return target[k];
-    } else if (branchReflectables[k]) {
+    } else if (instanceMethods[k]) {
       return Reflect.get(target, k, receiver);
     }
     const resolved = target[identity][resolve]();
