@@ -145,50 +145,44 @@ All promises must be returned from Actions, it helps none-dux with cleaning up g
 If Promise is not returned, and Promise references to none-dux objects this will throw an Error 
 ```
 
-function nestedPromise(){
-  return function({data, notifications}){
-    notifications.setState({dataFetch: 'pending'})
-    return api.fetchData()                         //return Promise
+function nestedPromise() {
+  return function ({ data, notifications, }) {
+    notifications.setState({ dataFetch: 'pending', });
+    return api.fetchData()                         // return Promise
       .then((result) => {
-        data.setState(result.data)
-        notifications.setState({dataFetch: 'success'})
-        return new Promise(res => {                //return Promise
-          setTimeout(() => {
-            notifications.setState({dataFetch: ''})
-          }, 2000)
-        })
-      }).catch(err => {
-        notifications.setState({dataFetch: 'error'})
-        return new Promise(res => {                //return Promise
-          setTimeout(() => {
-            notifications.setState({dataFetch: ''})
-          }, 2000)
-        })
-      })
-  }
+        data.setState(result.data);
+        notifications.setState({ dataFetch: 'success', });
+        return new Promise(() =>                    // return Promise
+          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+      }).catch(() => {
+        notifications.setState({ dataFetch: 'error', });
+        return new Promise(() =>                  // return Promise
+          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+      });
+  };
 }
 
-function asyncAwaitExample(){
-  return async function({data, notifications}){
-    notifications.setState({dataFetch: 'pending'})
+function asyncAwait() {
+  return async function ({ data, notifications, }) {
+    notifications.setState({ dataFetch: 'pending', });
     try {
-      const dataResult = await api.fetchData()
-      data.setState(dataResult.data)
-      notification.setState({dataFetch: 'success'})
-      await new Promise(resolve=>
+      const dataResult = await api.fetchData();
+      data.setState(dataResult.data);
+      notifications.setState({ dataFetch: 'success', });
+      await new Promise(resolve =>
         setTimeout(() => {
-          notifications.setState({dataFetch: ''})
+          notifications.setState({ dataFetch: '', });
           resolve();
         }, 2000));
-    } catch(e) {
-      notification.setState({dataFetch: 'error'})
-      await new Promise(resolve=>
+    } catch (e) {
+      notifications.setState({ dataFetch: 'error', });
+      await new Promise(resolve =>
         setTimeout(() => {
-          notifications.setState({dataFetch: ''})
+          notifications.setState({ dataFetch: '', });
           resolve();
-        }, 2000))
+        }, 2000));
     }
-  }
+  };
 }
 ```
 
