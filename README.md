@@ -168,32 +168,24 @@ function nestedPromise(){
 }
 
 function asyncAwaitExample(){
-  async function(nonedux){
-  
+  async function({data, notification}){  
     notifications.setState({dataFetch: 'pending'})
-    
     try {
-    
       const dataResult = await api.fetchData()
       data.setState(dataResult.data)
       notification.setState({dataFetch: 'success'})
-      
       await new Promise(resolve=> 
         setTimeout(() => {
           notifications.setState({dataFetch: ''})
           resolve();
         }, 2000));
-        
     } catch(e) {
-    
       notification.setState({dataFetch: 'error'})
-      
       await new Promise(resolve=> 
         setTimeout(() => {
           notifications.setState({dataFetch: ''})
           resolve();
         }, 2000)
-        
     }
   }
 }
