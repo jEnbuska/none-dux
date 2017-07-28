@@ -208,6 +208,7 @@ console.log(target.state) // { a: 2, b: {}, c: 3 }
 target.setState('test'); //Error("[...]")
 target.setState([ 1, 'abc', {} ]); //Error("[...]")
  ```
+ 
  ##### clearState
  ```
  console.log(target.state); //{ a: 1, b: { } }
