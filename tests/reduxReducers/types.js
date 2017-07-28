@@ -9,5 +9,3 @@ subjects.forEach(s => {
 });
 
 export default types;
-
-const api = { fetchData() {}, };
