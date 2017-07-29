@@ -82,14 +82,11 @@ function definedRootBranchProperties(root, initialState) {
     setState: {
       get() {
         return (value) => {
-          try {
-            return initialSetState.bind(root, value)();
-          } finally {
-            const invalidParams = keys(value).filter(k => !has.call(initialState, k));
-            if (invalidParams.length) {
-              console.error('Missing initialState description for "' + invalidParams.join(', ') + '"\nThis values cannot be mapped to component properties by using mapStateToProps');
-            }
+          const invalidParams = keys(value).filter(k => !has.call(initialState, k));
+          if (invalidParams.length) {
+            throw new Error('Missing initialState description for "' + invalidParams.join(', ') + '"');
           }
+          return initialSetState.bind(root, value)();
         };
       },
     },

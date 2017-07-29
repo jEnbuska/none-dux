@@ -15,7 +15,7 @@ describe('Validator middleware', () => {
     onErrorHandler.onStrictError = ((identity, key, state) => onStrictErrors.push({ identity, key, state, }));
     onErrorHandler.onRequiredError = ((identity, key) => onIsRequiredErrors.push({ identity, key, }));
   });
-  [ 'legacy', 'proxy' ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = (state, shape) => createStoreWithNonedux(state, shape, false, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
@@ -155,10 +155,8 @@ describe('Validator middleware', () => {
             state: [],
           });
         });
-        test('strict error on setState', () => {
-          const { subject, } = init({ b: '', }, { ...strict, b: string, });
-          expect(onStrictErrors.length).toBe(0);
-          const { state, } = subject.setState({ a: 1, });
+        test('strict error on init', () => {
+          init({ b: '', a: 1, }, { ...strict, b: string, });
           expect(onStrictErrors.length).toBe(1);
           expect(onStrictErrors[0]).toEqual({
             identity: [],
@@ -166,7 +164,6 @@ describe('Validator middleware', () => {
             state: 1,
           });
         });
-      })
-  })
-
+      });
+  });
 });

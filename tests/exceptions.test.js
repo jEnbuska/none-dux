@@ -74,10 +74,7 @@ describe('killSwitch', () => {
 
       test('invalid modification of root branch', () => {
         const { subject, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
-        const errors = [];
-        console.error = (str) => errors.push(str);
-        subject.setState({ x: 1, });
-        expect(errors.length).toBe(1);
+        expect(() => subject.setState({ x: 1, })).toThrow();
         expect(() => subject.clearState({})).toThrow();
         expect(() => subject.remove('a')).toThrow();
       });
