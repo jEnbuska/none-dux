@@ -5,6 +5,12 @@ const id = 'IDENTITY:id';
 const removed = 'IDENTITY::removed';
 const parent = 'IDENTITY::parent';
 
+const onChildResolveAfterRetired = function () {
+  throw new Error("Invoking detached child.\n" +
+    "You are probably invoking an instance inside a Promise\n" +
+    "Fix the issue by retuning the Promise from the action function, or use async await");
+};
+
 const { push, removeChild, renameSelf, resolve, branch, clearReferences, } = identityPrivates;
 
 export default class Identity {
@@ -31,6 +37,7 @@ export default class Identity {
 
   [clearReferences]() {
     for (const child in this) {
+      this[child][resolve] = onChildResolveAfterRetired;
       delete this[child];
     }
   }

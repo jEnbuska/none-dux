@@ -142,27 +142,10 @@ export function removeUserTransactional(userId) {
 ```
 # Important detail about Actions
 All promises must be returned from Actions, it helps none-dux with cleaning up garbage. 
+Alternative use async await and call await to all promises. 
 If Promise is not returned, and Promise references to none-dux objects this will throw an Error 
 ```
-
-function nestedPromise() {
-  return function ({ data, notifications, }) {
-    notifications.setState({ dataFetch: 'pending', });
-    return api.fetchData()                         // return Promise
-      .then((result) => {
-        data.setState(result.data);
-        notifications.setState({ dataFetch: 'success', });
-        return new Promise(() =>                    // return Promise
-          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
-      }).catch(() => {
-        notifications.setState({ dataFetch: 'error', });
-        return new Promise(() =>                  // return Promise
-          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
-      });
-  };
-}
-
-function asyncAwait() {
+function returnPromisesAsynAwait() {
   return async function ({ data, notifications, }) {
     notifications.setState({ dataFetch: 'pending', });
     try {
@@ -184,6 +167,24 @@ function asyncAwait() {
     }
   };
 }
+
+function returnPromisesTraditional() {
+  return function ({ data, notifications, }) {
+    notifications.setState({ dataFetch: 'pending', });
+    return api.fetchData()                         // return Promise
+      .then((result) => {
+        data.setState(result.data);
+        notifications.setState({ dataFetch: 'success', });
+        return new Promise(() =>                    // return Promise
+          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+      }).catch(() => {
+        notifications.setState({ dataFetch: 'error', });
+        return new Promise(() =>                  // return Promise
+          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+      });
+  };
+}
+
 ```
 
 ## Functions

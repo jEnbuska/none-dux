@@ -53,6 +53,24 @@ describe('killSwitch', () => {
         expect(() => c.remove('d')).toThrow(Error);
         expect(() => d.remove('val')).toThrow(Error);
       });
+
+      test('clearReferences', () => {
+        const { subject: { root, }, }= init({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { a, b, c, } = root;
+        root.clearReferences(true);
+        expect(() => a.state).toThrow();
+        expect(() => b.state).toThrow();
+        expect(() => c.state).toThrow();
+        expect(() => a.remove('b')).toThrow();
+        expect(() => b.remove('val')).toThrow();
+        expect(() => c.remove('d')).toThrow();
+        expect(() => a.setState({ abc: 1, })).toThrow();
+        expect(() => b.setState({ abc: 1, })).toThrow();
+        expect(() => c.setState({ abc: 1, })).toThrow();
+        expect(() => a.clearState({ abc: 1, })).toThrow();
+        expect(() => b.clearState({ abc: 1, })).toThrow();
+        expect(() => c.clearState({ abc: 1, })).toThrow();
+      });
     });
   });
 });

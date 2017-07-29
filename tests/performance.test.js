@@ -213,8 +213,9 @@ describe('performance', () => {
             data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
           }
 
-          h.clearReferences();
+
           const time = now();
+          h.clearReferences();
           h.setState(data);
           results.setStateWithClearReferences[name] = (now()-time) + ' ns';
         }, 15000);
