@@ -4,7 +4,7 @@ describe('remove', () => {
   [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
-      test(name + ' removing the root subject should throw error',
+      test(name + ' removing the child subject should throw error',
         () => {
           const { subject, } = init({ a: {}, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, });
           expect(() => subject.remove([ 'b', ])).toThrow(Error);
@@ -17,12 +17,12 @@ describe('remove', () => {
       });
 
       test(name + ' remove sub object', () => {
-        const { subject, } = init({ root: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }, });
-        subject.root.b.e.h.remove('x');
-        expect(subject.state).toEqual({ root: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, }, });
-        subject.root.b.remove([ 'd', ]);
-        subject.root.remove([ 'b', ]);
-        expect(subject.state).toEqual({ root: { a: 1, }, });
+        const { subject, } = init({ child: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }, });
+        subject.child.b.e.h.remove('x');
+        expect(subject.state).toEqual({ child: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, j: { z: -0, }, }, }, }, }, });
+        subject.child.b.remove([ 'd', ]);
+        subject.child.remove([ 'b', ]);
+        expect(subject.state).toEqual({ child: { a: 1, }, });
       });
 
       test(name + ' should be able to remove an empty child', () => {
@@ -53,10 +53,10 @@ describe('remove', () => {
       });
 
       test(name + ' sub subject should be removed', () => {
-        const { subject, } = init({ root: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }, });
-        subject.root.remove([ 'b', ]);
+        const { subject, } = init({ child: { a: 1, b: { c: 2, d: 3, e: { f: 4, g: 7, h: { i: 100, x: { t: -1, }, j: { z: -0, }, }, }, }, }, });
+        subject.child.remove([ 'b', ]);
         expect(subject.b).toEqual(undefined);
-        expect(subject.root.state.b).toEqual(undefined);
+        expect(subject.child.state.b).toEqual(undefined);
       });
     });
   });

@@ -19,10 +19,10 @@ describe('arrays as state', () => {
       beforeEach(() => { invalidAccessCalls = []; });
 
       test('accessing remove object children', () => {
-        const { subject, } = init({ root: { a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, }, });
-        const { a, } = subject.root;
+        const { subject, } = init({ child: { a: [ 1, 2, 3, ], b: { c: 1, d: {}, }, }, });
+        const { a, } = subject.child;
         expect(a.state).toBeDefined();
-        subject.root.remove('a');
+        subject.child.remove('a');
         expect(invalidAccessCalls.length).toBe(0);
         expect(a.state).toBeUndefined();
       });

@@ -36,21 +36,21 @@ describe('performance', () => {
           const odd = data2;
           const firstCompany = keys(even.companies)[0];
           const firstChildOdd = keys(odd)[0];
-          const { subject: { root, }, }= init({ root: {}, });
-          root.setState(even);
+          const { subject: { child, }, }= init({ child: {}, });
+          child.setState(even);
           const time = new Date();
           for (let i = 0; i < 3000; i++) {
             if (i%7 === 0) {
-              root.clearState({});
+              child.clearState({});
             }
             if (i % 2 === 0) {
-              root.clearState(even);
-              root.companies[firstCompany].setState(odd[firstChildOdd]);
-              root.companies.remove([ firstCompany, ]);
+              child.clearState(even);
+              child.companies[firstCompany].setState(odd[firstChildOdd]);
+              child.companies.remove([ firstCompany, ]);
             } else {
-              root.clearState(odd);
-              root[firstChildOdd].setState(even.companies[firstCompany]);
-              root.remove([ firstChildOdd, ]);
+              child.clearState(odd);
+              child[firstChildOdd].setState(even.companies[firstCompany]);
+              child.remove([ firstChildOdd, ]);
             }
           }
           results.addAndRemove[name] = (new Date()-time)/3000;
@@ -60,20 +60,20 @@ describe('performance', () => {
         test('get new Children', () => {
           const even = data.companies;
           const odd = data2;
-          const { subject: { root, }, }= init({ root: {}, });
-          root.setState(even);
+          const { subject: { child, }, }= init({ child: {}, });
+          child.setState(even);
           let total = 0;
           const time = new Date();
           for (let i = 0; i < 200; i++) {
             if (i % 2 === 0) {
-              root.clearState(even);
+              child.clearState(even);
               const time = Date.now();
-              root._getChildrenRecursively();
+              child._getChildrenRecursively();
               total+=Date.now()-time;
             } else {
-              root.clearState(odd);
+              child.clearState(odd);
               const time = Date.now();
-              root._getChildrenRecursively();
+              child._getChildrenRecursively();
               total+=Date.now()-time;
             }
           }
@@ -83,8 +83,8 @@ describe('performance', () => {
         test('create and access lot of children', () => {
           const time = Date.now();
           for (let i = 0; i<300; i++) {
-            const { subject: { root, }, } = init({ root: data, });
-            root._getChildrenRecursively();
+            const { subject: { child, }, } = init({ child: data, });
+            child._getChildrenRecursively();
           }
           results.createAndAccess[name] = (new Date() - time)/300;
           console.log(name + ' = create and access 132 000 children: ', new Date() - time, 'ms');
@@ -93,13 +93,13 @@ describe('performance', () => {
         test('clearState', () => {
           const even = data;
           const odd = data2;
-          const { subject: { root, }, }= init({ root: {}, });
+          const { subject: { child, }, }= init({ child: {}, });
           const time = Date.now();
           for (let i = 0; i < 3000; i++) {
             if (i % 2 === 0) {
-              root.clearState(even);
+              child.clearState(even);
             } else {
-              root.clearState(odd);
+              child.clearState(odd);
             }
           }
           results.clearState[name] = (new Date() - time)/300;
@@ -108,18 +108,18 @@ describe('performance', () => {
         test('clearState accessed state', () => {
           const even = data;
           const odd = data2;
-          const { subject: { root, }, }= init({ root: {}, });
+          const { subject: { child, }, }= init({ child: {}, });
           let total = 0;
           for (let i = 0; i < 200; i++) {
             if (i % 2 === 0) {
-              root._getChildrenRecursively();
+              child._getChildrenRecursively();
               const time = Date.now();
-              root.clearState(even);
+              child.clearState(even);
               total+=Date.now()-time;
             } else {
-              root._getChildrenRecursively();
+              child._getChildrenRecursively();
               const time = Date.now();
-              root.clearState(odd);
+              child.clearState(odd);
               total+=Date.now()-time;
             }
           }
@@ -131,21 +131,21 @@ describe('performance', () => {
           const odd = data2;
           const firstCompany = keys(even.companies)[0];
           const firstChildOdd = keys(odd)[0];
-          const { subject: { root, }, }= init({ root: {}, });
-          root.setState(even);
+          const { subject: { child, }, }= init({ child: {}, });
+          child.setState(even);
           const time = new Date();
           for (let i = 0; i < 1500; i++) {
             if (i%7 === 0) {
-              root.clearState({});
+              child.clearState({});
             }
             if (i % 2 === 0) {
-              root.clearState(even).getChildren();
-              root.companies[firstCompany].setState(odd[firstChildOdd]).getChildren();
-              root.companies.remove([ firstCompany, ]);
+              child.clearState(even).getChildren();
+              child.companies[firstCompany].setState(odd[firstChildOdd]).getChildren();
+              child.companies.remove([ firstCompany, ]);
             } else {
-              root.clearState(odd).getChildren();
-              root[firstChildOdd].setState(even.companies[firstCompany]).getChildren();
-              root.remove([ firstChildOdd, ]);
+              child.clearState(odd).getChildren();
+              child[firstChildOdd].setState(even.companies[firstCompany]).getChildren();
+              child.remove([ firstChildOdd, ]);
             }
           }
           results.addRemoveAndInit[name] = (new Date()-time)/1500;
@@ -213,7 +213,6 @@ describe('performance', () => {
             data[i] = { a: {}, b: {}, c: {}, d: { a: {}, b: {}, c: {}, d: {}, e: {}, }, };
           }
 
-
           const time = now();
           h.clearReferences();
           h.setState(data);
@@ -222,14 +221,14 @@ describe('performance', () => {
 
         test('get state', () => {
           const data = { a: {}, b: {}, c: {}, };
-          const { subject: { root, }, }= init({ root: data, });
-          let children = values(root.getChildren());
+          const { subject: { child, }, }= init({ child: data, });
+          let children = values(child.getChildren());
           for (let i = 0; i<9; i++) {
             children.forEach(child => child.setState(data));
             children = values(children).reduce((acc, child) => acc.concat(values(child.getChildren())), []);
           }
 
-          const allChildren = root._getChildrenRecursively();
+          const allChildren = child._getChildrenRecursively();
           const time = new Date();
           for (let j = 0; j<allChildren.length; j++) {
             const ignore = allChildren[j].state;
@@ -275,25 +274,25 @@ describe('performance', () => {
         }, 15000);
 
         test('create 50000 children', () => {
-          const { subject: { root, }, }= init({ root: {}, });
+          const { subject: { child, }, }= init({ child: {}, });
           const data = {};
           for (let i = 0; i<50000; i++) {
             data[i] = { a: 1, b: {}, c: 3, d: { e: {}, }, };
           }
           const time = new Date();
-          root.setState(data);
+          child.setState(data);
           results.create[name] = (new Date()-time);
           console.log(name + ' = create 50000 lazy children. Took total of: ', new Date() - time, 'ms');
         }, 15000);
 
         test('create 50000 leaf children', () => {
-          const { subject: { root, }, }= init({ root: {}, });
+          const { subject: { child, }, }= init({ child: {}, });
           const data = {};
           for (let i = 0; i<50000; i++) {
             data[i] = i;
           }
           const time = new Date();
-          root.setState(data);
+          child.setState(data);
           results.createLeafs[name] = (new Date()-time);
           console.log(name + ' = create 50000 leaf children. Took total of: ', new Date() - time, 'ms');
         }, 15000);

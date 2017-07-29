@@ -28,19 +28,19 @@ describe('killSwitch', () => {
     describe('run ' + name + ' configuration', () => {
       test('changing removed child subject should throw an exception',
         () => {
-          const { subject: { root, }, }= init({ root: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
-          const { a, c, } = root;
+          const { subject: { child, }, }= init({ child: { a: { val: 1, }, b: 2, c: { d: { e: 3, }, }, }, });
+          const { a, c, } = child;
           const { d, } = c;
-          root.remove('a');
-          root.remove([ 'c', ]);
+          child.remove('a');
+          child.remove([ 'c', ]);
           verifyErrorOnChange(a, c, d);
         });
 
       test('accessing remove sub subject should throw an exception', () => {
-        const { subject: { root, }, }= init({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
-        const { a, b, c, } = root;
+        const { subject: { child, }, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { a, b, c, } = child;
         const { d, } = c;
-        root.remove('a', 'b', 'c');
+        child.remove('a', 'b', 'c');
         expect(() => a.setState({})).toThrow(Error);
         expect(() => b.setState({})).toThrow(Error);
         expect(() => c.setState({})).toThrow(Error);
@@ -55,9 +55,9 @@ describe('killSwitch', () => {
       });
 
       test('clearReferences', () => {
-        const { subject: { root, }, }= init({ root: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
-        const { a, b, c, } = root;
-        root.clearReferences(true);
+        const { subject: { child, }, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { a, b, c, } = child;
+        child.clearReferences(true);
         expect(() => a.state).toThrow();
         expect(() => b.state).toThrow();
         expect(() => c.state).toThrow();
@@ -70,6 +70,16 @@ describe('killSwitch', () => {
         expect(() => a.clearState({ abc: 1, })).toThrow();
         expect(() => b.clearState({ abc: 1, })).toThrow();
         expect(() => c.clearState({ abc: 1, })).toThrow();
+      });
+
+      test('invalid modification of root branch', () => {
+        const { subject, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const errors = [];
+        console.error = (str) => errors.push(str);
+        subject.setState({ x: 1, });
+        expect(errors.length).toBe(1);
+        expect(() => subject.clearState({})).toThrow();
+        expect(() => subject.remove('a')).toThrow();
       });
     });
   });

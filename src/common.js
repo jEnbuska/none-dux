@@ -9,6 +9,7 @@ export const COMMIT_TRANSACTION = 'NONEDUX::COMMIT_TRANSACTION';
 export const PUBLISH_NOW = 'NONEDUX::PUBLISH_NOW';
 export const ROLLBACK = 'NONEDUX::ROLLBACK';
 
+export const has = Object.prototype.hasOwnProperty;
 export function stringify(obj) {
   try {
     return JSON.stringify(obj, null, 2);

@@ -42,50 +42,50 @@ describe('arrays', () => {
 
         test(name + ' remove from array in arbitrary order',
           () => {
-            const { subject: { root, }, } = init({ root: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
-            root.remove([ 3, 1, 0, 7, ]);
-            expect(root.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
-            expect(root[0].state).toEqual({ c: 3, });
-            expect(root[1].state).toEqual({ e: 5, });
-            expect(root[2].state).toEqual({ f: 6, });
-            expect(root[3].state).toEqual({ g: 7, });
-            expect(root[4]).toEqual(undefined);
-            expect(root[5]).toEqual(undefined);
-            expect(root[6]).toEqual(undefined);
-            expect(root[7]).toEqual(undefined);
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
+            child.remove([ 3, 1, 0, 7, ]);
+            expect(child.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
+            expect(child[0].state).toEqual({ c: 3, });
+            expect(child[1].state).toEqual({ e: 5, });
+            expect(child[2].state).toEqual({ f: 6, });
+            expect(child[3].state).toEqual({ g: 7, });
+            expect(child[4]).toEqual(undefined);
+            expect(child[5]).toEqual(undefined);
+            expect(child[6]).toEqual(undefined);
+            expect(child[7]).toEqual(undefined);
           });
 
         test(name + ' remove pre accessed children from array in arbitrary order',
           () => {
-            const { subject: { root, }, } = init({ root: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
             for (let i = 0; i<8; i++) {
-              expect(root[i]).toBeDefined();
+              expect(child[i]).toBeDefined();
             }
-            root.remove([ 3, 1, 0, 7, ]);
-            expect(root.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
-            expect(root[0].state).toEqual({ c: 3, });
-            expect(root[1].state).toEqual({ e: 5, });
-            expect(root[2].state).toEqual({ f: 6, });
-            expect(root[3].state).toEqual({ g: 7, });
-            expect(root[4]).toEqual(undefined);
-            expect(root[5]).toEqual(undefined);
-            expect(root[6]).toEqual(undefined);
-            expect(root[7]).toEqual(undefined);
+            child.remove([ 3, 1, 0, 7, ]);
+            expect(child.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
+            expect(child[0].state).toEqual({ c: 3, });
+            expect(child[1].state).toEqual({ e: 5, });
+            expect(child[2].state).toEqual({ f: 6, });
+            expect(child[3].state).toEqual({ g: 7, });
+            expect(child[4]).toEqual(undefined);
+            expect(child[5]).toEqual(undefined);
+            expect(child[6]).toEqual(undefined);
+            expect(child[7]).toEqual(undefined);
           });
 
         test(name + ' remove from array in arbitrary order, preAccessed children',
           () => {
-            const { subject: { root, }, } = init({ root: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
-            root.remove([ 3, 1, 0, 7, ]);
-            expect(root.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
-            expect(root[0].state).toEqual({ c: 3, });
-            expect(root[1].state).toEqual({ e: 5, });
-            expect(root[2].state).toEqual({ f: 6, });
-            expect(root[3].state).toEqual({ g: 7, });
-            expect(root[4]).toEqual(undefined);
-            expect(root[5]).toEqual(undefined);
-            expect(root[6]).toEqual(undefined);
-            expect(root[7]).toEqual(undefined);
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, { d: 4, }, { e: 5, }, { f: 6, }, { g: 7, }, { h: 8, }, ], });
+            child.remove([ 3, 1, 0, 7, ]);
+            expect(child.state).toEqual([ { c: 3, }, { e: 5, }, { f: 6, }, { g: 7, }, ]);
+            expect(child[0].state).toEqual({ c: 3, });
+            expect(child[1].state).toEqual({ e: 5, });
+            expect(child[2].state).toEqual({ f: 6, });
+            expect(child[3].state).toEqual({ g: 7, });
+            expect(child[4]).toEqual(undefined);
+            expect(child[5]).toEqual(undefined);
+            expect(child[6]).toEqual(undefined);
+            expect(child[7]).toEqual(undefined);
           });
 
         test(name + ' should replace current array sub state with a array',

@@ -1,7 +1,7 @@
 import 'babel-polyfill';
 import createLeaf from './immutability/leafs';
 import shape from './shape';
-import { branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
+import { has, branchPrivates, _README_URL_, invalidParents as leafs, } from './common';
 import Branch from './immutability/Branch';
 import LegacyBranch from './immutability/LegacyBranch';
 import ProxyBranch from './immutability/ProxyBranch';
@@ -68,7 +68,8 @@ function createDummyReducer(key, root) {
   return () => root[accessState][key];
 }
 
-function definedRootBranchProperties(root, initialState){
+function definedRootBranchProperties(root, initialState) {
+  const { setState: initialSetState, } = root;
   defineProperties(root, {
     remove: {
       get() { return function () { throw new Error('Cannot remove root branch values'); }; },
@@ -76,6 +77,20 @@ function definedRootBranchProperties(root, initialState){
     clearState: {
       get() {
         return function () { throw new Error('clearState cannot be be called on root branch, instead use setState'); };
+      },
+    },
+    setState: {
+      get() {
+        return (value) => {
+          try {
+            return initialSetState.bind(root, value)();
+          } finally {
+            const invalidParams = keys(value).filter(k => !has.call(initialState, k));
+            if (invalidParams.length) {
+              console.error('Missing initialState description for "' + invalidParams.join(', ') + '"\nThis values cannot be mapped to component properties by using mapStateToProps');
+            }
+          }
+        };
       },
     },
     [accessState]: {
