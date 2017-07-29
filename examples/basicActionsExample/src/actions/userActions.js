@@ -66,6 +66,8 @@ export function selectUser(id) {
 export function fetchUsers() {
   return async function (store) {
     const { users, todosByUser, } = store;
+    users.status.setState({ pending: false, });
+    todosByUser.status.setState({ pending: true, });
     await new Promise(res => setTimeout(res, 800));
     let userData = localStorage.getItem('users');
     userData = userData ? JSON.parse(userData) : {};
@@ -73,7 +75,5 @@ export function fetchUsers() {
     todoData = todoData ? JSON.parse(todoData) : {};
     users.setState({ content: userData, status: { pending: false, }, });
     todosByUser.setState({ content: todoData, status: { pending: false, }, });
-    users.status.setState({ pending: true, });
-    todosByUser.status.setState({ pending: true, });
   };
 }
