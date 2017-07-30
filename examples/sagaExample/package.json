@@ -1,5 +1,5 @@
 {
-  "name": "react_course",
+  "name": "nonedux_saga",
   "version": "0.0.1",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
     "build": "webpack --config webpack.config.production.js",
     "test": "mocha --compilers js:babel-core/register tests/**/*.test.js",
     "test:watch": "npm run test -- --watch",
-    "start": "webpack-dev-server --config webpack.config.development.js --colors --progress --inline"
+    "start": "node_modules/.bin/webpack-dev-server --config webpack.config.development.js --colors --progress --inline"
   },
   "author": "Joona Enbuska",
   "license": "UNLICENCED",

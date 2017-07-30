@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const merge = require('webpack-merge');
 const { context, distPath, publicPath, base, API_URL, vendor, }= require('./webpack.config.base');
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8001;
 const host = process.env.HOST || '0.0.0.0';
 
 module.exports = merge(base('development'), {
