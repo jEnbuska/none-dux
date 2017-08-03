@@ -1,8 +1,9 @@
 import Branch from './Branch';
 
-import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, poorSet, } from '../common';
+import { branchPrivates, identityPrivates, SUBJECT, GET_STATE, poorSet, _README_URL_, } from '../common';
+
 const { onSetState, onClearState, onRemove, identity, onRemoveChild, handleChange, dispatcher, } = branchPrivates;
-const { removeChild, renameSelf, resolve, push, branch, } = identityPrivates;
+const { removeChild, renameSelf, resolve, push, branch, clearReferences, } = identityPrivates;
 const onRemoveFromArray = 'NONEDUX::onRemoveFromArray';
 const onRemoveFromObject = 'NONEDUX::onRemoveFromObject';
 
@@ -25,6 +26,17 @@ export default class Legacy extends Branch {
       }
     }
     defineProperties(this, properties);
+  }
+
+  clearReferences(middleware) {
+    if (!middleware) {
+      console.warn('clearReferences has been deprecated.\nclearReferences is automatically run after action has been executed and there is no other pending actions\nFurther details see: '+_README_URL_ + ' section "Important detail about Actions"');
+    }
+    for (const key in this[identity]) {
+      const child = this[identity][key];
+      delete child[branch];
+      child[clearReferences]();
+    }
   }
 
   [onSetState](newState, prevState) {
@@ -72,7 +84,7 @@ export default class Legacy extends Branch {
   }
 
   [onRemoveFromArray](indexes, state) {
-    const toBeRemoved = poorSet(indexes);
+    const toBeRemoved = poorSet(indexes)
     const nextState = [];
     const stateLength = state.length;
     for (let i = 0; i<stateLength; i++) {
