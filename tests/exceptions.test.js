@@ -11,7 +11,7 @@ function verifyErrorOnChange(...params) {
   });
 }
 
-describe('killSwitch', () => {
+describe('exception', () => {
   beforeAll(() => {
     Object.assign(invalidReferenceHandler,
       {
@@ -55,21 +55,24 @@ describe('killSwitch', () => {
       });
 
       test('clearReferences', () => {
-        const { subject: { child, }, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        const { subject: { child, }, }= init({ child: { a: { valA: {}, }, b: { valB: {}, }, c: { valC: {}, }, }, });
         const { a, b, c, } = child;
+        const { valA, } = a;
+        const { valB, } = b;
+        const { valC, } = c;
         child.clearReferences(true);
-        expect(() => a.state).toThrow();
-        expect(() => b.state).toThrow();
-        expect(() => c.state).toThrow();
-        expect(() => a.remove('b')).toThrow();
-        expect(() => b.remove('val')).toThrow();
-        expect(() => c.remove('d')).toThrow();
-        expect(() => a.setState({ abc: 1, })).toThrow();
-        expect(() => b.setState({ abc: 1, })).toThrow();
-        expect(() => c.setState({ abc: 1, })).toThrow();
-        expect(() => a.clearState({ abc: 1, })).toThrow();
-        expect(() => b.clearState({ abc: 1, })).toThrow();
-        expect(() => c.clearState({ abc: 1, })).toThrow();
+        expect(() => valA.state).toThrow();
+        expect(() => valB.state).toThrow();
+        expect(() => valC.state).toThrow();
+        expect(() => valA.remove('a')).toThrow();
+        expect(() => valB.remove('b')).toThrow();
+        expect(() => valC.remove('c')).toThrow();
+        expect(() => valA.setState({ abc: 1, })).toThrow();
+        expect(() => valB.setState({ abc: 1, })).toThrow();
+        expect(() => valC.setState({ abc: 1, })).toThrow();
+        expect(() => valA.clearState({ abc: 1, })).toThrow();
+        expect(() => valB.clearState({ abc: 1, })).toThrow();
+        expect(() => valC.clearState({ abc: 1, })).toThrow();
       });
 
       test('invalid modification of root branch', () => {

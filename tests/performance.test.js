@@ -214,7 +214,7 @@ describe('performance', () => {
           }
 
           const time = now();
-          h.clearReferences();
+          h.clearReferences(true);
           h.setState(data);
           results.setStateWithClearReferences[name] = (now()-time) + ' ns';
         }, 15000);
