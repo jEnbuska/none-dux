@@ -24,6 +24,12 @@ describe('using action creators', () => {
         const res = store.dispatch(actionCreator(dux => dux.a.setState({ b: { c: {}, d: {}, }, })));
         expect(res).toBeInstanceOf(Promise);
       });
+
+      test('action should be applied without awaiting them', () => {
+        const { store, subject, } = init({ a: { b: {}, }, });
+        store.dispatch(actionCreator(dux => dux.a.setState({ b: { c: {}, d: {}, }, })));
+        expect(subject.state).toEqual({ a: { b: { c: {}, d: {}, }, }, });
+      });
     });
   });
 });
