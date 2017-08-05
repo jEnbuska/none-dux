@@ -20,8 +20,11 @@ const initialState= {
 
 const { reducers, middlewares, subject, } = nonedux({ initialState, });
 
-const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))(createStore);
-const store = createStoreWithMiddleware(combineReducers({ ...reducers, }), window.devToolsExtension && window.devToolsExtension());
+const store = createStore(
+  combineReducers({ ...reducers, }),
+  window.devToolsExtension && window.devToolsExtension(),
+  applyMiddleware(...middlewares, shape.validatorMiddleware(subject, validators))
+);
 
 const Root = () => (
   <Provider store={store}>

@@ -17,7 +17,7 @@
   "private": true,
   "dependencies": {
     "loglevel": "^1.4.1",
-    "none-dux": "^11.4.0",
+    "none-dux": "^11.5.2",
     "prop-types": "^15.5.10",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
