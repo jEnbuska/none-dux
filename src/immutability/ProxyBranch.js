@@ -46,8 +46,9 @@ const proxyHandler = {
       if (Branch.valueCanBeBranch(state[k])) {
         return Reflect.apply(createChildProxy, target, [ target[dispatcher], target[identity][k] || target[identity][push](k), ]);
       }
+    } else {
+      Branch.onAccessingRemovedBranch(target[identity].getId(), k);
     }
-    Branch.onAccessingRemovedBranch(target[identity].getId(), k);
   },
 };
 
