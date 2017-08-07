@@ -1,10 +1,10 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 
 function throwError() {
   throw new Error();
 }
 describe('transaction', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run '+name+' configuration', () => {
       test('transaction no nested',
@@ -55,7 +55,7 @@ describe('transaction', () => {
           const states = new Set();
           const { store, subject, } = init({ a: {}, b: {}, });
           store.subscribe(() => states.add(store.getState()));
-          for (let index = 11; index < 12; index++) {
+          for (let index = 0; index < 12; index++) {
             try {
               subject.transaction(({ a, b, }) => {
                 index === 0 && throwError();
@@ -116,9 +116,7 @@ describe('transaction', () => {
                 });
               });
               throwError();
-            } catch (e) {
-
-            }
+            } catch (_) { /* ignore */ }
           });
           expect([ ...states, ].length).toBe(2);
           expect([ ...states, ]).toEqual([

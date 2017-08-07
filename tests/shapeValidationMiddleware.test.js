@@ -1,4 +1,4 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 import { shape, } from '../src/';
 import onErrorHandler from '../src/shape/shapeErrorHandler';
 
@@ -15,7 +15,7 @@ describe('Validator middleware', () => {
     onErrorHandler.onStrictError = ((identity, key, state) => onStrictErrors.push({ identity, key, state, }));
     onErrorHandler.onRequiredError = ((identity, key) => onIsRequiredErrors.push({ identity, key, }));
   });
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = (state, shape) => createStoreWithNonedux(state, shape, false, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {

@@ -1,7 +1,7 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 
 describe('circular state', () => {
-  [ 'legacy', 'proxy' ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
@@ -15,6 +15,6 @@ describe('circular state', () => {
               child = child.circular;
             }
           });
-      })
-  })
+      });
+  });
 });

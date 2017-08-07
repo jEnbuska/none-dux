@@ -1,6 +1,5 @@
-import Legacy from '../src/immutability/Legacy';
-import { createStoreWithNonedux, createReduxStore, } from './utils';
-import { subjects, triggers, } from './reduxReducers/types';
+import { createStoreWithNonedux, createReduxStore, configs} from './utils';
+import { subjects, } from './reduxReducers/types';
 import { data, data2, } from './resources';
 
 const now = require('nano-time');
@@ -26,7 +25,7 @@ describe('performance', () => {
     setStateBetterBadCase: {},
     setStateWithClearReferences: {},
   };
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
 
     describe('run ' + name + ' configuration',

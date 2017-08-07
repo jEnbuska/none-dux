@@ -1,10 +1,10 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 import Branch from '../src/immutability/Branch';
 
 describe('accessing remove node', () => {
   let invalidAccessCalls = [];
 
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       beforeAll(() => {

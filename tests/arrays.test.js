@@ -1,9 +1,9 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 import Branch from '../src/immutability/Branch';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, GET_PREV_STATE, } from '../src/common';
 
 describe('arrays', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {
@@ -90,7 +90,7 @@ describe('arrays', () => {
 
         test(name + ' should replace current array sub state with a array',
           () => {
-            const { subject: {child}, } = init({child: { a: [ 1, 2, { b: 2, }, ], }});
+            const { subject: { child, }, } = init({ child: { a: [ 1, 2, { b: 2, }, ], }, });
             expect(child.state).toEqual({ a: [ 1, 2, { b: 2, }, ], });
             child.clearState({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
             expect(child.state).toEqual({ a: [ 'abc', { test: 'empty', }, 2, 3, 4, ], });
@@ -234,7 +234,7 @@ describe('arrays', () => {
 
         test(name + ' shift array values',
           () => {
-            const { subject: {child}, } = init({child: [ { a: 1, }, { b: 2, }, { c: 3, }, ]});
+            const { subject: { child, }, } = init({ child: [ { a: 1, }, { b: 2, }, { c: 3, }, ], });
             expect(child.state).toEqual([ { a: 1, }, { b: 2, }, { c: 3, }, ]);
             const { 0: a, 1: b, 2: c, } = child;
             child.clearState([ { c: 3, }, { a: 1, }, { b: 2, }, ]);

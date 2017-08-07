@@ -1,4 +1,4 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs, } from './utils';
 
 function actionCreator(apply) {
   return function (dux) {
@@ -7,7 +7,7 @@ function actionCreator(apply) {
 }
 
 describe('using action creators', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name==='proxy');
     describe('run ' + name +' configuration', () => {
       test('should be able to dispatch action creator actions after clearReferences', () => {

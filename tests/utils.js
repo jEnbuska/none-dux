@@ -14,6 +14,8 @@ export function createStoreWithNonedux(initialState, shape, saga, proxy = false)
   return { subject, store, };
 }
 
+export const configs = [ 'legacy', 'proxy', ];
+
 export function createReduxStore() {
   return createStore(reducers);
 }

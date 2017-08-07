@@ -1,10 +1,8 @@
-import { createStoreWithNonedux, } from './utils';
-import { branchPrivates, } from '../src/common';
-const {identity} = branchPrivates
+import { createStoreWithNonedux, configs, } from './utils';
 
 const { keys, } = Object;
 describe('get children', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration',
       () => {

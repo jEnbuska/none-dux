@@ -1,4 +1,4 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs} from './utils';
 import { invalidReferenceHandler, SET_STATE, CLEAR_STATE, REMOVE, GET_STATE, } from '../src/common';
 
 function verifyErrorOnChange(...params) {
@@ -23,7 +23,7 @@ describe('exception', () => {
     );
   });
 
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration', () => {
       test('changing removed child subject should throw an exception',

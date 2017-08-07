@@ -1,7 +1,7 @@
-import { createStoreWithNonedux, } from './utils';
+import { createStoreWithNonedux, configs} from './utils';
 
 describe('setState', () => {
-  [ 'legacy', 'proxy', ].forEach(name => {
+  configs.forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run '+name+' configuration', () => {
       test(name+' change root state', () => {
