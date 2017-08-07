@@ -23,7 +23,7 @@ describe('exception', () => {
     );
   });
 
-  [ 'legacy', 'legacy', ].forEach(name => {
+  [ 'legacy', 'proxy', ].forEach(name => {
     const init = state => createStoreWithNonedux(state, undefined, undefined, name === 'proxy');
     describe('run ' + name + ' configuration', () => {
       test('changing removed child subject should throw an exception',
@@ -80,6 +80,12 @@ describe('exception', () => {
         expect(() => subject.setState({ x: 1, })).toThrow();
         expect(() => subject.clearState({})).toThrow();
         expect(() => subject.remove('a')).toThrow();
+      });
+
+      test('invalid setState param', () => {
+        const { subject: { child, }, }= init({ child: { a: { b: 1, }, b: { val: 2, }, c: { d: { val: 3, }, }, }, });
+        expect(() => child.setState(1)).toThrow();
+        expect(() => child.setState(child.a)).toThrow();
       });
     });
   });
