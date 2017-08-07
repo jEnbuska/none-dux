@@ -3,7 +3,7 @@ import { branchPrivates, } from '../common';
 
 const { dispatcher, } = branchPrivates;
 
-export default class BranchLegacy extends Legacy {
+export default class LegacyBranch extends Legacy {
 
   setState(value) {
     this[dispatcher].dispatch(super.setState(value));

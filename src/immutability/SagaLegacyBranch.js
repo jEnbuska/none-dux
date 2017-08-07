@@ -3,7 +3,7 @@ import Legacy from './Legacy';
 const { defineProperty, } = Object;
 const bindables = [ 'transaction', 'getId', 'remove', 'getIdentity', 'setState', 'clearState', ];
 
-export default class SagaBranchLegacy extends Legacy {
+export default class SagaLegacyBranch extends Legacy {
 
   constructor(identity, dispatched, state) {
     super(identity, dispatched, state);
