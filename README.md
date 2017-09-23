@@ -1,17 +1,10 @@
 
 ![none-dux_sauli1](https://cloud.githubusercontent.com/assets/11061511/26650375/de9cf298-4651-11e7-9af2-b71a51db3e95.jpg)
 
-<sub>Known performance and memory issues have been fixed on 11.2  (manually calling clearReferences is deprecated)</sub>
-
-Small sized React-redux extension, that opens a possibility to remove the most of redux boilerplate
-
+Alternative for 'redux-thunk'
 0 reducer boilerplate
 
-Alternative for 'redux-thunk'
-
-Can also be used with redux-saga: <sub>(No documentation: See /examples/sagaExample)</sub>
-
-Application state can be changed directly from actions
+Application state can be changed directly from actions creators
 
 Action objects are auto generated and dispatched  when (***setState / clearState / remove***) functions are invoked
 
@@ -88,101 +81,74 @@ const root = (
 
 export function removeUser(userId) {
    return function (nonedux, {dispatch}) {
-      const {users, todosByUser} = nonedux;
-      const user = users[userId];
-      
-      user.setState({ verified: false, });
-      
-      //All promises must be returned to keep none-dux running fast
-      return api.deleteUser(userId)
+       const {users, todosByUser} = nonedux;
+       const user = users[userId];      
+       user.setState({ verified: false, });
+       //All promises must be returned
+       return api.deleteUser(userId)
         .then(()=> {;
-          users.remove(userId);
-          todosByUser.remove(userId);
-        });
+            users.remove(userId);
+            todosByUser.remove(userId);
+         });
     }
 }
 ...
 
 function createPayment(userId, data){
-  return function({users, transactions}){
-  
-  const user = users[userId];
-  if(!user.state.pendingPayment){
-     
-     user.setState({pendingPaymend: true})
-     const id = uuid(); 
-     const {[id]: transaction} = transactions[userId].setState({
-       [id]: {id, ...data, userId, validated: false, }
-     })
-     
-     return api.postTransactions(transaction.state)
-      .then(() => transaction.setState({validated: true}))
-      .then(() => user.setState({pendingPayment: false}))
-      .catch(err => { ... })
-    }
-  }
-}
-
-export function removeUserTransactional(userId) {
-   return function (nonedux, {dispatch}) {
-   
-      const {users, todosByUser} = nonedux;
-      const user = users[userId];
-      
-      user.setState({ verified: false, });
-      
-      return api.deleteUser(userId)
-        .then(()=> {
-          nonedux.transaction(({users, todosByUser}) => { 
-            // only 1 update to store, if one of them fails both changes are cancelled
-            users.remove(userId);
-            todosByUser(userId);
+    return function({users, transactions}){  
+    const user = users[userId];
+    if(!user.state.pendingPayment){     
+        user.setState({pendingPaymend: true})
+        const id = uuid(); 
+        const {[id]: transaction} = transactions[userId].setState({
+            [id]: {id, ...data, userId, validated: false, }
+        })     
+        return api.postTransactions(transaction.state)
+          .then(() => {
+              transaction.setState({validated: true})
+              user.setState({pendingPayment: false})
           })
-        });
+          .catch(err => { ... })
+        }
     }
 }
 ```
 # Important detail about Actions
-All promises must be returned from Actions, it helps none-dux with cleaning up garbage. 
+All promises must be returned from Actions, otherwise changing app state after promise will throw error. 
 Alternative use async await and call await to all promises. 
-If Promise is not returned, and Promise references to none-dux objects this will throw an Error 
 ```
+
+
 function returnPromisesAsynAwait() {
-  return async function ({ data, notifications, }) {
-    notifications.setState({ dataFetch: 'pending', });
-    try {
-      const dataResult = await api.fetchData();
-      data.setState(dataResult.data);
-      notifications.setState({ dataFetch: 'success', });
-      await new Promise(resolve =>
-        setTimeout(() => {
-          notifications.setState({ dataFetch: '', });
-          resolve();
-        }, 2000));
-    } catch (e) {
-      notifications.setState({ dataFetch: 'error', });
-      await new Promise(resolve =>
-        setTimeout(() => {
-          notifications.setState({ dataFetch: '', });
-          resolve();
-        }, 2000));
-    }
-  };
+    return async function ({ data, notifications, }) {
+        notifications.setState({ dataFetch: 'pending', });
+        try {
+            const dataResult = await api.fetchData();
+            data.setState(dataResult.data);
+            notifications.setState({ dataFetch: 'success', });
+            await sleep();
+            notifications.setState({ dataFetch: '', })
+        } catch (e) {
+            notifications.setState({ dataFetch: 'error', });
+            await sleep();
+            notifications.setState({ dataFetch: '', });
+        }
+    };
 }
 
 function returnPromisesTraditional() {
   return function ({ data, notifications, }) {
     notifications.setState({ dataFetch: 'pending', });
-    return api.fetchData()                         // return Promise
+    return api.fetchData() // return Promise                         
       .then((result) => {
         data.setState(result.data);
         notifications.setState({ dataFetch: 'success', });
-        return new Promise(() =>                    // return Promise
-          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+        return sleep() // return Promise                             
+          .then(() => notifications.setState({ dataFetch: '', }))
       }).catch(() => {
         notifications.setState({ dataFetch: 'error', });
-        return new Promise(() =>                  // return Promise
-          setTimeout(() => notifications.setState({ dataFetch: '', }), 2000));
+        return sleep()  // return Promise
+          .then(() => notifications.setState({ dataFetch: '', }))
       });
   };
 }
@@ -235,13 +201,15 @@ target.remove(...[1,2,3]);
 ```
 
 ## State
-**Root level** reducer variables must be defined at nonedux initialState
+**Root level** state variables must be defined at nonedux initialState
 
-***Leaf*** values like String, Numbers, Date, etc. Can only be changed through parent object and used through parents ***state***
+***Leaf*** values like String, Numbers, Date, etc. Can only be changed through parent Object/Array and used through parents ***state***
 ```
-console.log(target.state)// { name: 'text' };
-console.log(target.name); //undefined
-console.log(target.state.name); //'text'
+{
+  console.log(target.state)// { name: 'text' };
+  console.log(target.name); //undefined
+  console.log(target.state.name); //'text'
+}
 ...
 {
   const {data} = nonedux.data.setState({ str: 'abc' });
@@ -259,19 +227,6 @@ console.log(target.state.name); //'text'
   console.log(data.obj) //Branch: ...
    
   console.log(data.obj.state) // { str: 'ok' }
-}
-```
-
-Types can be changed
-
-```
-function stateExample(){
-  return function(nonedux){
-     console.log(nonedux.state)//{a: {}}
-     nonedux.setState({a:1})
-     nonedux.setState({a: 'hello none-dux'})
-     nonedux.setState({a: {b: {c: {} } } } )
-  }
 }
 ```
 ### If you redux stack consists of redux, react-redux and redux-thunk you can try out none-dux with a few steps:
@@ -327,11 +282,11 @@ replace with something like
  } 
 ```
 
-## Type checking
+## Optional type checking
 
 ### Type checking is only intended for development and does not work on old browsers
 #### It provides console errors when something breaks specifications.
-##### 1. Adding shape validator as middleware
+##### Step 1. Adding shape validator as middleware
 ```
 import nonedux, { shape } from 'none-dux
 import validator from './validator'
@@ -342,7 +297,7 @@ const createStoreWithMiddleware = applyMiddleware(...middlewares, shape.validato
 const store = createStoreWithMiddleware(combineReducers({ ...reducers, })
 ...
 ```
-##### 2. Creating validator
+##### Step 2. Creating validator
 ```
 const { types, any, validatorMiddleware } = shape;
 const { isRequired, strict, string, number, bool } = types;
@@ -350,7 +305,7 @@ const { isRequired, strict, string, number, bool } = types;
 const validator = {
   ...isRequired.strict,  // ! Use destructed when you have Objects shape spesification
   todosByUser: {
-    ...isRequired,           // Not null not undefined
+    ...isRequired,           // Not null nor undefined
     [any]: {                              // byUserIds
       [any]: {
         ...strict,                 // byTodoIds.  'strict' console errors when values outside of spec are added
@@ -422,19 +377,6 @@ Will work:
 Wont work:
 { [any]: any, }     //any is not type but identifier
 { something: any }  //same here
-```
-
-If you do not have object spread available (with 'objects' shape):
-```
-//instead of
-{
-  ...strict.isRequired
-}
-//do
-const {spec} = shape;
-{
- [spec]: isRequired.strict[spec]
-}
 ```
 ###### Using shape makes the performance slower so check process.end.NODE_ENV before adding it as middleware
 
